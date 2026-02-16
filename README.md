@@ -294,6 +294,7 @@ cd config
 - **API 문서**: `docs/api/`
 - **사용자 가이드**: `docs/user-guide/`
 - **개발 계획서**: `X-ray_Detector_Optimal_Project_Plan.md`
+- **MoAI-ADK 최적화 지침**: `.moai/docs/optimization-directives.md` - 컨텍스트 최적화 및 질문 빈도 개선 지침
 
 ## 기여
 
