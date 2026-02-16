@@ -196,6 +196,8 @@
       "mcp__context7__get-library-docs",
       "mcp__context7__resolve-library-id",
       "mcp__sequential-thinking__*",
+      "mcp__codex__codex",
+      "mcp__codex__codex-reply",
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
