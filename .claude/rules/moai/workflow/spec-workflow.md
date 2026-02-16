@@ -1,3 +1,9 @@
+---
+paths:
+  - ".moai/specs/**/*"
+  - "**/spec.md"
+---
+
 # SPEC Workflow
 
 MoAI's three-phase development workflow with token budget management.

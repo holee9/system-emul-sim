@@ -1,3 +1,10 @@
+---
+paths:
+  - ".moai/specs/**/*"
+  - "**/*test*"
+  - ".moai/config/sections/quality.yaml"
+---
+
 # Workflow Modes
 
 Development methodology reference for MoAI-ADK SPEC workflow.

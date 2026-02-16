@@ -1,3 +1,8 @@
+---
+paths:
+  - ".claude/skills/**/*"
+---
+
 # Skill Authoring
 
 Guidelines for creating MoAI skills following the Agent Skills open standard (agentskills.io).

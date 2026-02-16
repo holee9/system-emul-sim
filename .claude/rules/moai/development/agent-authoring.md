@@ -1,3 +1,8 @@
+---
+paths:
+  - ".claude/agents/**/*"
+---
+
 # Agent Authoring
 
 Guidelines for creating custom agents in MoAI-ADK.

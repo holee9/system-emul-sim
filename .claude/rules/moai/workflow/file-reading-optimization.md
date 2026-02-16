@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*.{py,ts,tsx,js,jsx,go,java,cs,cpp,hpp,rs,kt,scala,swift,php,rb,ex}"
+  - "**/*.{sv,v,vhd,vhdl}"
+---
+
 # File Reading Optimization
 
 Guidelines for efficient file reading to minimize token consumption.
