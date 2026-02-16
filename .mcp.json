@@ -10,11 +10,22 @@
       "$comment": "Step-by-step reasoning for complex problems",
       "command": "cmd.exe",
       "args": ["/c", "npx -y @modelcontextprotocol/server-sequential-thinking"]
+    },
+    "codex": {
+      "$comment": "OpenAI Codex - Claude Code integration for task delegation",
+      "command": "C:\\Users\\user\\.vscode\\extensions\\openai.chatgpt-0.4.74-win32-x64\\bin\\windows-x86_64\\codex.exe",
+      "args": ["mcp-server"]
+    },
+    "pencil": {
+      "$comment": "UI/UX design editing for .pen files",
+      "command": "c:\\Users\\user\\.vscode\\extensions\\highagency.pencildev-0.6.24\\out\\mcp-server-windows-x64.exe",
+      "args": ["--app", "visual_studio_code"],
+      "type": "stdio"
     }
   },
   "staggeredStartup": {
     "enabled": true,
     "delayMs": 500,
-    "connectionTimeout": 15000
+    "connectionTimeout": 60000
   }
 }
