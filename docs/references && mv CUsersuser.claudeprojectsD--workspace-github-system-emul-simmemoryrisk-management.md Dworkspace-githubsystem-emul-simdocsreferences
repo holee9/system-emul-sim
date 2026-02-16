@@ -1,0 +1,379 @@
+# FPGA Patterns
+
+FPGA 개발 중 학습된 패턴, 모범 사례, 회피해야 할 안티패턴을 기록합니다.
+
+## Artix-7 XC7A35T 특성
+
+### 리소스 제약
+```
+Logic Cells:   33,280
+CLB Slices:    5,200
+LUTs:          20,800
+Block RAM:     50 (36Kb each, 225 KB total)
+DSP48E1:       90
+GTP:           4 (6.6 Gbps each)
+User I/O:      ~250
+```
+
+### 사용률 목표
+- **전체 목표**: <60% (12,480 LUTs)
+- **예상 사용률**: 34-58% (7,000-12,000 LUTs)
+- **여유율**: 40% 유지 (업그레이드 여유)
+
+### 업그레이드 경로 (Pin-Compatible)
+```
+XC7A35T  → XC7A50T  (+57% LUTs)  - 첫 번째 선택
+XC7A50T  → XC7A75T  (+127% LUTs) - 두 번째 선택
+XC7A75T  → XC7A100T (+205% LUTs) - 최대 선택
+```
+
+## Clock Domain 전략
+
+### 클록 도메인 (4개)
+```verilog
+clk_sys        // System clock (100 MHz, 레지스터, FSM)
+clk_roic       // ROIC interface clock (LVDS deserializer)
+clk_csi2_byte  // CSI-2 byte clock (DDR-to-byte 변환)
+clk_spi        // SPI clock (최대 50 MHz)
+```
+
+### CDC (Clock Domain Crossing) 패턴
+```verilog
+// 패턴 1: 단일 비트 신호 (Dual-FF Synchronizer)
+module sync_bit (
+    input  logic clk_dst,
+    input  logic rst_n,
+    input  logic data_src,
+    output logic data_dst
+);
+    logic sync_ff1, sync_ff2;
+
+    always_ff @(posedge clk_dst or negedge rst_n) begin
+        if (!rst_n) begin
+            sync_ff1 <= 1'b0;
+            sync_ff2 <= 1'b0;
+        end else begin
+            sync_ff1 <= data_src;
+            sync_ff2 <= sync_ff1;
+        end
+    end
+
+    assign data_dst = sync_ff2;
+endmodule
+
+// 패턴 2: 다중 비트 데이터 (Gray Code + Dual-FF)
+// 또는 Async FIFO 사용
+
+// 패턴 3: 핸드셰이크 (Req-Ack Protocol)
+// 느린 클록 → 빠른 클록 데이터 전송
+```
+
+## BRAM 사용 패턴
+
+### Ping-Pong Line Buffer
+```verilog
+// 3072 x 16-bit x 2 banks = 3 BRAMs
+// Bank A: Write while Bank B reads
+// Bank B: Write while Bank A reads
+
+module line_buffer_pingpong (
+    input  logic        clk_wr,
+    input  logic        clk_rd,
+    input  logic        rst_n,
+    input  logic [15:0] data_in,
+    input  logic        wr_en,
+    input  logic        rd_en,
+    output logic [15:0] data_out,
+    output logic        line_ready
+);
+    // Dual-port BRAM instantiation
+    // Xilinx BRAM primitive or inference
+
+    logic bank_sel; // Ping-pong control
+
+    // Bank switching logic
+    always_ff @(posedge clk_wr) begin
+        if (line_complete) begin
+            bank_sel <= ~bank_sel;
+            line_ready <= 1'b1;
+        end
+    end
+endmodule
+```
+
+### BRAM 추론 vs Instantiation
+- **추론 (Inference)**: 간단한 경우, 이식성 좋음
+- **Instantiation**: 복잡한 경우, 타이밍 최적화 필요시
+
+```verilog
+// 추론 예제
+logic [15:0] mem [0:3071];
+
+always_ff @(posedge clk) begin
+    if (wr_en)
+        mem[wr_addr] <= wr_data;
+    rd_data <= mem[rd_addr];
+end
+
+// Instantiation 예제 (Xilinx)
+RAMB36E1 #(
+    .READ_WIDTH_A(18),
+    .WRITE_WIDTH_A(18),
+    .WRITE_MODE_A("READ_FIRST")
+) bram_inst (
+    .CLKARDCLK(clk),
+    .ADDRARDADDR(addr),
+    .DIADI(data_in),
+    .DOADO(data_out),
+    // ...
+);
+```
+
+## FSM 설계 패턴
+
+### Panel Scan Timing FSM
+```verilog
+typedef enum logic [2:0] {
+    IDLE          = 3'b000,
+    INTEGRATE     = 3'b001,
+    READOUT       = 3'b010,
+    LINE_DONE     = 3'b011,
+    FRAME_DONE    = 3'b100,
+    ERROR         = 3'b101
+} fsm_state_t;
+
+fsm_state_t state, next_state;
+
+// State register
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+        state <= IDLE;
+    else
+        state <= next_state;
+end
+
+// Next state logic (combinational)
+always_comb begin
+    next_state = state;
+    case (state)
+        IDLE: begin
+            if (start_cmd)
+                next_state = INTEGRATE;
+        end
+        INTEGRATE: begin
+            if (integrate_timeout)
+                next_state = ERROR;
+            else if (integrate_done)
+                next_state = READOUT;
+        end
+        // ... other states
+    endcase
+end
+
+// Output logic (registered outputs preferred for timing)
+always_ff @(posedge clk) begin
+    case (state)
+        IDLE:       gate_enable <= 1'b0;
+        INTEGRATE:  gate_enable <= 1'b1;
+        READOUT:    gate_enable <= 1'b0;
+        // ...
+    endcase
+end
+```
+
+### FSM 커버리지 목표
+- **상태 커버리지**: 100% (모든 상태 방문)
+- **전이 커버리지**: 100% (모든 유효한 전이 실행)
+- **출력 커버리지**: ≥90%
+
+## CSI-2 TX 패턴
+
+### D-PHY via OSERDES + LVDS
+```verilog
+// Artix-7에서 D-PHY 구현
+// OSERDES + LVDS IO 사용 (~1.0-1.25 Gbps/lane)
+
+module csi2_dphy_tx_lane (
+    input  logic       clk_byte,    // Byte clock (lane_speed / 8)
+    input  logic       clk_hs,      // High-speed clock (lane_speed)
+    input  logic       rst_n,
+    input  logic [7:0] data_in,
+    input  logic       data_valid,
+    output logic       dphy_dp,     // D-PHY DP (differential +)
+    output logic       dphy_dn      // D-PHY DN (differential -)
+);
+    // OSERDES 8:1 serialization
+    OSERDESE2 #(
+        .DATA_RATE_OQ("DDR"),
+        .DATA_WIDTH(8),
+        .TRISTATE_WIDTH(1)
+    ) oserdes_inst (
+        .OQ(serial_data),
+        .CLK(clk_hs),
+        .CLKDIV(clk_byte),
+        .D1(data_in[0]),
+        .D2(data_in[1]),
+        // ... D3-D8
+        .RST(~rst_n)
+    );
+
+    // LVDS output buffer
+    OBUFDS obufds_inst (
+        .I(serial_data),
+        .O(dphy_dp),
+        .OB(dphy_dn)
+    );
+endmodule
+```
+
+### Lane 속도 제약
+- **Artix-7 OSERDES 한계**: ~1.0-1.25 Gbps/lane
+- **4-lane total**: ~4-5 Gbps effective
+- **Protocol overhead**: ~20% (CSI-2 framing, CRC)
+
+### Packet 구조
+```
+[Short Packet Header]
+  - Data ID (6-bit): RAW16 = 0x2C
+  - Virtual Channel (2-bit)
+  - Word Count (16-bit)
+  - ECC (8-bit)
+
+[Long Packet]
+  - Header
+  - Payload (line data)
+  - Footer (CRC16)
+```
+
+## Timing Closure 전략
+
+### Constraint 우선순위
+1. **Clock constraints** (create_clock, create_generated_clock)
+2. **Input/Output delays** (set_input_delay, set_output_delay)
+3. **Clock domain crossing** (set_max_delay, set_false_path)
+4. **Multicycle paths** (set_multicycle_path)
+
+### 타이밍 위반 해결 순서
+```
+1. Critical path 식별 (Vivado Timing Summary)
+2. Logic level 확인 (>10 levels는 파이프라인 고려)
+3. Fanout 확인 (>100 fanout은 버퍼 삽입)
+4. Clock skew 확인
+5. Placement 최적화 (Floorplan, Pblock)
+6. 마지막 수단: Pipeline register 추가
+```
+
+### XDC Constraints 예제
+```tcl
+# System clock
+create_clock -period 10.000 -name clk_sys [get_ports clk_sys]
+
+# CSI-2 byte clock (derived)
+create_generated_clock -name clk_csi2_byte \
+    -source [get_pins pll_inst/CLKOUT0] \
+    -divide_by 8 [get_pins csi2_tx/clk_byte]
+
+# Input delay (SPI from SoC)
+set_input_delay -clock clk_spi -max 2.0 [get_ports spi_mosi]
+set_input_delay -clock clk_spi -min 0.5 [get_ports spi_mosi]
+
+# False path (CDC handled by sync logic)
+set_false_path -from [get_clocks clk_sys] -to [get_clocks clk_roic]
+```
+
+## 안티패턴 (절대 회피)
+
+### ❌ Combinational Loop
+```verilog
+// 잘못된 예: 조합 루프 발생
+assign a = b | c;
+assign b = a & d;  // WRONG: combinational loop
+```
+
+### ❌ Latch Inference (의도하지 않은)
+```verilog
+// 잘못된 예: incomplete case/if 문
+always_comb begin
+    case (sel)
+        2'b00: out = a;
+        2'b01: out = b;
+        // 2'b10, 2'b11 case missing -> latch inferred
+    endcase
+end
+
+// 올바른 예: default case 추가
+always_comb begin
+    case (sel)
+        2'b00: out = a;
+        2'b01: out = b;
+        default: out = 1'b0;  // CORRECT
+    endcase
+end
+```
+
+### ❌ Asynchronous Reset 남용
+```verilog
+// 권장하지 않음: 모든 로직에 async reset
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+        data_reg <= 16'h0000;  // 모든 레지스터에 async reset
+    else
+        data_reg <= data_in;
+end
+
+// 권장: 제어 로직에만 async reset, 데이터 경로는 sync reset
+always_ff @(posedge clk) begin
+    if (!rst_n_sync)
+        ctrl_state <= IDLE;  // Synchronous reset for control
+    else
+        data_reg <= data_in; // No reset for datapath
+end
+```
+
+### ❌ Clock Gating without Glitch-Free
+```verilog
+// 잘못된 예: Glitchy clock gating
+assign gated_clk = clk & enable;  // WRONG: glitch 발생 가능
+
+// 올바른 예: ICG (Integrated Clock Gating) primitive 사용
+// 또는 Xilinx BUFGCE
+BUFGCE bufgce_inst (
+    .O(gated_clk),
+    .CE(enable),
+    .I(clk)
+);
+```
+
+## Resource Optimization
+
+### Logic Optimization
+- **Retiming**: 파이프라인 레지스터 자동 이동
+- **DSP inference**: 곱셈/누산은 DSP48E1 사용
+- **BRAM inference**: 대용량 메모리는 BRAM 사용
+
+### Example: DSP Inference
+```verilog
+// 자동 DSP inference
+logic signed [17:0] a, b;
+logic signed [35:0] product;
+
+always_ff @(posedge clk) begin
+    product <= a * b;  // DSP48E1로 매핑됨
+end
+```
+
+### Synthesis Directives
+```verilog
+// BRAM 강제 inference
+(* ram_style = "block" *) logic [15:0] mem [0:1023];
+
+// Distributed RAM 강제
+(* ram_style = "distributed" *) logic [7:0] small_mem [0:31];
+
+// FSM encoding 선택
+(* fsm_encoding = "one_hot" *) fsm_state_t state;
+```
+
+---
+
+*Last Updated: 2026-02-16*

@@ -1,0 +1,192 @@
+# Development Workflow
+
+개발 단계별 워크플로우와 실행 패턴을 기록합니다.
+
+## Phase-Based Workflow
+
+### Phase 1: Architecture & P0 Decisions (W1-W4)
+**목표**: 핵심 결정사항 확정
+
+**체크리스트**:
+- [ ] 성능 계층 확정 (최소/목표/최대)
+- [ ] Host 링크 선택 (1 GbE vs 10 GbE)
+- [ ] SoC 플랫폼 확정 (i.MX8M Plus 권장)
+- [ ] 레지스터 맵 최종 승인
+- [ ] detector_config.yaml 스키마 확정
+
+**산출물**: Architecture Design Document
+
+### Phase PoC: CSI-2 Interface Validation (W3-W6)
+**목표**: 인터페이스 기술 검증
+
+**체크리스트**:
+- [ ] FPGA 평가 보드 확보 (Artix-7 35T)
+- [ ] SoC 평가 보드 확보 (i.MX8M Plus)
+- [ ] CSI-2 TX IP 인스턴스화
+- [ ] 종단 간 처리량 측정 (목표: ≥70%)
+- [ ] Signal Integrity 검증 (D-PHY eye diagram)
+- [ ] GO/NO-GO 결정
+
+**산출물**: PoC Report with measured throughput
+
+### Phase 2: Simulator Development (W3-W9)
+**목표**: SW 시뮬레이터 개발
+
+**방법론**: TDD (RED-GREEN-REFACTOR)
+
+**작업 순서**:
+1. 테스트 작성 (RED)
+2. 최소 구현 (GREEN)
+3. 리팩토링 (REFACTOR)
+4. 커버리지 확인 (≥85%)
+
+**모듈 순서**:
+1. PanelSimulator (픽셀 모델, 노이즈)
+2. FpgaSimulator (SPI, FSM, 라인 버퍼)
+3. McuSimulator (HAL, 시퀀스 로직)
+4. HostSimulator (패킷 재조립)
+
+**산출물**: All simulators with unit tests
+
+### Phase 3: FPGA RTL Development (W5-W14)
+**목표**: FPGA RTL 개발
+
+**방법론**: DDD (ANALYZE-PRESERVE-IMPROVE)
+
+**작업 순서**:
+1. 특성화 테스트 작성 (PRESERVE)
+2. RTL 점진적 개발 (IMPROVE)
+3. FpgaSimulator와 교차 검증
+4. 커버리지 확인 (Line ≥95%, Branch ≥90%, FSM 100%)
+
+**모듈 순서**:
+1. SPI Slave + Register File
+2. Panel Scan Timing FSM
+3. ROIC Interface + Deserializer
+4. Line Buffer (Ping-Pong BRAM)
+5. CSI-2 MIPI TX
+6. Protection Logic
+
+**산출물**: Verified RTL with FV-01~FV-11
+
+### Phase 4-8: 이후 단계
+[상세 워크플로우는 필요시 추가]
+
+## Daily Workflow
+
+### 작업 시작
+```bash
+# 1. 브랜치 확인
+git status
+git branch
+
+# 2. 최신 변경사항 동기화
+git pull
+
+# 3. 현재 마일스톤 확인
+# MEMORY.md의 마일스톤 체크포인트 참조
+```
+
+### 개발 중
+```bash
+# 1. TDD 사이클 (신규 코드)
+# - RED: 실패하는 테스트 작성
+# - GREEN: 테스트 통과하는 최소 구현
+# - REFACTOR: 코드 개선
+
+# 2. DDD 사이클 (기존 코드)
+# - ANALYZE: 기존 동작 이해
+# - PRESERVE: 특성화 테스트 작성
+# - IMPROVE: 점진적 개선
+
+# 3. 자주 커밋
+git add <files>
+git commit -m "..."
+```
+
+### 작업 완료
+```bash
+# 1. TRUST 5 검증
+# - Tested: 테스트 실행, 커버리지 확인
+# - Readable: Lint 검사
+# - Unified: 코드 스타일 검사
+# - Secured: 보안 스캔
+# - Trackable: 커밋 메시지 확인
+
+# 2. 푸시
+git push
+
+# 3. PR 생성 (필요시)
+# 코드 리뷰 필수
+```
+
+## Code Review Checklist
+
+### 리뷰어 체크리스트
+- [ ] TRUST 5 기준 만족
+- [ ] 테스트 커버리지 목표 달성
+- [ ] 명명 규칙 준수
+- [ ] detector_config.yaml 업데이트 (필요시)
+- [ ] 문서 업데이트 (필요시)
+- [ ] FPGA 리소스 예상치 확인 (FPGA 변경시)
+
+### 작성자 체크리스트
+- [ ] 모든 테스트 통과
+- [ ] 커버리지 목표 달성
+- [ ] Lint 경고 없음
+- [ ] 커밋 메시지 규칙 준수
+- [ ] Self-review 완료
+
+## Integration Testing Workflow
+
+### IT 시나리오 실행 순서
+1. IT-01: Single frame (CSI-2 path)
+2. IT-02: Continuous 100 frames
+3. IT-03: Error injection
+4. IT-04: Calibration mode
+5. IT-05: CSI-2 lane change
+6. IT-06: Target resolution stress
+7. IT-07: Max resolution stress
+8. IT-08: Long run stability
+9. IT-09: Generated code validation
+10. IT-10: Artix-7 resource margin
+
+### IntegrationRunner 사용
+```bash
+cd tools/IntegrationRunner
+dotnet run -- --scenario IT-01
+dotnet run -- --all
+```
+
+## Troubleshooting Patterns
+
+### FPGA 리소스 부족
+```
+증상: Synthesis 실패, LUT 사용률 >60%
+해결:
+1. 리소스 사용 보고서 확인
+2. 최적화 가능 영역 식별
+3. 업그레이드 경로 고려 (XC7A50T/75T/100T)
+```
+
+### CSI-2 처리량 부족
+```
+증상: 프레임 드롭, 전송 타임아웃
+해결:
+1. D-PHY lane 속도 측정
+2. Packet overhead 재계산
+3. 외부 D-PHY PHY 칩 고려
+```
+
+### 시뮬레이터-RTL 불일치
+```
+증상: rtl_vs_sim_checker 실패
+해결:
+1. FpgaSimulator 골든 모델 검증
+2. RTL 디버그 (waveform 분석)
+3. 타이밍 가정 재확인
+```
+
+---
+
+*Last Updated: 2026-02-16*
