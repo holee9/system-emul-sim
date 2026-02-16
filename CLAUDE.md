@@ -231,6 +231,34 @@ In team mode, MoAI bridges user interaction and teammate coordination:
 - No emoji characters in question text, headers, or option labels
 - Questions must be in user's conversation_language
 
+### Minimal Question Policy
+
+**CRITICAL**: Minimize AskUserQuestion usage to avoid workflow interruption.
+
+**ONLY ask when**:
+- System destruction risk (rm -rf /, DROP DATABASE, git push --force to main)
+- Data loss risk (overwriting uncommitted changes, deleting files without backup)
+- Security compromise (exposing credentials, disabling security features)
+- Technically impossible to proceed (ambiguous requirements, conflicting constraints)
+
+**NEVER ask for**:
+- Progress confirmation ("계속 진행할까요?", "Should I continue?")
+- Style preferences (already defined in rules)
+- Completion acknowledgment ("완료했습니다. 확인하시겠습니까?")
+- Optional improvements ("더 최적화할까요?")
+- Minor technical decisions (use best practices automatically)
+
+**After user approval**:
+- Execute immediately without additional questions
+- Apply user's decision to entire session scope
+- Make technical decisions automatically based on established patterns
+
+**Example**:
+```
+❌ Bad: User approved plan → Ask "파일 A를 먼저 수정할까요?"
+✅ Good: User approved plan → Execute all changes silently
+```
+
 ---
 
 ## 9. Configuration Reference

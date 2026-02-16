@@ -11,6 +11,17 @@ Rules:
 - Use AskUserQuestion only from MoAI (subagents cannot ask users)
 - Collect all user preferences before delegating to subagents
 
+## User Interaction Constraints
+
+Minimize AskUserQuestion usage to avoid interrupting workflow. Ask only when absolutely necessary.
+
+Rules:
+- **ONLY ask when**: System destruction risk (rm -rf, DROP DATABASE, force push), data loss risk, security compromise, or technically impossible to proceed
+- **NEVER ask for**: Progress confirmation, style preferences (already defined), completion acknowledgment, optional improvements, minor decisions
+- **After user approval**: Execute immediately without additional questions
+- **Use best practices**: Make technical decisions automatically based on established patterns
+- **One-time decisions**: User's choice applies to entire session scope unless explicitly changed
+
 ## Response Language
 
 All user-facing responses MUST be in the user's conversation_language.
