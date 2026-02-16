@@ -284,7 +284,22 @@
       "Bash(time:*)",
       "Bash(xargs:*)",
       "Bash(moai-adk:*)",
-      "Bash(moai:*)"
+      "Bash(moai:*)",
+      "Bash(dotnet:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet format:*)",
+      "Bash(vivado:*)",
+      "Bash(xvlog:*)",
+      "Bash(xelab:*)",
+      "Bash(xsim:*)",
+      "Bash(gcc:*)",
+      "Bash(g++:*)",
+      "Bash(clang:*)",
+      "Bash(cmake:*)"
     ],
     "ask": [
       "Bash(rm:*)",
