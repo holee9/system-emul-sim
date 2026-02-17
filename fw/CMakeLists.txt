@@ -150,13 +150,14 @@ if(BUILD_TESTS AND CMOCKA_FOUND)
         tests/unit/test_frame_manager.c
         tests/unit/test_command_protocol.c
         tests/unit/test_health_monitor.c
+        tests/unit/test_csi2_rx.c
     )
 
     # Mock sources
     set(MOCK_SRCS
         tests/mock/mock_spidev.c
         tests/mock/mock_v4l2.c
-        tests/mock/mock_socket.c
+        tests/mock/mock_yaml.c
     )
 
     # Create test library from source files (for linking with tests)
@@ -198,6 +199,43 @@ if(BUILD_TESTS AND CMOCKA_FOUND)
     )
     target_link_libraries(test_config_loader PRIVATE ${CMOCKA_LIBRARIES} ${YAML_LIBRARIES})
     add_test(NAME test_config_loader COMMAND test_config_loader)
+
+    # Frame manager tests
+    add_executable(test_frame_manager
+        tests/unit/test_frame_manager.c
+        src/frame_manager.c
+    )
+    target_include_directories(test_frame_manager PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(test_frame_manager PRIVATE ${CMOCKA_LIBRARIES})
+    add_test(NAME test_frame_manager COMMAND test_frame_manager)
+
+    # CSI-2 RX tests
+    add_executable(test_csi2_rx
+        tests/unit/test_csi2_rx.c
+        tests/mock/mock_v4l2.c
+        src/hal/csi2_rx.c
+    )
+    target_include_directories(test_csi2_rx PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(test_csi2_rx PRIVATE ${CMOCKA_LIBRARIES} Threads::Threads)
+    add_test(NAME test_csi2_rx COMMAND test_csi2_rx)
+
+    # Health monitor tests
+    add_executable(test_health_monitor
+        tests/unit/test_health_monitor.c
+        src/health_monitor.c
+    )
+    target_include_directories(test_health_monitor PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(test_health_monitor PRIVATE ${CMOCKA_LIBRARIES} Threads::Threads)
+    add_test(NAME test_health_monitor COMMAND test_health_monitor)
+
+    # BQ40z50 driver tests
+    add_executable(test_bq40z50_driver
+        tests/unit/test_bq40z50_driver.c
+        src/hal/bq40z50_driver.c
+    )
+    target_include_directories(test_bq40z50_driver PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(test_bq40z50_driver PRIVATE ${CMOCKA_LIBRARIES} Threads::Threads)
+    add_test(NAME test_bq40z50_driver COMMAND test_bq40z50_driver)
 
     # Add more test executables as implementation progresses...
 

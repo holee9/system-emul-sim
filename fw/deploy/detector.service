@@ -1,0 +1,59 @@
+[Unit]
+Description=X-ray Detector Panel SoC Controller Daemon
+Documentation=https://github.com/abyz-lab/system-emul-sim
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+NotifyAccess=all
+
+# User and group
+User=detector
+Group=detector
+
+# Main executable
+ExecStart=/usr/bin/detector_daemon /etc/detector/detector_config.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+
+# Watchdog integration (REQ-FW-060)
+WatchdogSec=5
+
+# Security hardening (REQ-FW-102)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Capabilities (REQ-FW-102)
+AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_SYS_NICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_SYS_NICE
+
+# Device access
+DevicePolicy=closed
+DeviceAllow=/dev/spidev0.0 rw
+DeviceAllow=/dev/video0 rw
+DeviceAllow=/dev/i2c-1 rw
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=detector_daemon
+
+[Install]
+WantedBy=multi-user.target
