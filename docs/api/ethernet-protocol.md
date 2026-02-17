@@ -1,7 +1,7 @@
 # 10 GbE UDP Frame Protocol Specification
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ---

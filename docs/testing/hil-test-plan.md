@@ -1,5 +1,12 @@
 # Hardware-in-the-Loop (HIL) Test Plan
 
+**Project**: X-ray Detector Panel System
+**Document Version**: 2.1.0
+**Last Updated**: 2026-02-17
+**Status**: Reviewed - Approved
+
+---
+
 ## Overview
 
 This document defines HIL test procedures using actual FPGA and SoC hardware boards. HIL testing validates the complete hardware stack that software simulation cannot fully replicate. HIL tests are executed during Phase 3 (W23-W28) after simulator-based integration tests (IT-01 through IT-10) have passed.

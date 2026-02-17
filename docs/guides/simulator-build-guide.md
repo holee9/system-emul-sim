@@ -1,7 +1,7 @@
 # Software Simulator Build and Validation Guide
 
 **Document Version**: 1.0.0
-**Status**: Draft
+**Status**: Reviewed
 **Last Updated**: 2026-02-17
 
 ---

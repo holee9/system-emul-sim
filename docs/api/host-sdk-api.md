@@ -1,7 +1,7 @@
 # Host SDK API Reference
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ---
@@ -566,7 +566,7 @@ public interface IDetectorClient : IAsyncDisposable
 public static class DetectorDiscovery
 {
     /// <summary>
-    /// Discovers X-ray detector devices on the local network via UDP broadcast on port 8001.
+    /// Discovers X-ray detector devices on the local network via UDP broadcast on port 8002.
     /// Broadcasts a JSON discovery request and collects unicast responses within the timeout period.
     /// </summary>
     /// <param name="timeout">Discovery timeout (default: 3 seconds)</param>

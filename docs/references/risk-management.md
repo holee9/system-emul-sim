@@ -1,7 +1,7 @@
 # Risk Management Guide
 
 **Document Version**: 1.0.0
-**Status**: Draft
+**Status**: Reviewed
 **Last Updated**: 2026-02-17
 **Author**: MoAI Documentation Agent
 **Framework**: ISO 14971 (Medical Device Risk Management)

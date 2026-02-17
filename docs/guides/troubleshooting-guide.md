@@ -1,7 +1,7 @@
 # Troubleshooting Guide
 
 **Document Version**: 1.0.0
-**Status**: Draft
+**Status**: Reviewed
 **Last Updated**: 2026-02-17
 
 ## Table of Contents
@@ -239,7 +239,7 @@ dmesg | grep -i "csi"
 
 ```bash
 # Check for FPGA CRC or D-PHY errors
-detector_cli read-reg 0x04
+detector_cli read-reg 0x80
 # Non-zero value indicates error flags are set
 
 # Read the specific error flag bits
@@ -383,7 +383,7 @@ detector_cli read-reg 0x20
 **Resolution**:
 
 1. Ensure `StartScanAsync()` was called before `GetFrameAsync()`.
-2. Check the FPGA error flags register (0x04). Non-zero indicates a hardware error.
+2. Check the FPGA error flags register (0x80). Non-zero indicates a hardware error.
 3. Verify panel timing in `detector_config.yaml` matches the ROIC datasheet values.
 
 ### 6.2 Checking Panel Timing

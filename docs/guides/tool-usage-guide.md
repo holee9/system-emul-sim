@@ -1,7 +1,7 @@
 # Tool Usage Guide
 
 **Document Version**: 1.0.0
-**Status**: Draft
+**Status**: Reviewed
 **Last Updated**: 2026-02-17
 
 ## Table of Contents
@@ -264,7 +264,7 @@ package fpga_params;
 
     // CSI-2
     parameter int unsigned CSI2_LANES       = 4;
-    parameter logic [7:0]  CSI2_DATA_TYPE   = 8'h2C; // RAW16
+    parameter logic [7:0]  CSI2_DATA_TYPE   = 8'h2E; // RAW16
 
     // Device identification
     parameter logic [31:0] DEVICE_ID        = 32'hD7E00001;

@@ -1,7 +1,7 @@
 # MIPI CSI-2 Packet Format Specification
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ---
@@ -540,7 +540,7 @@ Upon receiving each packet, the SoC CSI-2 RX hardware and V4L2 driver perform:
 - MIPI Alliance CSI-2 Specification v1.3
 - MIPI Alliance D-PHY Specification v1.2
 - AMD MIPI CSI-2 TX Subsystem v3.1 Product Guide (PG232)
-- `docs/api/spi-register-map.md` (CSI2_LANE_SPEED register 0x88)
+- `docs/api/spi-register-map.md` (CSI2_LANE_SPEED register 0x60)
 
 **Feeds Into**:
 - FpgaSimulator CSI-2 packet generation
