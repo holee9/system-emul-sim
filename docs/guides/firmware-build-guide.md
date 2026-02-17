@@ -1,655 +1,313 @@
-# SoC Firmware Build Guide
+# SoC Firmware Cross-Compilation and Deployment Guide
 
-**Project**: X-ray Detector Panel System
-**Target Platform**: NXP i.MX8M Plus (Quad Cortex-A53, Linux 5.15+)
-**Version**: 1.0.0
+**Document Version**: 1.0.0
+**Status**: Draft
 **Last Updated**: 2026-02-17
 
 ---
 
-## 1. Overview
+## Prerequisites
 
-This guide covers cross-compilation, testing, and deployment of the SoC Controller firmware for the X-ray Detector Panel System. The firmware runs as a Linux user-space daemon (`detector_daemon`) on the NXP i.MX8M Plus SoC.
+### Target Platform
 
-### 1.1 Firmware Responsibilities
+| Parameter | Value |
+|-----------|-------|
+| Module | Variscite VAR-SOM-MX8M-PLUS |
+| SoC | NXP i.MX8M Plus (Quad Cortex-A53) |
+| OS | Yocto Scarthgap 5.0 LTS |
+| BSP | imx-6.6.52-2.2.0-v1.3 |
+| Linux Kernel | 6.6.52 |
+| Architecture | AArch64 (arm64) |
 
-| Module | Function | Source |
-|--------|----------|--------|
-| CSI-2 RX Driver | V4L2 frame capture from FPGA | `hal/csi2_rx.c` |
-| SPI Master | FPGA register read/write | `hal/spi_master.c` |
-| Ethernet TX | UDP frame streaming to Host PC | `hal/eth_tx.c` |
-| Sequence Engine | Frame scan control FSM | `sequence_engine.c` |
-| Frame Manager | DDR4 buffer lifecycle | `frame_manager.c` |
-| Command Protocol | Host command handling | `protocol/command_protocol.c` |
+### Cross-Compilation Toolchain
 
-### 1.2 Build Options
+| Component | Version |
+|-----------|---------|
+| GCC ARM cross-compiler | 13.x (`arm-linux-gnueabihf-gcc`) |
+| Yocto SDK | Scarthgap 5.0.2 |
+| CMake | 3.20+ |
+| GDB multiarch | Latest |
 
-| Build Type | Compiler | Target | Purpose |
-|-----------|---------|--------|---------|
-| Cross-compile | `aarch64-poky-linux-gcc` | i.MX8M Plus (ARM64) | Production deployment |
-| Host build | `gcc` / `clang` | x86-64 (development PC) | Unit testing |
-| Docker build | Docker container | ARM64 | Reproducible CI builds |
+### Install CMake and Build Tools
+
+```bash
+# Ubuntu 22.04
+sudo apt-get install -y cmake ninja-build gdb-multiarch
+cmake --version
+# Expected: cmake version 3.x (3.20 or higher)
+```
 
 ---
 
-## 2. Prerequisites
+## Setup
 
-### 2.1 Required Software
+### Cross-Compiler Setup from Yocto SDK
 
-| Software | Version | Purpose |
-|----------|---------|---------|
-| CMake | 3.20+ | Build system |
-| GCC / Clang | 11+ | Host compilation for tests |
-| Yocto SDK | Kirkstone (5.15) | Cross-compilation toolchain |
-| CMocka or Unity | Latest | Unit test framework |
-| gcov / lcov | Latest | Code coverage |
+The Yocto SDK provides the complete sysroot and cross-compilation toolchain for the VAR-SOM-MX8M-PLUS target.
 
-### 2.2 Install Build Tools
+Install the Yocto SDK (run the self-extracting installer):
 
-**Ubuntu 22.04+**:
 ```bash
-sudo apt-get update
-sudo apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    pkg-config \
-    libyaml-dev \
-    libcmocka-dev \
-    lcov \
-    sshpass
+./fsl-imx-xwayland-glibc-x86_64-meta-toolchain-armv8a-vfpv3-d16-toolchain-5.0.2.sh
+# Accept the default installation path: /opt/poky/5.0.2
 ```
 
-### 2.3 Install Cross-Compilation Toolchain
-
-**Option A: Yocto SDK (Recommended)**
-
-Obtain the i.MX8M Plus Yocto SDK from NXP or build it from the Yocto BSP:
+Source the SDK environment to activate the cross-compiler:
 
 ```bash
-# Install SDK
-chmod +x fsl-imx-xwayland-glibc-x86_64-meta-toolchain-cortexa53-crypto-toolchain-5.15-kirkstone.sh
-sudo ./fsl-imx-xwayland-glibc-x86_64-meta-toolchain-cortexa53-crypto-toolchain-5.15-kirkstone.sh
-
-# Default install location: /opt/fsl-imx-xwayland/5.15-kirkstone/
-
-# Source the environment (required before every build session)
-source /opt/fsl-imx-xwayland/5.15-kirkstone/environment-setup-cortexa53-crypto-poky-linux
-
-# Verify cross-compiler
+source /opt/poky/5.0.2/environment-setup-cortexa53-poky-linux
 $CC --version
-echo $CROSS_COMPILE
-aarch64-poky-linux-gcc --version
+# Expected: arm-poky-linux-gnueabi-gcc (GCC) 13.x
 ```
 
-**Option B: Linaro Toolchain**
+Verify the sysroot is configured:
 
 ```bash
-# Download and extract
-wget https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-tar xf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-
-# Add to PATH
-export PATH=$PWD/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin:$PATH
-export CROSS_COMPILE=aarch64-linux-gnu-
-
-# Verify
-aarch64-linux-gnu-gcc --version
+echo $SDKTARGETSYSROOT
+# Expected: /opt/poky/5.0.2/sysroots/cortexa53-poky-linux
 ```
 
----
+### CMake Toolchain File
 
-## 3. Source Code Structure
-
-```
-fw/
-  CMakeLists.txt                    # Top-level CMake build
-  src/
-    main.c                          # Entry point, daemon initialization
-    sequence_engine.c/.h            # Scan sequence control FSM
-    frame_manager.c/.h              # Frame buffer lifecycle
-    hal/
-      csi2_rx.c/.h                  # V4L2 CSI-2 RX wrapper
-      spi_master.c/.h               # SPI register read/write via spidev
-      eth_tx.c/.h                   # 10 GbE UDP TX
-    config/
-      config_loader.c/.h            # YAML configuration parser
-    protocol/
-      frame_header.c/.h             # Frame header encode/decode
-      command_protocol.c/.h         # Host command handling
-    util/
-      crc16.c/.h                    # CRC-16/CCITT implementation
-      log.c/.h                      # Structured logging
-  tests/
-    test_main.c                     # Test runner entry point
-    test_sequence_engine.c          # Sequence engine unit tests
-    test_frame_manager.c            # Frame manager unit tests
-    test_spi_protocol.c             # SPI protocol unit tests
-    test_frame_header.c             # Frame header encode/decode tests
-    test_crc16.c                    # CRC-16 reference vector tests
-    test_config_loader.c            # Config parsing tests
-  toolchain/
-    imx8mp-toolchain.cmake          # Cross-compilation toolchain file
-  config/
-    detector.service                # systemd service file
-    detector_config.yaml            # Runtime configuration
-  Dockerfile                        # Docker build environment
-```
-
----
-
-## 4. Cross-Compilation (ARM64 Target)
-
-### 4.1 CMake Toolchain File
-
-The cross-compilation toolchain file (`toolchain/imx8mp-toolchain.cmake`):
+Create `fw/cmake/arm-toolchain.cmake`:
 
 ```cmake
-# Cross-compilation toolchain for NXP i.MX8M Plus
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
-# Toolchain prefix
-set(CROSS_COMPILE aarch64-poky-linux-)
+set(CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
+set(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
 
-# Set compilers (Yocto SDK environment variables take precedence)
-if(DEFINED ENV{CC})
-    set(CMAKE_C_COMPILER $ENV{CC})
-else()
-    set(CMAKE_C_COMPILER ${CROSS_COMPILE}gcc)
-endif()
+# Point to Yocto SDK sysroot
+set(CMAKE_SYSROOT $ENV{SDKTARGETSYSROOT})
+set(CMAKE_FIND_ROOT_PATH ${CMAKE_SYSROOT})
 
-# Sysroot (from Yocto SDK)
-if(DEFINED ENV{SDKTARGETSYSROOT})
-    set(CMAKE_SYSROOT $ENV{SDKTARGETSYSROOT})
-endif()
-
-# Search settings
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 ```
-
-### 4.2 Build for Target
-
-```bash
-cd system-emul-sim/fw
-
-# Source cross-compiler environment
-source /opt/fsl-imx-xwayland/5.15-kirkstone/environment-setup-cortexa53-crypto-poky-linux
-
-# Create build directory
-mkdir -p build-arm64 && cd build-arm64
-
-# Configure with cross-compilation
-cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/imx8mp-toolchain.cmake \
-      -DCMAKE_BUILD_TYPE=Release \
-      ..
-
-# Build
-make -j$(nproc)
-
-# Output binaries
-ls -la detector_daemon detector_cli
-file detector_daemon
-# Expected: ELF 64-bit LSB executable, ARM aarch64
-```
-
-### 4.3 Build Configuration Options
-
-| CMake Option | Default | Description |
-|-------------|---------|-------------|
-| `CMAKE_BUILD_TYPE` | Release | Debug, Release, RelWithDebInfo |
-| `BUILD_TESTS` | OFF | Build unit tests (host only) |
-| `ENABLE_SANITIZERS` | OFF | Enable AddressSanitizer (debug) |
-| `ENABLE_COVERAGE` | OFF | Enable gcov coverage (host only) |
-| `LOG_LEVEL` | INFO | DEBUG, INFO, WARN, ERROR |
 
 ---
 
-## 5. Host Build (Unit Testing)
+## Build
 
-### 5.1 Build for Host
-
-Unit tests run on the development PC (x86-64), not on the SoC:
+### Building Firmware with CMake
 
 ```bash
-cd system-emul-sim/fw
+# Source Yocto SDK cross-compiler environment first
+source /opt/poky/5.0.2/environment-setup-cortexa53-poky-linux
 
-# Create host build directory
-mkdir -p build-host && cd build-host
+# Create ARM build directory
+mkdir build-arm && cd build-arm
 
-# Configure for host (no cross-compilation)
-cmake -DCMAKE_BUILD_TYPE=Debug \
-      -DBUILD_TESTS=ON \
-      -DENABLE_COVERAGE=ON \
-      ..
+# Configure with cross-compilation toolchain
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/arm-toolchain.cmake \
+         -DCMAKE_BUILD_TYPE=Release
 
-# Build
-make -j$(nproc)
+# Build with 8 parallel jobs
+make -j8
 ```
 
-### 5.2 Run Unit Tests
+The output binaries:
+- `build-arm/detector_daemon` — main background service
+- `build-arm/detector_cli` — command-line diagnostic tool
 
-```bash
-cd fw/build-host
+### Yocto Recipe Creation
 
-# Run all tests
-ctest --output-on-failure
+Create a BitBake recipe at `meta-xray-detector/recipes-detector/xray-detector-fw/xray-detector-fw_0.1.bb`:
 
-# Run specific test
-./test_crc16
-./test_frame_header
-./test_sequence_engine
+```bitbake
+SUMMARY = "X-ray Detector Firmware Daemon"
+DESCRIPTION = "SoC firmware daemon for X-ray detector panel control"
+LICENSE = "Proprietary"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=XXXX"
 
-# Run tests with verbose output
-ctest -V
-```
+SRC_URI = "git://github.com/holee9/system-emul-sim.git;branch=main;protocol=https"
+SRCREV = "${AUTOREV}"
 
-### 5.3 Test Coverage
+S = "${WORKDIR}/git/fw"
 
-```bash
-cd fw/build-host
+inherit cmake systemd
 
-# Build with coverage
-cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DENABLE_COVERAGE=ON ..
-make -j$(nproc)
+DEPENDS = "libv4l2 libcamera"
 
-# Run tests (generates .gcda files)
-ctest
+SYSTEMD_SERVICE:${PN} = "xray-detector.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-# Generate coverage report
-lcov --capture --directory . --output-file coverage.info
-lcov --remove coverage.info '/usr/*' --output-file coverage.info
-lcov --remove coverage.info '*/tests/*' --output-file coverage.info
-
-# Generate HTML report
-genhtml coverage.info --output-directory coverage-report
-
-# View report
-open coverage-report/index.html
-```
-
-**Coverage Target**: 80%+ per module
-
-### 5.4 Unit Test Structure
-
-Tests use CMocka framework with mock HAL interfaces:
-
-```c
-// test_sequence_engine.c
-#include <setjmp.h>
-#include <cmocka.h>
-#include "sequence_engine.h"
-
-// Mock SPI write function
-int __wrap_fpga_reg_write(int fd, uint8_t addr, uint16_t data) {
-    check_expected(addr);
-    check_expected(data);
-    return (int)mock();
-}
-
-static void test_start_scan_writes_control_register(void **state) {
-    // Expect SPI write to CONTROL register (0x00) with start_scan bit
-    expect_value(__wrap_fpga_reg_write, addr, 0x00);
-    expect_value(__wrap_fpga_reg_write, data, 0x0001);
-    will_return(__wrap_fpga_reg_write, 0);
-
-    int result = sequence_engine_start(SCAN_MODE_SINGLE);
-    assert_int_equal(result, 0);
-}
-
-int main(void) {
-    const struct CMUnitTest tests[] = {
-        cmocka_unit_test(test_start_scan_writes_control_register),
-        // ... more tests
-    };
-    return cmocka_run_group_tests(tests, NULL, NULL);
+do_install:append() {
+    install -d ${D}${systemd_system_unitdir}
+    install -m 0644 ${S}/systemd/xray-detector.service \
+        ${D}${systemd_system_unitdir}/xray-detector.service
+    install -d ${D}${sysconfdir}/detector
+    install -m 0644 ${WORKDIR}/git/config/detector_config.yaml \
+        ${D}${sysconfdir}/detector/detector_config.yaml
 }
 ```
 
----
-
-## 6. Docker Build (Reproducible CI)
-
-### 6.1 Dockerfile
-
-```dockerfile
-FROM ubuntu:22.04
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    pkg-config \
-    libyaml-dev \
-    libcmocka-dev \
-    lcov \
-    wget
-
-# Install cross-compiler (Linaro toolchain)
-RUN wget -q https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz && \
-    tar xf gcc-linaro-*.tar.xz -C /opt/ && \
-    rm gcc-linaro-*.tar.xz
-
-ENV PATH="/opt/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin:${PATH}"
-ENV CROSS_COMPILE=aarch64-linux-gnu-
-
-WORKDIR /workspace
-```
-
-### 6.2 Build with Docker
+### Building Yocto Image
 
 ```bash
-cd system-emul-sim
+# Source the Yocto build environment
+source setup-environment build-imx8mp
 
-# Build Docker image
-docker build -t xray-fw-build -f fw/Dockerfile .
+# Build the minimal image for VAR-SOM-MX8M-PLUS
+MACHINE=imx8mp-var-dart bitbake core-image-minimal
+```
 
-# Cross-compile firmware
-docker run --rm -v $(pwd)/fw:/workspace xray-fw-build \
-    bash -c "mkdir -p build && cd build && \
-    cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/imx8mp-toolchain.cmake .. && \
-    make -j$(nproc)"
+Build output is located at `build-imx8mp/tmp/deploy/images/imx8mp-var-dart/`.
 
-# Run host tests
-docker run --rm -v $(pwd)/fw:/workspace xray-fw-build \
-    bash -c "mkdir -p build-test && cd build-test && \
-    cmake -DBUILD_TESTS=ON .. && make -j$(nproc) && ctest -V"
+---
+
+## Flashing to VAR-SOM-MX8M-PLUS
+
+### Flash the Yocto Image to eMMC
+
+Connect the VAR-SOM-MX8M-PLUS to the host PC via USB OTG. Boot into UBoot fastboot mode, then:
+
+```bash
+dd if=core-image-minimal-imx8mp-var-dart.wic \
+   of=/dev/mmcblk0 \
+   bs=1M \
+   status=progress
+```
+
+For flashing via the Variscite recovery tool (recommended):
+
+```bash
+sudo uuu -b emmc_all imx-boot-imx8mp-var-dart.bin-flash_evk \
+    core-image-minimal-imx8mp-var-dart.wic
+```
+
+### UART Console Access
+
+Connect a USB-to-UART adapter to the VAR-SOM-MX8M-PLUS debug UART header. Settings: **115200 baud, 8 data bits, no parity, 1 stop bit (8N1)**.
+
+```bash
+# Linux
+minicom -D /dev/ttyUSB0 -b 115200
+
+# Windows (PuTTY)
+# Port: COMx, Baud: 115200, Data bits: 8, Stop bits: 1, Parity: None
 ```
 
 ---
 
-## 7. Deployment to SoC
+## Test
 
-### 7.1 Network Setup
+### Verifying Hardware After Boot
 
-```bash
-# Set SoC IP (default from detector_config.yaml)
-export SOC_IP=192.168.1.100
-export SOC_USER=root
-
-# Verify connectivity
-ping -c 3 ${SOC_IP}
-ssh ${SOC_USER}@${SOC_IP} "uname -a"
-```
-
-### 7.2 Deploy Binaries
+After the board boots to Linux, verify the system configuration:
 
 ```bash
-# Deploy firmware binaries
-scp fw/build-arm64/detector_daemon ${SOC_USER}@${SOC_IP}:/usr/bin/
-scp fw/build-arm64/detector_cli ${SOC_USER}@${SOC_IP}:/usr/bin/
+# Verify kernel version
+uname -r
+# Expected: 6.6.52
 
-# Deploy configuration
-ssh ${SOC_USER}@${SOC_IP} "mkdir -p /etc/detector"
-scp config/detector_config.yaml ${SOC_USER}@${SOC_IP}:/etc/detector/
+# Check i2c devices
+# BQ40z50 battery fuel gauge at 0x0b on bus 0
+i2cdetect -y 0
+# Expected: address 0x0b visible
 
-# Deploy systemd service
-scp fw/config/detector.service ${SOC_USER}@${SOC_IP}:/etc/systemd/system/
+# BMI160 IMU at 0x68 on bus 7
+i2cdetect -y 7
+# Expected: address 0x68 visible
 
-# Set permissions
-ssh ${SOC_USER}@${SOC_IP} "chmod +x /usr/bin/detector_daemon /usr/bin/detector_cli"
+# Verify Ethernet chip
+lspci -nn | grep -i ethernet
+# Expected: shows 2.5GbE Ethernet controller
+
+# Check CSI-2 device availability
+ls /dev/video*
+# Expected: /dev/video0 (MIPI CSI-2 RX)
+
+# Verify SPI device
+ls /dev/spidev*
+# Expected: /dev/spidev0.0 (FPGA SPI slave)
 ```
 
-### 7.3 Systemd Service Management
+### Remote Debugging with GDB Server
 
-The firmware runs as a systemd service:
-
-```ini
-# /etc/systemd/system/detector.service
-[Unit]
-Description=X-ray Detector Daemon
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/detector_daemon --config /etc/detector/detector_config.yaml
-Restart=on-failure
-RestartSec=5
-User=root
-
-[Install]
-WantedBy=multi-user.target
-```
+On the target board, start GDB server:
 
 ```bash
-# Enable and start the service
-ssh ${SOC_USER}@${SOC_IP} "systemctl daemon-reload"
-ssh ${SOC_USER}@${SOC_IP} "systemctl enable detector"
-ssh ${SOC_USER}@${SOC_IP} "systemctl start detector"
-
-# Check status
-ssh ${SOC_USER}@${SOC_IP} "systemctl status detector"
-
-# View logs
-ssh ${SOC_USER}@${SOC_IP} "journalctl -u detector -f"
-
-# Restart after update
-ssh ${SOC_USER}@${SOC_IP} "systemctl restart detector"
+gdbserver :2345 ./xray-detector-fw
+# Output: Listening on port 2345
 ```
 
-### 7.4 Deployment Script
-
-Automate deployment with a shell script:
+On the host development machine, connect GDB:
 
 ```bash
-#!/bin/bash
-# deploy.sh - Deploy firmware to SoC
-set -e
+arm-linux-gnueabihf-gdb -x gdb/remote.gdb
+```
 
-SOC_IP=${1:-192.168.1.100}
-SOC_USER=${2:-root}
-BUILD_DIR="fw/build-arm64"
+Where `gdb/remote.gdb` contains:
 
-echo "Deploying to ${SOC_USER}@${SOC_IP}..."
+```
+file build-arm/detector_daemon
+target remote 192.168.1.100:2345
+set sysroot /opt/poky/5.0.2/sysroots/cortexa53-poky-linux
+break main
+continue
+```
 
-# Stop service
-ssh ${SOC_USER}@${SOC_IP} "systemctl stop detector 2>/dev/null || true"
+### systemd Service Management
 
-# Copy binaries
-scp ${BUILD_DIR}/detector_daemon ${SOC_USER}@${SOC_IP}:/usr/bin/
-scp ${BUILD_DIR}/detector_cli ${SOC_USER}@${SOC_IP}:/usr/bin/
+```bash
+# Enable firmware daemon to start on boot
+systemctl enable xray-detector.service
 
-# Copy config (only if changed)
-scp config/detector_config.yaml ${SOC_USER}@${SOC_IP}:/etc/detector/
+# Start service immediately
+systemctl start xray-detector.service
 
-# Restart service
-ssh ${SOC_USER}@${SOC_IP} "systemctl start detector"
+# Check service status
+systemctl status xray-detector.service
 
-# Verify
-sleep 2
-ssh ${SOC_USER}@${SOC_IP} "systemctl status detector --no-pager"
+# Follow live logs
+journalctl -fu xray-detector.service
 
-echo "Deployment complete!"
+# Restart after firmware update
+systemctl restart xray-detector.service
 ```
 
 ---
 
-## 8. Runtime Verification
+## Troubleshooting
 
-### 8.1 Basic Health Checks
-
-```bash
-# Check daemon is running
-ssh root@${SOC_IP} "systemctl is-active detector"
-# Expected: active
-
-# Check FPGA communication (read DEVICE_ID register)
-ssh root@${SOC_IP} "detector_cli read-reg 0xF0"
-# Expected: 0xA735
-
-# Check FPGA status
-ssh root@${SOC_IP} "detector_cli status"
-# Expected: IDLE state, no errors
-
-# Check network interface
-ssh root@${SOC_IP} "ip link show eth1"  # 10 GbE interface
-```
-
-### 8.2 SPI Communication Test
-
-```bash
-# Write and read-back timing register
-ssh root@${SOC_IP} "detector_cli write-reg 0x20 1000"  # gate_on_us = 1000
-ssh root@${SOC_IP} "detector_cli read-reg 0x20"
-# Expected: 1000
-
-# Read all status registers
-ssh root@${SOC_IP} "detector_cli dump-regs"
-```
-
-### 8.3 CSI-2 RX Verification
-
-```bash
-# Check V4L2 device
-ssh root@${SOC_IP} "v4l2-ctl --list-devices"
-# Expected: /dev/video0
-
-# Query format
-ssh root@${SOC_IP} "v4l2-ctl -d /dev/video0 --get-fmt-video"
-# Expected: Width=2048, Height=2048, Pixel Format=Y16
-
-# Capture test frame
-ssh root@${SOC_IP} "detector_cli capture-frame --output /tmp/test_frame.raw"
-```
-
-### 8.4 Network Streaming Test
-
-```bash
-# On Host PC: Start UDP listener
-nc -u -l 8000 > /dev/null &
-
-# On SoC: Send test frame
-ssh root@${SOC_IP} "detector_cli test-stream --host 192.168.1.1 --frames 10"
-
-# Verify packet reception
-# Check Host PC received data
-```
-
----
-
-## 9. Troubleshooting
-
-### 9.1 Build Issues
+### Cross-Compilation Issues
 
 | Issue | Cause | Solution |
 |-------|-------|---------|
-| "Cannot find cross-compiler" | Yocto SDK not sourced | Run `source /opt/fsl-imx-xwayland/.../environment-setup-*` |
-| "CMake Error: Could not find toolchain file" | Wrong path | Verify `toolchain/imx8mp-toolchain.cmake` exists |
-| "undefined reference to `yaml_parser_*`" | libyaml not installed | Install in sysroot: `apt install libyaml-dev` |
-| Link error: "incompatible architecture" | Host build mixed with cross-build | Clean build: `rm -rf build && mkdir build` |
+| `arm-poky-linux-gnueabi-gcc: not found` | SDK not sourced | Run `source /opt/poky/5.0.2/environment-setup-*` |
+| `cannot find -lv4l2` | Missing sysroot library | Verify `CMAKE_SYSROOT` points to SDK sysroot |
+| CMake generates x86 binaries | Toolchain file not used | Pass `-DCMAKE_TOOLCHAIN_FILE=../cmake/arm-toolchain.cmake` |
+| Linker error: undefined reference | Wrong sysroot | Ensure all `find_library()` calls resolve to ARM sysroot |
 
-### 9.2 Deployment Issues
-
-| Issue | Cause | Solution |
-|-------|-------|---------|
-| SSH connection refused | SoC not booted or wrong IP | Verify SoC power, check IP with `arp -a` |
-| "Permission denied" on `/dev/spidev0.0` | Missing permissions | Run as root or add udev rule |
-| "No such device: /dev/video0" | CSI-2 driver not loaded | Check device tree, verify `imx8-mipi-csi2` module |
-| "Network unreachable" for 10 GbE | NIC not configured | Check `ip addr`, configure static IP |
-| Service fails to start | Missing config file | Verify `/etc/detector/detector_config.yaml` exists |
-
-### 9.3 Runtime Issues
+### Boot and Runtime Issues
 
 | Issue | Cause | Solution |
 |-------|-------|---------|
-| Frame drops > 0.01% | Buffer overrun, slow TX | Increase buffer count, check network bandwidth |
-| SPI timeout | FPGA not responding | Check SPI wiring, verify FPGA is programmed |
-| CSI-2 capture errors | D-PHY instability | Check cable, reduce lane speed, verify FPGA CSI-2 TX |
-| High CPU usage | SPI polling too fast | Verify 100 us polling interval, check thread priorities |
+| Board does not boot | Corrupted image | Re-flash with `uuu` tool |
+| `xray-detector.service` fails to start | Binary not found or permission denied | Check binary path and execute permissions with `chmod +x` |
+| `/dev/spidev0.0` missing | SPI device tree overlay not enabled | Add SPI overlay to device tree, rebuild Yocto image |
+| `i2cdetect -y 0` does not show 0x0b | I2C bus device tree issue | Check BSP imx8mp device tree for I2C bus configuration |
 
 ---
 
-## 10. CMakeLists.txt Reference
+## Common Errors
 
-```cmake
-cmake_minimum_required(VERSION 3.20)
-project(detector_firmware VERSION 1.0.0 LANGUAGES C)
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
-# Compiler flags
-add_compile_options(-Wall -Wextra -Wpedantic)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-g -O0)
-    if(ENABLE_SANITIZERS)
-        add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
-        add_link_options(-fsanitize=address)
-    endif()
-    if(ENABLE_COVERAGE)
-        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
-        add_link_options(--coverage)
-    endif()
-else()
-    add_compile_options(-O2)
-endif()
-
-# Source files
-set(FW_SOURCES
-    src/main.c
-    src/sequence_engine.c
-    src/frame_manager.c
-    src/hal/csi2_rx.c
-    src/hal/spi_master.c
-    src/hal/eth_tx.c
-    src/config/config_loader.c
-    src/protocol/frame_header.c
-    src/protocol/command_protocol.c
-    src/util/crc16.c
-    src/util/log.c
-)
-
-# Main daemon executable
-add_executable(detector_daemon ${FW_SOURCES})
-target_include_directories(detector_daemon PRIVATE src)
-target_link_libraries(detector_daemon PRIVATE pthread yaml)
-
-# CLI tool
-add_executable(detector_cli src/cli/detector_cli.c src/hal/spi_master.c src/util/crc16.c)
-target_include_directories(detector_cli PRIVATE src)
-
-# Unit tests (host build only)
-if(BUILD_TESTS AND NOT CMAKE_CROSSCOMPILING)
-    enable_testing()
-
-    set(TEST_SOURCES
-        tests/test_main.c
-        tests/test_crc16.c
-        tests/test_frame_header.c
-        tests/test_sequence_engine.c
-        tests/test_frame_manager.c
-        tests/test_spi_protocol.c
-        tests/test_config_loader.c
-    )
-
-    # Library for testable code (excludes main.c and HAL)
-    add_library(fw_testable STATIC
-        src/sequence_engine.c
-        src/frame_manager.c
-        src/protocol/frame_header.c
-        src/protocol/command_protocol.c
-        src/config/config_loader.c
-        src/util/crc16.c
-        src/util/log.c
-    )
-    target_include_directories(fw_testable PUBLIC src)
-
-    add_executable(fw_tests ${TEST_SOURCES})
-    target_link_libraries(fw_tests PRIVATE fw_testable cmocka yaml)
-
-    add_test(NAME firmware_tests COMMAND fw_tests)
-endif()
-```
+| Error | Context | Meaning | Fix |
+|-------|---------|---------|-----|
+| `cannot execute binary file: Exec format error` | Running ARM binary on host | Binary is ARM64, not x86_64 | Cross-compile correctly; use QEMU for host testing |
+| `error: unknown target triple 'aarch64'` | CMake | Wrong compiler selected | Source SDK environment before running CMake |
+| `No such file: /dev/spidev0.0` | Runtime | SPI not enabled in device tree | Check and apply correct device tree overlay |
+| `SIGILL` on target | Mismatched CPU flags | Binary compiled for wrong ARM variant | Ensure toolchain targets `cortexa53` |
+| `GDB: Remote connection closed` | GDB server | Network interruption or binary crashed | Check SSH/network, restart gdbserver |
 
 ---
 
-## 11. Revision History
+## Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial firmware build guide |
-
----
+| 1.0.0 | 2026-02-17 | MoAI Agent | Complete SoC firmware build and deployment guide |

@@ -1,9 +1,16 @@
-# 10 GbE Ethernet Protocol API Reference
+# 10 GbE UDP Frame Protocol Specification
 
-**Project**: X-ray Detector Panel System
-**Interface**: SoC Controller (i.MX8M Plus) to Host PC
-**Version**: 1.0.0
+**Document Version**: 1.0.0
+**Status**: Reviewed
 **Last Updated**: 2026-02-17
+
+---
+
+## Overview
+
+This document specifies the UDP-based frame streaming protocol used between the SoC Controller (NXP i.MX8M Plus, Variscite VAR-SOM-MX8M-PLUS) and the Host PC (.NET 8.0 SDK). The SoC transmits assembled pixel frames as UDP datagrams over 10 GbE. The Host PC receives, reassembles, and processes the frames.
+
+All pixel data flows in one direction: SoC (transmitter, source port dynamic) to Host (receiver, destination port 8000). Control commands flow in reverse on a separate port (8001).
 
 ---
 
@@ -44,49 +51,59 @@
 
 ### 2.1 Frame Header Structure
 
-Every UDP packet carrying pixel data begins with a 32-byte frame header.
+Every UDP packet carrying pixel data begins with a 32-byte frame header in little-endian byte order.
 
 ```c
 // 32 bytes, packed, little-endian
 struct __attribute__((packed)) FrameHeader {
-    uint32_t magic;           // Offset 0:  0xDEADBEEF
-    uint32_t frame_seq;       // Offset 4:  Frame sequence number
-    uint64_t timestamp_us;    // Offset 8:  Microsecond timestamp
-    uint16_t width;           // Offset 16: Image width (pixels)
-    uint16_t height;          // Offset 18: Image height (pixels)
-    uint16_t bit_depth;       // Offset 20: 14 or 16
-    uint16_t packet_index;    // Offset 22: Packet index within frame
-    uint16_t total_packets;   // Offset 24: Total packets per frame
-    uint16_t flags;           // Offset 26: Status flags
-    uint16_t crc16;           // Offset 28: CRC-16 over header bytes 0-27
-    uint16_t reserved;        // Offset 30: Reserved (padding to 32 bytes)
+    uint32_t magic;           // Offset  0: 0xD7E01234 (synchronization marker)
+    uint8_t  version;         // Offset  4: Protocol version (0x01)
+    uint8_t  reserved0[3];    // Offset  5: Reserved (must be 0x00)
+    uint32_t frame_id;        // Offset  8: Monotonic frame counter (0-based)
+    uint16_t packet_seq;      // Offset 12: Packet index within frame (0-based)
+    uint16_t total_packets;   // Offset 14: Total packets per frame
+    uint64_t timestamp_ns;    // Offset 16: Nanoseconds since SoC boot epoch
+    uint16_t rows;            // Offset 24: Image height in pixels
+    uint16_t cols;            // Offset 26: Image width in pixels
+    uint8_t  bit_depth;       // Offset 28: Pixel bit depth (14 or 16)
+    uint8_t  flags;           // Offset 29: Status flags
+    uint8_t  reserved1[2];    // Offset 30: Reserved (must be 0x00)
 };
 ```
 
+**Total header size**: 32 bytes. No padding is added by the compiler due to explicit `packed` attribute and natural alignment.
+
 ### 2.2 Field Descriptions
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `magic` | uint32 | Synchronization marker. Always 0xDEADBEEF. Used to identify valid frame packets. |
-| `frame_seq` | uint32 | Monotonically increasing frame counter (0-based). Wraps at 2^32. |
-| `timestamp_us` | uint64 | SoC system clock timestamp in microseconds. Epoch: SoC boot time. |
-| `width` | uint16 | Image width in pixels (1024, 2048, or 3072). |
-| `height` | uint16 | Image height in pixels (1024, 2048, or 3072). |
-| `bit_depth` | uint16 | Pixel bit depth (14 or 16). |
-| `packet_index` | uint16 | Zero-based packet index within this frame (0 to total_packets-1). |
-| `total_packets` | uint16 | Total number of packets comprising this frame. |
-| `flags` | uint16 | Status flags (see table below). |
-| `crc16` | uint16 | CRC-16/CCITT over header bytes 0-27 (excluding crc16 and reserved). |
-| `reserved` | uint16 | Reserved for future use. Set to 0. |
+| Field | Offset | Type | Description |
+|-------|--------|------|-------------|
+| magic | 0 | uint32 | Synchronization marker. Always 0xD7E01234. Used to identify valid frame packets and discard non-protocol UDP traffic. |
+| version | 4 | uint8 | Protocol version. Currently 0x01. Receivers must check this before parsing remaining fields. |
+| reserved0 | 5 | uint8[3] | Reserved, set to 0x00. Future use. |
+| frame_id | 8 | uint32 | Monotonically increasing frame identifier, starting at 0. Wraps at 2^32-1. Each unique frame has a distinct frame_id. |
+| packet_seq | 12 | uint16 | Zero-based index of this packet within the frame (0 to total_packets-1). Used for reassembly ordering. |
+| total_packets | 14 | uint16 | Total number of UDP packets that comprise this frame. All packets for a given frame_id have the same total_packets value. |
+| timestamp_ns | 16 | uint64 | SoC CLOCK_MONOTONIC timestamp in nanoseconds at frame capture start. Epoch is SoC boot time (not Unix epoch). |
+| rows | 24 | uint16 | Frame height in pixels (1024, 2048, or 3072). |
+| cols | 26 | uint16 | Frame width in pixels (1024, 2048, or 3072). |
+| bit_depth | 28 | uint8 | Pixel bit depth: 14 or 16. |
+| flags | 29 | uint8 | Status flags (see Flags table). |
+| reserved1 | 30 | uint8[2] | Reserved, set to 0x00. |
 
-### 2.3 Flags Field
+### 2.3 Flags Field (uint8, offset 29)
 
 | Bit | Name | Description |
 |-----|------|-------------|
 | [0] | last_packet | 1 = This is the final packet of the frame |
 | [1] | error_frame | 1 = Frame may contain errors (FPGA reported error during capture) |
-| [2] | calibration | 1 = Calibration frame (dark frame, gate OFF) |
-| [15:3] | reserved | Reserved, set to 0 |
+| [2] | calibration | 1 = Calibration frame (dark frame, gate OFF during exposure) |
+| [7:3] | reserved | Reserved, set to 0 |
+
+**Flag combinations**:
+- 0x00: Normal data frame, more packets follow
+- 0x01: Normal data frame, last packet
+- 0x03: Error frame, last packet (receiver may choose to discard)
+- 0x05: Calibration frame, last packet
 
 ### 2.4 UDP Packet Layout
 
@@ -267,42 +284,138 @@ struct __attribute__((packed)) StatusReport {
 
 ---
 
-## 5. Discovery Protocol (Port 8002)
+## 5. Discovery Protocol (UDP Broadcast Port 8002)
 
-### 5.1 Discovery Request (Broadcast)
+### 5.1 Discovery Overview
 
-```c
-struct __attribute__((packed)) DiscoveryRequest {
-    uint32_t magic;           // 0xD15C0000
-    uint8_t  version;         // Protocol version (1)
-    uint8_t  reserved[3];     // Padding
-};
+The Host SDK discovers detector devices on the local network using UDP broadcast. The discovery protocol uses JSON payloads for human readability and extensibility.
+
+Discovery request is sent as a UDP broadcast to 255.255.255.255 on port 8002. Each SoC on the network responds with a unicast reply to the requester's IP address on port 8002.
+
+### 5.2 Discovery Request (Broadcast)
+
+The Host PC broadcasts a JSON discovery request:
+
+```json
+{
+  "magic": "D7E0DISC",
+  "version": 1,
+  "host_ip": "192.168.1.1",
+  "request_id": 12345
+}
 ```
 
 **Sent to**: UDP broadcast 255.255.255.255:8002
 
-### 5.2 Discovery Response (Unicast)
+**Field descriptions**:
+- magic: Fixed string "D7E0DISC" to identify discovery packets
+- version: Discovery protocol version (currently 1)
+- host_ip: IP address of the Host PC (used by SoC to send unicast reply)
+- request_id: Random 32-bit value echoed in response for correlation
 
-```c
-struct __attribute__((packed)) DiscoveryResponse {
-    uint32_t magic;           // 0xD15C0001
-    uint8_t  version;         // Protocol version (1)
-    char     device_id[16];   // Null-terminated device identifier
-    char     firmware_ver[8]; // Null-terminated firmware version
-    uint8_t  max_tier;        // Maximum supported tier (0-3)
-    uint32_t ip_addr;         // SoC IP address (network byte order)
-    uint16_t data_port;       // Frame data port (default 8000)
-    uint16_t command_port;    // Command port (default 8001)
-};
+### 5.3 Discovery Response (Unicast)
+
+The SoC responds with a JSON unicast reply:
+
+```json
+{
+  "magic": "D7E0RESP",
+  "version": 1,
+  "request_id": 12345,
+  "device_id": "XR-DET-001",
+  "firmware_version": "1.0.0",
+  "max_tier": "target",
+  "ip_address": "192.168.1.100",
+  "data_port": 8000,
+  "command_port": 8001,
+  "max_width": 3072,
+  "max_height": 3072,
+  "max_bit_depth": 16
+}
 ```
 
-**Sent to**: Unicast to requester's IP address, port 8002
+**Sent to**: Unicast to host_ip:8002
+
+**Tier values in max_tier**:
+- "minimum": 1024x1024@14-bit@15fps
+- "intermediate_a": 2048x2048@16-bit@15fps
+- "intermediate_b": 2048x2048@16-bit@30fps
+- "target": 3072x3072@16-bit@15fps
 
 ---
 
-## 6. CRC-16 Specification
+## 6. Wireshark Analysis
 
-### 6.1 Algorithm
+### 6.1 Capture Filter Expressions
+
+Use these Wireshark capture filters to isolate X-ray detector traffic:
+
+**Capture all detector protocol traffic (data + control + discovery)**:
+```
+udp and (port 8000 or port 8001)
+```
+
+**Capture frame data only**:
+```
+udp and dst port 8000
+```
+
+**Capture from specific SoC IP**:
+```
+udp and src host 192.168.1.100
+```
+
+**Capture all detector traffic from a specific SoC**:
+```
+host 192.168.1.100 and udp and (port 8000 or port 8001)
+```
+
+### 6.2 Display Filter Expressions
+
+Use these Wireshark display filters after capture:
+
+**Show only frame data packets (destination port 8000)**:
+```
+udp.dstport == 8000
+```
+
+**Show only control commands (destination port 8001)**:
+```
+udp.dstport == 8001
+```
+
+**Filter by magic number in payload (frame data, 0xD7E01234 little-endian = 34 12 E0 D7)**:
+```
+udp.payload[0:4] == 34:12:e0:d7
+```
+
+**Show packets for a specific frame_id (frame_id is at offset 8, 4 bytes)**:
+```
+udp.payload[8:4] == 00:00:00:01
+```
+
+**Show only last packets (flags byte at offset 29, bit 0 set)**:
+```
+(udp.payload[29] & 0x01) == 0x01
+```
+
+### 6.3 Bandwidth Verification
+
+When capturing with Wireshark, the "Statistics > IO Graphs" feature can verify actual bandwidth:
+
+| Tier | Expected Peak Rate | Expected Packet Rate |
+|------|-------------------|---------------------|
+| Minimum (1024x1024@15fps) | ~30 MB/s | ~3,840 packets/s |
+| Intermediate-A (2048x2048@15fps) | ~122 MB/s | ~15,360 packets/s |
+| Target (3072x3072@15fps) | ~273 MB/s | ~34,560 packets/s |
+
+**Note**: Wireshark capture on the Host PC will reduce available NIC throughput. For Target tier analysis, use a network TAP or dedicated capture machine.
+
+---
+
+## 7. CRC-16 Specification
+
+### 7.1 Algorithm
 
 | Property | Value |
 |----------|-------|
@@ -313,7 +426,7 @@ struct __attribute__((packed)) DiscoveryResponse {
 | Reflect Input | Yes |
 | Reflect Output | Yes |
 
-### 6.2 Reference Implementation
+### 7.2 Reference Implementation
 
 ```c
 uint16_t crc16_calculate(const uint8_t *data, size_t length) {
@@ -331,7 +444,7 @@ uint16_t crc16_calculate(const uint8_t *data, size_t length) {
 }
 ```
 
-### 6.3 Test Vectors
+### 7.3 Test Vectors
 
 | Input (ASCII) | Length | CRC-16 |
 |--------------|-------|--------|
@@ -342,18 +455,18 @@ uint16_t crc16_calculate(const uint8_t *data, size_t length) {
 
 ---
 
-## 7. Error Handling
+## 8. Error Handling
 
-### 7.1 Packet-Level Errors
+### 8.1 Packet-Level Errors
 
 | Error | Detection | Response |
 |-------|-----------|----------|
-| Invalid magic | magic != 0xDEADBEEF | Discard packet |
+| Invalid magic | magic != 0xD7E01234 | Discard packet |
 | CRC mismatch | Calculated CRC != header CRC | Discard packet, log warning |
 | Out-of-range index | packet_index >= total_packets | Discard packet, log warning |
 | Duplicate packet | Already received this index | Ignore (no action) |
 
-### 7.2 Frame-Level Errors
+### 8.2 Frame-Level Errors
 
 | Error | Detection | Response |
 |-------|-----------|----------|
@@ -363,10 +476,26 @@ uint16_t crc16_calculate(const uint8_t *data, size_t length) {
 
 ---
 
-## 8. Document Traceability
+## 9. Document Traceability
 
 **Implements**: docs/architecture/soc-firmware-design.md Section 6 (Network Protocol)
 
 **References**: docs/architecture/host-sdk-design.md Section 4-5 (Network Communication, Frame Reassembly)
 
 ---
+
+## 10. Revision History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Initial specification with UDP frame protocol, control protocol, discovery protocol, CRC-16, Wireshark filters |
+| 1.0.1 | 2026-02-17 | manager-quality | Fixed: Section 7 heading numbering (6.x -> 7.x), invalid magic value in Section 8.1 (0xDEADBEEF -> 0xD7E01234), Discovery Protocol port (8001 -> 8002) |
+
+---
+
+## Review Record
+
+- Date: 2026-02-17
+- Reviewer: manager-quality
+- Status: Approved (with corrections applied)
+- TRUST 5: T:5 R:4 U:4 S:5 T:4

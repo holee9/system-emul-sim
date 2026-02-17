@@ -24,7 +24,7 @@ gate_week: W16
 
 ### Project Context
 
-The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisition) and the Host PC (frame processing). It receives pixel data via CSI-2, controls the FPGA via SPI, and streams frames to the Host via 10 GbE UDP.
+The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the FPGA (real-time data acquisition) and the Host PC (frame processing). It receives pixel data via CSI-2 MIPI 4-lane D-PHY, controls the FPGA via SPI (50 MHz), and streams frames to the Host via 10 GbE UDP on port 8000. The OS is Yocto Project Scarthgap 5.0 LTS with Linux kernel 6.6.52 (Variscite BSP imx-6.6.52-2.2.0-v1.3).
 
 ### Scope
 
@@ -33,14 +33,25 @@ The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisitio
 | CSI-2 RX Driver | `hal/csi2_rx.c` | V4L2 interface, DMA setup, frame capture |
 | SPI Master | `hal/spi_master.c` | FPGA register read/write |
 | Ethernet TX | `hal/eth_tx.c` | UDP packet transmission, frame fragmentation |
-| Sequence Engine | `sequence_engine.c` | Frame scan control FSM |
-| Frame Manager | `frame_manager.c` | DDR4 buffer lifecycle |
-| Command Protocol | `protocol/command_protocol.c` | Host command handling |
+| Sequence Engine | `sequence_engine.c` | Frame scan control FSM (CONFIGURE->ARM->SCANNING->STREAMING) |
+| Frame Manager | `frame_manager.c` | DDR4 4-buffer ring management and DMA |
+| Command Protocol | `protocol/command_protocol.c` | Host command handling (port 8001) |
+| Battery Driver | `hal/bq40z50_driver.c` | TI BQ40z50 battery gauge (ported from kernel 4.4 to 6.6) |
+
+### Definitions
+
+| Term | Definition |
+|------|------------|
+| BSP | Board Support Package (Variscite imx-6.6.52-2.2.0-v1.3) |
+| V4L2 | Video4Linux2 kernel driver framework for CSI-2 RX |
+| DMA | Direct Memory Access for zero-copy frame transfer |
+| SMBus | System Management Bus (I2C variant) for BQ40z50 |
 
 ### Development Methodology
 
 - **New firmware code**: TDD (RED-GREEN-REFACTOR) per quality.yaml hybrid settings
 - **HAL integration with BSP**: DDD (ANALYZE-PRESERVE-IMPROVE)
+- **Battery driver port**: DDD (ANALYZE existing kernel 4.4 driver, PRESERVE functionality, IMPROVE for kernel 6.6 API)
 
 ---
 
@@ -48,11 +59,11 @@ The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisitio
 
 ### 1. Ubiquitous Requirements
 
-**REQ-FW-001**: The firmware **shall** run as a Linux user-space daemon (`detector_daemon`) on NXP i.MX8M Plus with Linux 5.15+.
+**REQ-FW-001**: The firmware **shall** run as a Linux user-space daemon (`detector_daemon`) on NXP i.MX8M Plus with Linux 6.6.52 (Variscite BSP imx-6.6.52-2.2.0-v1.3, Yocto Scarthgap 5.0 LTS).
 
-**WHY**: Linux provides V4L2, spidev, and network stack. User-space development simplifies debugging and deployment.
+**WHY**: Linux 6.6.52 is the confirmed BSP version for Variscite VAR-SOM-MX8M-PLUS. Provides V4L2, spidev, and network stack. User-space development simplifies debugging and deployment.
 
-**IMPACT**: HAL layer wraps kernel interfaces. Root privileges required for device access.
+**IMPACT**: HAL layer wraps kernel interfaces. Root privileges required for device access. BQ40z50 driver port must target Linux 6.6 API (see REQ-FW-090).
 
 ---
 
@@ -260,7 +271,51 @@ The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisitio
 
 ---
 
-### 8. Unwanted Requirements
+### 8. Yocto Build System Requirements
+
+**REQ-FW-080**: The firmware **shall** be built using Yocto Project Scarthgap 5.0 LTS with the Variscite BSP layer (meta-variscite-bsp, imx-6.6.52-2.2.0-v1.3).
+
+**WHY**: Yocto ensures reproducible cross-compilation, correct device tree overlays, and BSP-validated kernel modules for i.MX8M Plus.
+
+**IMPACT**: BitBake recipe (`detector-daemon_1.0.bb`) in custom Yocto layer. Cross-compiler: aarch64-poky-linux-gcc. SDK sysroot for host-side cross-build.
+
+---
+
+**REQ-FW-081**: The Yocto build **shall** include the following system packages in the target image: `v4l-utils`, `spidev`, `iproute2`, `ethtool`, `libyaml`.
+
+**WHY**: Runtime dependencies for V4L2 device management, SPI interface, 10 GbE configuration, and YAML configuration parsing.
+
+**IMPACT**: Image recipe (`detector-image.bb`) includes all runtime dependencies. Package group: `packagegroup-detector`.
+
+---
+
+### 9. Battery Driver Port Requirements
+
+**REQ-FW-090**: The BQ40z50 battery gauge driver **shall** be ported from Linux kernel 4.4 SMBus API to Linux kernel 6.6 SMBus/I2C API.
+
+**WHY**: The existing BQ40z50 kernel-space driver was written for Linux 4.4. Kernel 6.6 requires updated SMBus function signatures (`i2c_smbus_read_word_data`, `i2c_smbus_write_word_data` API changes) and updated Power Supply class registration.
+
+**IMPACT**: DDD methodology applied: ANALYZE existing 4.4 driver, PRESERVE BQ40z50 register-level behavior, IMPROVE for 6.6 kernel API compliance. Driver file: `hal/bq40z50_driver.c`.
+
+---
+
+**REQ-FW-091**: The BQ40z50 driver **shall** report the following battery metrics via SMBus: State of Charge (%), Voltage (mV), Current (mA), Temperature (0.1 K), Remaining Capacity (mAh), Full Charge Capacity (mAh).
+
+**WHY**: Battery status is required for safe system operation and low-battery shutdown. Metrics are read from BQ40z50 standard SBS (Smart Battery Specification) registers.
+
+**IMPACT**: SMBus read cycle at 1 Hz interval. Metrics exposed via daemon status API. Low battery threshold: 15% SOC triggers graceful shutdown.
+
+---
+
+**REQ-FW-092**: **WHEN** battery State of Charge drops below 10% **THEN** the firmware **shall** log a critical warning, report battery status to Host via command channel (port 8001), and initiate graceful scan termination.
+
+**WHY**: Abrupt power loss during scan corrupts partially-acquired frames and may damage FPGA state.
+
+**IMPACT**: Battery monitor thread polls BQ40z50 at 1 Hz. Threshold: 10% SOC triggers graceful stop. 5% SOC triggers emergency shutdown.
+
+---
+
+### 10. Unwanted Requirements
 
 **REQ-FW-070**: The firmware **shall not** implement frame compression in the initial release.
 
@@ -341,6 +396,26 @@ The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisitio
 
 ---
 
+### AC-FW-007: Yocto Cross-Build
+
+**GIVEN**: Yocto Scarthgap 5.0 build environment with Variscite BSP layer
+**WHEN**: `bitbake detector-daemon` is executed
+**THEN**: Build completes without errors
+**AND**: Generated binary targets aarch64 (Cortex-A53)
+**AND**: `file detector_daemon` reports ELF 64-bit LSB executable, ARM aarch64
+
+---
+
+### AC-FW-008: BQ40z50 Battery Driver
+
+**GIVEN**: BQ40z50 driver compiled against Linux 6.6 kernel headers
+**WHEN**: Driver reads battery metrics via SMBus on i.MX8M Plus
+**THEN**: State of Charge value is in range 0-100%
+**AND**: Voltage reading is in range 2800-4200 mV (typical Li-Ion cell)
+**AND**: All SBS register reads complete without I2C NACK errors
+
+---
+
 ---
 
 ## Dependencies
@@ -348,8 +423,10 @@ The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisitio
 - `docs/architecture/soc-firmware-design.md`: Full architecture reference
 - `docs/architecture/fpga-design.md`: FPGA register map for SPI communication
 - `SPEC-FPGA-001`: FPGA SPI slave specification
-- NXP i.MX8M Plus BSP (Linux 5.15+, V4L2, spidev)
+- NXP i.MX8M Plus BSP (Yocto Scarthgap 5.0 LTS, Linux 6.6.52, V4L2, spidev)
+- Variscite BSP layer: meta-variscite-bsp (imx-6.6.52-2.2.0-v1.3)
 - 10 GbE PCIe NIC and driver (ixgbe or mlx5)
+- TI BQ40z50 SMBus specification and Linux kernel 4.4 driver source (for port reference)
 
 ---
 
@@ -367,6 +444,12 @@ The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisitio
 **Probability**: Low. **Impact**: Medium.
 **Mitigation**: Use SCHED_FIFO for spi_control thread. Consider PREEMPT_RT kernel patches.
 
+### R-FW-003: BQ40z50 Driver Port Compatibility
+
+**Risk**: Linux 6.6 Power Supply class API changes break BQ40z50 SMBus driver port.
+**Probability**: Medium. **Impact**: Low (battery monitoring is not in critical data path).
+**Mitigation**: DDD approach: analyze kernel changelogs for SMBus/Power Supply class API diffs between 4.4 and 6.6. Use `power_supply_register()` updated API. Fallback: user-space SMBus via i2c-dev.
+
 ---
 
 ## Revision History
@@ -374,6 +457,17 @@ The SoC Controller (NXP i.MX8M Plus) bridges the FPGA (real-time data acquisitio
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for SoC firmware |
+| 1.0.1 | 2026-02-17 | manager-quality | Fixed REQ-FW-001: Linux 5.15+ corrected to Linux 6.6.52 (Variscite BSP imx-6.6.52-2.2.0-v1.3, Yocto Scarthgap 5.0 LTS) |
+
+---
+
+## Review Record
+
+- Date: 2026-02-17
+- Reviewer: manager-quality
+- Status: Approved (with corrections applied)
+- TRUST 5: T:4 R:5 U:5 S:4 T:5
+- Issues Fixed: REQ-FW-001 kernel version updated from "Linux 5.15+" to "Linux 6.6.52"
 
 ---
 

@@ -1,9 +1,9 @@
 # SoC Firmware Architecture Design
 
 **Project**: X-ray Detector Panel System
-**Target Platform**: NXP i.MX8M Plus (Quad Cortex-A53, Linux 5.15+)
+**Target Platform**: NXP i.MX8M Plus (Quad Cortex-A53, Linux 6.6.52 LTS)
 **Document Version**: 1.0.0
-**Status**: Draft
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ---
@@ -33,7 +33,7 @@ The SoC Controller firmware handles:
 | Ethernet | 2x GbE (native) | 10 GbE via PCIe add-on NIC |
 | SPI | 4x SPI master | SPI0 used for FPGA control |
 | Storage | eMMC 32 GB | OS + firmware + logs |
-| OS | Linux 5.15+ (Yocto/Buildroot BSP) | Real-time patches optional |
+| OS | Linux 6.6.52 LTS (Yocto Scarthgap 5.0, Variscite BSP imx-6.6.52-2.2.0-v1.3) | Real-time patches optional |
 
 ---
 
@@ -692,7 +692,7 @@ fw/
 
 ```bash
 # Set up cross-compiler (Yocto SDK)
-source /opt/fsl-imx-xwayland/5.15-kirkstone/environment-setup-cortexa53-crypto-poky-linux
+source /opt/fsl-imx-xwayland/scarthgap/environment-setup-cortexa53-crypto-poky-linux
 
 # Build firmware
 mkdir build && cd build
@@ -809,3 +809,31 @@ Per project `quality.yaml` (Hybrid mode):
 - [ ] Project Manager
 
 ---
+
+## Review Record
+
+| Reviewer | Date | TRUST 5 Score | Decision |
+|---------|------|--------------|---------|
+| manager-quality | 2026-02-17 | T:5 R:5 U:4 S:5 T:5 | APPROVED |
+
+### Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (5/5)**: Section 10 defines 11 test cases (FW-UT-01 through FW-IT-05) covering unit and integration scenarios. Coverage targets specified per methodology: TDD (85%) and DDD (80%) consistent with quality.yaml. Test framework identified (CMocka / Unity). Key metrics defined (100 frames 0 errors, <0.01% frame drop for continuous).
+- **Readable (5/5)**: Layered architecture diagram clearly shows Application/Service/HAL/Kernel decomposition. Process architecture (detector_daemon threads) documented. Code examples provided for all HAL interfaces (V4L2, SPI, UDP). State machines with ASCII diagrams for Sequence Engine and Frame Buffer management.
+- **Unified (4/5)**: Hardware platform matches ground truth (VAR-SOM-MX8M-PLUS, Quad Cortex-A53, 1.8 GHz). CSI-2 interface consistent with fpga-design.md register map (SPI registers 0x20-0x3F, 0x40-0x4C, 0x80-0x88 referenced). Frame header structure matches system-architecture.md. **Minor issue corrected during review**: Header stated "Linux 5.15+" - corrected to "Linux 6.6.52 LTS (Yocto Scarthgap 5.0)" to match project ground truth. Yocto SDK path updated accordingly.
+- **Secured (5/5)**: Section 7 categorizes all error types with severity levels and recovery strategies. FPGA error monitoring code shows 3-retry pattern before escalation. Buffer overrun protection (oldest-drop policy) prevents CSI-2 RX stall. Watchdog timeout triggers full system restart as last resort. Root privilege rationale documented (DD-FW-01).
+- **Trackable (5/5)**: Document metadata complete. Section 11 lists 8 design decisions with rationale and dates. Rejected alternatives pattern not explicitly listed (unlike fpga-design.md) but decisions reference alternatives implicitly. Section 12 provides bidirectional traceability. Revision history present.
+
+**Corrections Applied During Review**
+
+1. Header field "Linux 5.15+" corrected to "Linux 6.6.52 LTS (Yocto Scarthgap 5.0, Variscite BSP imx-6.6.52-2.2.0-v1.3)"
+2. Platform constraints table OS field updated to match corrected kernel version
+3. Yocto SDK cross-compile path updated from "5.15-kirkstone" to "scarthgap"
+
+**Minor Observations (non-blocking)**
+
+- The "Unified" score is 4/5 due to the Linux version discrepancy that was found and corrected. Post-correction the document is fully consistent.
+- Section 3.2.1 SPI configuration uses 8 bits-per-word but fpga-design.md Section 6.1 specifies 32-bit transactions (8-bit addr + 8-bit R/W + 16-bit data). The C code correctly assembles 4-byte transfers, which is consistent. This is not a discrepancy.
+- The 10 GbE NIC driver is listed as "ixgbe or mlx5_core" - final driver selection depends on W15-W18 chip identification (lspci -nn). Acceptable for Phase 1.

@@ -1,100 +1,145 @@
-# Production Deployment Guide
+# Deployment Guide
 
-**Project**: X-ray Detector Panel System
-**Version**: 1.0.0
+**Document Version**: 1.0.0
+**Status**: Draft
 **Last Updated**: 2026-02-17
+
+## Table of Contents
+
+1. [Overview](#1-overview)
+2. [Prerequisites and Quality Gates](#2-prerequisites-and-quality-gates)
+3. [Deployment Artifacts](#3-deployment-artifacts)
+4. [Build Release Artifacts](#4-build-release-artifacts)
+5. [FPGA Deployment](#5-fpga-deployment)
+6. [SoC Firmware Deployment](#6-soc-firmware-deployment)
+7. [Host PC Deployment](#7-host-pc-deployment)
+8. [Environment Management](#8-environment-management)
+9. [Post-Deployment Validation](#9-post-deployment-validation)
+10. [Rollback Procedures](#10-rollback-procedures)
+11. [Monitoring and Health Checks](#11-monitoring-and-health-checks)
+12. [Upgrade Procedures](#12-upgrade-procedures)
+13. [Backup and Recovery](#13-backup-and-recovery)
+14. [Security Hardening](#14-security-hardening)
+15. [Revision History](#15-revision-history)
 
 ---
 
 ## 1. Overview
 
-This guide covers production deployment procedures for the X-ray Detector Panel System. It describes how to prepare, deploy, verify, and maintain the system in a production environment.
+This guide covers production deployment procedures for the X-ray Detector Panel System. All three system layers (FPGA, SoC firmware, Host PC) must be deployed together to maintain configuration consistency.
 
 ### 1.1 Deployment Scope
 
-| Component | Deployment Target | Artifact |
-|-----------|------------------|----------|
-| FPGA Bitstream | Artix-7 XC7A35T (on-board flash) | `.bit` / `.mcs` file |
-| SoC Firmware | NXP i.MX8M Plus (eMMC/SD) | `detector_daemon` binary |
-| Host SDK | Host PC (.NET runtime) | Published .NET application |
-| Configuration | All layers | `detector_config.yaml` |
+| Layer | Artifact | Target |
+|-------|----------|--------|
+| FPGA | `csi2_detector_v{version}.bit` / `.mcs` | Artix-7 XC7A35T SPI flash |
+| SoC firmware | `detector_daemon` binary + `detector.service` | NXP i.MX8M Plus eMMC |
+| Host SDK | `XrayDetector.SDK.{version}.nupkg` | Host PC .NET runtime |
+| Host GUI | `XrayDetector.GUI_{version}_win-x64.zip` | Windows Host PC |
+| Configuration | `detector_config_{env}.yaml` | All layers |
 
 ### 1.2 Deployment Environments
 
-| Environment | Purpose | Configuration |
-|-------------|---------|---------------|
-| **Development** | Active development and testing | Debug builds, ILA probes enabled |
-| **Staging** | Pre-production validation | Release builds, production config |
-| **Production** | Clinical deployment | Release builds, hardened, no debug |
+| Environment | Purpose | CSI-2 Speed | Notes |
+|-------------|---------|------------|-------|
+| `dev` | Active development and simulation | N/A (simulator) | Debug builds, fault injection enabled |
+| `integration` | HIL testbed, IT-01 through IT-10 | 400 Mbps/lane | Release builds |
+| `staging` | Full hardware pre-production validation | 400 Mbps/lane | Production config, no debug symbols |
+| `production` | Clinical imaging | 800 Mbps/lane | Strict mode, syslog logging |
 
 ---
 
-## 2. Pre-Deployment Checklist
+## 2. Prerequisites and Quality Gates
 
-Before deploying to any environment, verify all items:
+All gates must pass before deploying to `staging` or `production`. For `dev` and `integration` environments, gates that cannot yet pass must be documented with an approved exception.
 
-### 2.1 Quality Gates
+### 2.1 Software Quality Gates
 
-- [ ] All unit tests pass (`dotnet test` returns 0)
-- [ ] Code coverage >= 85% (per quality.yaml target)
-- [ ] Integration tests IT-01 through IT-10 all pass
-- [ ] FPGA LUT utilization < 60%
-- [ ] FPGA timing closure: WNS >= 1 ns
-- [ ] CDC report: zero violations
-- [ ] No critical warnings in synthesis or implementation
+- [ ] All unit tests pass: `dotnet test` returns exit code 0
+- [ ] Code coverage >= 85% (configured in `.moai/config/sections/quality.yaml`)
+- [ ] Integration tests IT-01 through IT-06 pass (IT-07 to IT-10 required for production)
+- [ ] No LSP errors or type errors (zero tolerance per quality gate configuration)
 - [ ] TRUST 5 framework compliance verified
 
-### 2.2 Build Artifacts
+### 2.2 FPGA Quality Gates
 
-- [ ] FPGA bitstream built in Release mode (no ILA probes for production)
-- [ ] Firmware cross-compiled with `-O2` optimization
-- [ ] Host SDK built in Release configuration
-- [ ] Configuration file validated by ConfigConverter
-- [ ] All artifacts version-tagged in Git
+- [ ] Synthesis and implementation complete with zero critical warnings
+- [ ] LUT utilization < 60% (target for XC7A35T: < 12,480 of 20,800 LUTs)
+- [ ] BRAM utilization < 50% (< 25 of 50 BRAMs)
+- [ ] Timing closure: Worst Negative Slack (WNS) >= 1 ns
+- [ ] Clock Domain Crossing (CDC) report: zero violations
+- [ ] No ILA or VIO debug probes in production bitstream
 
 ### 2.3 Hardware Verification
 
-- [ ] FPGA board power supply verified
-- [ ] CSI-2 FPC cable integrity tested
-- [ ] SPI wiring verified (4 signals + ground)
-- [ ] 10 GbE cable tested (Cat6a rated)
-- [ ] All connectors secured
+- [ ] FPGA board power supply verified (11.8-12.2 V)
+- [ ] CSI-2 FPC cable integrity confirmed (visual inspection, no kinks)
+- [ ] SPI wiring verified (read DEVICE_ID = `0xD7E00001`)
+- [ ] 10 GbE link confirmed at full speed (`ethtool eth1` shows `Speed: 10000Mb/s`)
+- [ ] M0.5 PoC complete (required for production deployment)
 
 ---
 
-## 3. Build Release Artifacts
+## 3. Deployment Artifacts
 
-### 3.1 FPGA Release Build
+### 3.1 Artifact Naming Convention
 
-```bash
-cd system-emul-sim/fpga
-
-# Build without debug probes (production)
-vivado -mode batch -source scripts/build_release.tcl
-
-# Output: fpga/output/csi2_detector_release.bit
-# Output: fpga/output/csi2_detector_release.mcs (for flash)
+```
+csi2_detector_v{major}.{minor}.{patch}.bit         # FPGA bitstream (JTAG)
+csi2_detector_v{major}.{minor}.{patch}.mcs         # FPGA bitstream (SPI flash)
+detector_daemon_{version}_aarch64                   # SoC firmware binary
+xray-detector-fw_{version}_aarch64.deb             # SoC Debian package (optional)
+XrayDetector.SDK.{version}.nupkg                   # Host SDK NuGet package
+XrayDetector.GUI_{version}_win-x64.zip             # Host GUI Windows package
+detector_config_{env}.yaml                          # Environment configuration
 ```
 
-**Production Build Differences**:
+### 3.2 Version Tagging
+
+All artifacts must be tagged in Git before deployment:
+
+```bash
+git tag -a v1.0.0 -m "Release v1.0.0: Intermediate tier validated at 400 Mbps"
+git push origin v1.0.0
+```
+
+---
+
+## 4. Build Release Artifacts
+
+### 4.1 FPGA Release Build
+
+Production bitstreams must be built without debug probes (ILA/VIO):
+
+```bash
+cd D:/workspace-github/system-emul-sim/fpga
+
+# Release build: no ILA probes, bitstream compression enabled
+vivado -mode batch -source scripts/build_release.tcl
+
+# Outputs:
+#   fpga/output/csi2_detector_release.bit  (JTAG programming)
+#   fpga/output/csi2_detector_release.mcs  (SPI flash programming)
+```
+
+Build settings comparison:
 
 | Setting | Development | Production |
 |---------|------------|-----------|
-| ILA Probes | Enabled | Removed |
-| VIO | Enabled | Removed |
-| Bitstream Compression | Optional | Enabled |
-| Security | None | Optional encryption |
-| Configuration Speed | 33 MHz | 33 MHz |
+| ILA debug probes | Enabled | Removed |
+| VIO virtual I/O | Enabled | Removed |
+| Bitstream compression | Optional | Enabled |
+| Bitstream encryption | None | Optional |
 
-### 3.2 Firmware Release Build
+### 4.2 SoC Firmware Release Build
 
 ```bash
-cd system-emul-sim/fw
+cd D:/workspace-github/system-emul-sim/fw
 
-# Source cross-compiler
-source /opt/fsl-imx-xwayland/5.15-kirkstone/environment-setup-cortexa53-crypto-poky-linux
+# Source the Yocto Scarthgap cross-compiler toolchain
+source /opt/fsl-imx-xwayland/5.0-scarthgap/environment-setup-cortexa53-crypto-poky-linux
 
-# Release build
+# Release build with optimization
 mkdir -p build-release && cd build-release
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/imx8mp-toolchain.cmake \
       -DCMAKE_BUILD_TYPE=Release \
@@ -108,536 +153,549 @@ aarch64-poky-linux-strip detector_cli
 
 # Verify
 file detector_daemon
-# Expected: ELF 64-bit LSB executable, ARM aarch64, stripped
-ls -la detector_daemon
+# Expected: ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), stripped
 ```
 
-### 3.3 Host SDK Release Build
+### 4.3 Host SDK Release Build
 
 ```bash
-cd system-emul-sim
+cd D:/workspace-github/system-emul-sim
 
-# Publish self-contained application (Windows)
+# Publish Windows GUI (self-contained)
 dotnet publish tools/GUI.Application/ \
-    -c Release \
-    -r win-x64 \
+    -c Release -r win-x64 \
     --self-contained true \
     -o publish/win-x64/
 
-# Publish self-contained application (Linux)
-dotnet publish tools/GUI.Application/ \
-    -c Release \
-    -r linux-x64 \
+# Publish Linux CLI (self-contained)
+dotnet publish tools/XrayDetector.CLI/ \
+    -c Release -r linux-x64 \
     --self-contained true \
     -o publish/linux-x64/
 
-# Publish SDK library as NuGet package
+# Pack SDK as NuGet
 dotnet pack sdk/XrayDetector.Sdk/ \
     -c Release \
     -o publish/nuget/
 ```
 
-### 3.4 Create Release Package
+### 4.4 Create Release Package
 
 ```bash
-# Create release directory
 VERSION=1.0.0
 RELEASE_DIR=release/v${VERSION}
 mkdir -p ${RELEASE_DIR}/{fpga,firmware,host,config,docs}
 
-# Copy artifacts
-cp fpga/output/csi2_detector_release.bit ${RELEASE_DIR}/fpga/
-cp fpga/output/csi2_detector_release.mcs ${RELEASE_DIR}/fpga/
-cp fw/build-release/detector_daemon ${RELEASE_DIR}/firmware/
-cp fw/build-release/detector_cli ${RELEASE_DIR}/firmware/
-cp fw/config/detector.service ${RELEASE_DIR}/firmware/
-cp -r publish/win-x64/ ${RELEASE_DIR}/host/windows/
-cp -r publish/linux-x64/ ${RELEASE_DIR}/host/linux/
-cp config/detector_config.yaml ${RELEASE_DIR}/config/
-cp docs/guides/installation-guide.md ${RELEASE_DIR}/docs/
+cp fpga/output/csi2_detector_release.bit  ${RELEASE_DIR}/fpga/
+cp fpga/output/csi2_detector_release.mcs  ${RELEASE_DIR}/fpga/
+cp fw/build-release/detector_daemon       ${RELEASE_DIR}/firmware/
+cp fw/build-release/detector_cli          ${RELEASE_DIR}/firmware/
+cp fw/config/xray-detector.service        ${RELEASE_DIR}/firmware/
+cp -r publish/win-x64/                    ${RELEASE_DIR}/host/windows/
+cp -r publish/linux-x64/                  ${RELEASE_DIR}/host/linux/
+cp config/detector_config_production.yaml ${RELEASE_DIR}/config/
+cp docs/guides/installation-guide.md      ${RELEASE_DIR}/docs/
 
-# Create archive
-tar czf release/xray-detector-v${VERSION}.tar.gz -C release v${VERSION}
+tar czf release/xray-detector-v${VERSION}.tar.gz -C release v${VERSION}/
+sha256sum release/xray-detector-v${VERSION}.tar.gz > release/xray-detector-v${VERSION}.tar.gz.sha256
 ```
 
 ---
 
-## 4. FPGA Deployment
+## 5. FPGA Deployment
 
-### 4.1 Volatile Programming (JTAG)
+### 5.1 Volatile Programming via JTAG (Development / Staging)
 
-For development and testing -- bitstream is lost on power cycle:
+The bitstream is lost on power cycle. Use for development and staging environments where frequent updates occur.
 
 ```bash
 vivado -mode batch -source fpga/scripts/program.tcl \
     -tclargs fpga/output/csi2_detector_release.bit
 ```
 
-### 4.2 Non-Volatile Programming (Flash)
+### 5.2 Non-Volatile Programming via SPI Flash (Production)
 
-For production -- bitstream persists across power cycles:
+The bitstream persists through power cycles. Required for production.
 
 ```bash
-# Generate MCS file (if not already done)
-vivado -mode batch -source fpga/scripts/create_mcs.tcl
-
-# Program flash via JTAG
+# Program SPI flash via JTAG
 vivado -mode batch -source fpga/scripts/program_flash.tcl \
     -tclargs fpga/output/csi2_detector_release.mcs
+
+# Power cycle the board after flash programming
+# Wait 5 seconds for configuration
 ```
 
-**Example program_flash.tcl**:
+The `program_flash.tcl` script:
+- Erases the flash
+- Programs the MCS file
+- Verifies readback
+- Reports "Flash programming complete!" on success
 
-```tcl
-open_hw_manager
-connect_hw_server -allow_non_jtag
-open_hw_target
-
-set device [get_hw_devices xc7a35t_0]
-current_hw_device $device
-
-# Create memory device
-create_hw_cfgmem -hw_device $device -mem_dev [lindex [get_cfgmem_parts {s25fl128sxxxxxx0-spi-x1_x2_x4}] 0]
-
-set cfgmem [get_property PROGRAM.HW_CFGMEM $device]
-set_property PROGRAM.BLANK_CHECK 0 $cfgmem
-set_property PROGRAM.ERASE 1 $cfgmem
-set_property PROGRAM.CFG_PROGRAM 1 $cfgmem
-set_property PROGRAM.VERIFY 1 $cfgmem
-set_property PROGRAM.FILES [list "[lindex $argv 0]"] $cfgmem
-
-# Program flash
-program_hw_cfgmem -hw_cfgmem $cfgmem
-
-puts "Flash programming complete!"
-close_hw_manager
-```
-
-### 4.3 Verify FPGA After Programming
+### 5.3 Verify FPGA After Deployment
 
 ```bash
-# Power cycle the board (for flash programming)
-# Wait 5 seconds for configuration
+# From SoC, read DEVICE_ID register via SPI
+ssh root@192.168.1.100 "detector_cli read-reg 0x00"
+# Expected: 0xD7E00001
 
-# Check heartbeat LED
-# Check DEVICE_ID via SPI from SoC:
-ssh root@192.168.1.100 "detector_cli read-reg 0xF0"
-# Expected: 0xA735
+# Verify heartbeat LED is blinking
+# Verify DONE LED is solid on
 ```
 
 ---
 
-## 5. SoC Firmware Deployment
+## 6. SoC Firmware Deployment
 
-### 5.1 Deploy Firmware
+### 6.1 Deploy Firmware
 
 ```bash
 SOC_IP=192.168.1.100
 SOC_USER=root
 
 # Stop running service
-ssh ${SOC_USER}@${SOC_IP} "systemctl stop detector 2>/dev/null || true"
+ssh ${SOC_USER}@${SOC_IP} "systemctl stop xray-detector.service 2>/dev/null || true"
 
 # Backup previous version
-ssh ${SOC_USER}@${SOC_IP} "cp /usr/bin/detector_daemon /usr/bin/detector_daemon.bak 2>/dev/null || true"
+ssh ${SOC_USER}@${SOC_IP} \
+    "cp /usr/bin/detector_daemon /usr/bin/detector_daemon.bak 2>/dev/null || true"
 
 # Deploy new binaries
 scp fw/build-release/detector_daemon ${SOC_USER}@${SOC_IP}:/usr/bin/
-scp fw/build-release/detector_cli ${SOC_USER}@${SOC_IP}:/usr/bin/
+scp fw/build-release/detector_cli    ${SOC_USER}@${SOC_IP}:/usr/bin/
 ssh ${SOC_USER}@${SOC_IP} "chmod +x /usr/bin/detector_daemon /usr/bin/detector_cli"
 
-# Deploy configuration
-scp config/detector_config.yaml ${SOC_USER}@${SOC_IP}:/etc/detector/
+# Deploy configuration (environment-specific)
+scp config/detector_config_production.yaml \
+    ${SOC_USER}@${SOC_IP}:/etc/detector/detector_config.yaml
 
-# Deploy systemd service
-scp fw/config/detector.service ${SOC_USER}@${SOC_IP}:/etc/systemd/system/
+# Deploy systemd service unit
+scp fw/config/xray-detector.service \
+    ${SOC_USER}@${SOC_IP}:/etc/systemd/system/
 ssh ${SOC_USER}@${SOC_IP} "systemctl daemon-reload"
-
-# Start service
-ssh ${SOC_USER}@${SOC_IP} "systemctl enable detector"
-ssh ${SOC_USER}@${SOC_IP} "systemctl start detector"
+ssh ${SOC_USER}@${SOC_IP} "systemctl enable xray-detector.service"
+ssh ${SOC_USER}@${SOC_IP} "systemctl start xray-detector.service"
 
 # Verify
-ssh ${SOC_USER}@${SOC_IP} "systemctl status detector --no-pager"
+ssh ${SOC_USER}@${SOC_IP} "systemctl status xray-detector.service --no-pager"
+# Expected: Active: active (running)
 ```
 
-### 5.2 Rollback Firmware
+### 6.2 Environment-Specific Configuration
 
-If the new version has issues:
-
-```bash
-# Stop current version
-ssh ${SOC_USER}@${SOC_IP} "systemctl stop detector"
-
-# Restore backup
-ssh ${SOC_USER}@${SOC_IP} "cp /usr/bin/detector_daemon.bak /usr/bin/detector_daemon"
-
-# Restart
-ssh ${SOC_USER}@${SOC_IP} "systemctl start detector"
-```
-
-### 5.3 Firmware Configuration
-
-Production configuration adjustments:
+Production configuration disables debug features and sets logging to syslog:
 
 ```yaml
-# /etc/detector/detector_config.yaml (production settings)
+# /etc/detector/detector_config.yaml (production)
 panel:
-  rows: 2048            # Match actual panel
+  rows: 2048
   cols: 2048
   bit_depth: 16
+  pixel_pitch_um: 150
 
 fpga:
   timing:
-    gate_on_us: 1000     # Match ROIC datasheet
+    gate_on_us: 1000
     gate_off_us: 200
     roic_settle_us: 50
     adc_conv_us: 10
+  csi2:
+    lane_speed_mbps: 400  # 800 when Final tier is ready
 
 controller:
   ethernet:
-    speed: 10gbe
-    port: 8000
+    data_port: 8000
     control_port: 8001
 
-# Logging (production: reduced verbosity)
 logging:
-  level: WARN           # DEBUG, INFO, WARN, ERROR
-  output: syslog        # syslog or file
+  level: WARN           # production: WARN; dev: DEBUG
+  output: syslog        # production: syslog; dev: file
+
+fault_injection:
+  enabled: false        # production: false; dev: true
 ```
 
 ---
 
-## 6. Host PC Deployment
+## 7. Host PC Deployment
 
-### 6.1 Deploy SDK Application
-
-**Windows**:
+### 7.1 Deploy Windows GUI
 
 ```powershell
 # Extract release package
-Expand-Archive xray-detector-v1.0.0.zip -DestinationPath C:\XrayDetector\
+Expand-Archive xray-detector-v1.0.0-host-win.zip -DestinationPath C:\XrayDetector\
 
-# Or copy published application
-Copy-Item -Recurse publish\win-x64\ C:\XrayDetector\
-
-# Create desktop shortcut (optional)
+# Create desktop shortcut
 $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("$Home\Desktop\X-ray Detector.lnk")
 $Shortcut.TargetPath = "C:\XrayDetector\GUI.Application.exe"
 $Shortcut.Save()
 ```
 
-**Linux**:
+### 7.2 Deploy Linux CLI (Headless)
 
 ```bash
-# Extract release package
-tar xzf xray-detector-v1.0.0.tar.gz -C /opt/
-chmod +x /opt/v1.0.0/host/linux/GUI.Application
+# Extract to /opt
+tar xzf xray-detector-v1.0.0-host-linux.tar.gz -C /opt/
+chmod +x /opt/xray-detector-v1.0.0/XrayDetector.CLI
 
-# Create symlink
-sudo ln -sf /opt/v1.0.0/host/linux/GUI.Application /usr/local/bin/xray-detector
+# Create versioned symlink
+sudo ln -sf /opt/xray-detector-v1.0.0/XrayDetector.CLI \
+    /usr/local/bin/xray-detector
 
-# Create systemd service (optional, for headless operation)
-sudo cat > /etc/systemd/system/xray-detector.service << 'EOF'
+# Create systemd service for headless continuous acquisition
+cat > /etc/systemd/system/xray-acquisition.service << 'EOF'
 [Unit]
-Description=X-ray Detector Host Application
+Description=X-ray Detector Continuous Acquisition
 After=network.target
 
 [Service]
-ExecStart=/opt/v1.0.0/host/linux/GUI.Application --headless
+ExecStart=/usr/local/bin/xray-detector \
+    --host 192.168.1.100 \
+    --rows 2048 --cols 2048 --fps 15 \
+    --frames 0 \
+    --output /data/frames --format tiff
 Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 EOF
+
+systemctl enable xray-acquisition.service
 ```
 
-### 6.2 Network Configuration
+### 7.3 Deploy Host SDK as NuGet Package
 
-See Section 4 of the Installation Guide for Host PC network setup.
-
-### 6.3 Verify Host Application
+For consumer applications:
 
 ```bash
-# Run the application
-cd publish/win-x64/
-./GUI.Application.exe
+# Push to local NuGet feed
+dotnet nuget push publish/nuget/XrayDetector.SDK.1.0.0.nupkg \
+    --source http://your-nuget-server/v3/index.json \
+    --api-key ${NUGET_API_KEY}
 
-# Or on Linux (CLI mode)
-./GUI.Application --headless --config /etc/detector/detector_config.yaml
-
-# Run verification tests
-dotnet run --project tools/IntegrationRunner -- --all
+# Install in consumer project
+dotnet add package XrayDetector.SDK --version 1.0.0
 ```
 
 ---
 
-## 7. Configuration Management
+## 8. Environment Management
 
-### 7.1 Configuration Versioning
+### 8.1 Configuration per Environment
 
-All configuration changes must be version-controlled:
+| Setting | `dev` | `integration` | `staging` | `production` |
+|---------|-------|--------------|---------|------------|
+| `logging.level` | DEBUG | INFO | WARN | WARN |
+| `logging.output` | file | file | syslog | syslog |
+| `fault_injection.enabled` | true | true | false | false |
+| `csi2.lane_speed_mbps` | N/A | 400 | 400 | 400 (800 when ready) |
+| `panel.rows` | 1024 (fast) | 2048 | 2048 | 2048-3072 |
 
-```bash
-# Tag configuration with release version
-cd system-emul-sim
-git tag -a v1.0.0-config -m "Production config for v1.0.0"
-git push origin v1.0.0-config
+### 8.2 Environment Promotion
+
+Artifacts must be promoted through environments in order:
+
+```
+dev -> integration -> staging -> production
 ```
 
-### 7.2 Configuration Validation
+Never promote directly from `dev` to `production`. Each environment must pass its validation before promotion.
 
-Before deploying configuration changes:
+---
+
+## 9. Post-Deployment Validation
+
+Run immediately after deploying to any environment:
 
 ```bash
-# 1. Validate schema
-dotnet run --project tools/ConfigConverter -- \
-    --input config/detector_config.yaml --validate-only
+# 1. Verify SoC daemon is running
+ssh root@192.168.1.100 "systemctl is-active xray-detector.service"
+# Expected: active
 
-# 2. Run integration tests with new config
+# 2. Verify FPGA DEVICE_ID
+ssh root@192.168.1.100 "detector_cli read-reg 0x00"
+# Expected: 0xD7E00001
+
+# 3. Run integration smoke test
+dotnet run --project tools/IntegrationRunner -- --scenario IT-01
+# Expected: PASS
+
+# 4. Run full integration suite for production
 dotnet run --project tools/IntegrationRunner -- --all \
-    --config config/detector_config.yaml
-
-# 3. Deploy to SoC
-scp config/detector_config.yaml root@192.168.1.100:/etc/detector/
-ssh root@192.168.1.100 "systemctl restart detector"
+    --report reports/post-deploy-$(date +%Y%m%d).json
 ```
 
-### 7.3 Configuration Sync Across Layers
+Integration test requirements by environment:
 
-All three layers must use consistent configuration:
+| Environment | Required Passing Tests |
+|-------------|----------------------|
+| `dev` | IT-01, IT-03 |
+| `integration` | IT-01 through IT-06 |
+| `staging` | IT-01 through IT-10 |
+| `production` | IT-01 through IT-10 |
+
+---
+
+## 10. Rollback Procedures
+
+### 10.1 Rollback SoC Firmware
 
 ```bash
-# Generate all target configs from single source
-dotnet run --project tools/ConfigConverter -- \
-    --input config/detector_config.yaml \
-    --output generated/ \
-    --target all
+SOC_IP=192.168.1.100
 
-# Deploy to each layer:
-# 1. FPGA: Apply generated .xdc constraints (requires rebuild)
-# 2. SoC: Copy detector_config.yaml
-# 3. Host: Copy sdk-config.json
+# Stop current service
+ssh root@${SOC_IP} "systemctl stop xray-detector.service"
+
+# Restore backup binary
+ssh root@${SOC_IP} "cp /usr/bin/detector_daemon.bak /usr/bin/detector_daemon"
+
+# Restore previous configuration (replace date with backup date)
+scp backups/detector_config_YYYYMMDD.yaml \
+    root@${SOC_IP}:/etc/detector/detector_config.yaml
+
+# Restart service
+ssh root@${SOC_IP} "systemctl start xray-detector.service"
+
+# Verify
+ssh root@${SOC_IP} "systemctl status xray-detector.service"
+```
+
+### 10.2 Rollback FPGA Bitstream
+
+Keep the previous bitstream MCS file accessible. To rollback:
+
+```bash
+# Program previous known-good bitstream
+vivado -mode batch -source fpga/scripts/program_flash.tcl \
+    -tclargs fpga/output/csi2_detector_v{previous_version}.mcs
+```
+
+For immediate recovery without reprogramming flash, use JTAG volatile programming with the known-good bitstream. This allows recovery in minutes rather than waiting for the full flash programming cycle.
+
+### 10.3 Rollback Host Application
+
+On Windows:
+
+```powershell
+# Replace current installation with previous version
+Remove-Item -Recurse C:\XrayDetector\
+Expand-Archive xray-detector-v{previous_version}-host-win.zip \
+    -DestinationPath C:\XrayDetector\
+```
+
+On Linux:
+
+```bash
+# Update symlink to previous version
+sudo ln -sf /opt/xray-detector-v{previous_version}/XrayDetector.CLI \
+    /usr/local/bin/xray-detector
 ```
 
 ---
 
-## 8. Monitoring and Health Checks
+## 11. Monitoring and Health Checks
 
-### 8.1 SoC Health Monitoring
+### 11.1 Automated Health Check Script
 
-```bash
-# Check daemon health
-ssh root@192.168.1.100 "detector_cli status"
-
-# Expected output:
-# System Status: IDLE
-# FPGA Device ID: 0xA735
-# Frame Counter: 0
-# Error Flags: 0x00
-# Uptime: 2h 34m 12s
-# Temperature: 45.2 C
-```
-
-### 8.2 FPGA Status Monitoring
-
-```bash
-# Read all FPGA registers
-ssh root@192.168.1.100 "detector_cli dump-regs"
-
-# Key registers to monitor:
-# STATUS (0x04): Should be IDLE when not scanning
-# ERROR_FLAGS (0x10): Should be 0x00 (no errors)
-# FRAME_COUNTER (0x08): Increments during scan
-```
-
-### 8.3 Network Performance Monitoring
-
-```bash
-# Monitor network throughput (Linux Host)
-iftop -i eth1 -f "port 8000"
-
-# Check UDP statistics
-ss -s | grep UDP
-
-# Monitor frame statistics via SDK
-dotnet run --project tools/IntegrationRunner -- --scenario IT-10 --verbose
-```
-
-### 8.4 Automated Health Check Script
+Save as `scripts/health_check.sh` and run after deployment or on a schedule:
 
 ```bash
 #!/bin/bash
 # health_check.sh - Automated system health check
-set -e
+set -euo pipefail
 
 SOC_IP=192.168.1.100
+PASS=0
+FAIL=0
 
-echo "=== System Health Check ==="
+check() {
+    local name="$1"
+    local result="$2"
+    local expected="$3"
+    if [ "$result" = "$expected" ]; then
+        echo "[PASS] ${name}: ${result}"
+        PASS=$((PASS+1))
+    else
+        echo "[FAIL] ${name}: expected '${expected}', got '${result}'"
+        FAIL=$((FAIL+1))
+    fi
+}
 
-# 1. Check SoC connectivity
-echo -n "SoC connectivity: "
-if ping -c 1 -W 2 ${SOC_IP} > /dev/null 2>&1; then
-    echo "OK"
-else
-    echo "FAIL - Cannot reach SoC"
-    exit 1
-fi
+echo "=== X-ray Detector Health Check - $(date) ==="
 
-# 2. Check firmware daemon
-echo -n "Firmware daemon: "
-STATUS=$(ssh root@${SOC_IP} "systemctl is-active detector" 2>/dev/null)
-if [ "$STATUS" = "active" ]; then
-    echo "OK (active)"
-else
-    echo "FAIL ($STATUS)"
-    exit 1
-fi
+# 1. SoC connectivity
+PING_RESULT=$(ping -c 1 -W 2 ${SOC_IP} > /dev/null 2>&1 && echo "ok" || echo "fail")
+check "SoC ping" "$PING_RESULT" "ok"
 
-# 3. Check FPGA communication
-echo -n "FPGA DEVICE_ID: "
-DEVICE_ID=$(ssh root@${SOC_IP} "detector_cli read-reg 0xF0" 2>/dev/null)
-if [ "$DEVICE_ID" = "0xA735" ]; then
-    echo "OK (0xA735)"
-else
-    echo "FAIL ($DEVICE_ID)"
-    exit 1
-fi
+# 2. Firmware daemon
+DAEMON_STATUS=$(ssh root@${SOC_IP} "systemctl is-active xray-detector.service" 2>/dev/null || echo "inactive")
+check "Firmware daemon" "$DAEMON_STATUS" "active"
 
-# 4. Check error flags
-echo -n "Error flags: "
-ERROR=$(ssh root@${SOC_IP} "detector_cli read-reg 0x10" 2>/dev/null)
-if [ "$ERROR" = "0x0000" ]; then
-    echo "OK (no errors)"
-else
-    echo "WARNING (errors detected: $ERROR)"
-fi
+# 3. FPGA DEVICE_ID
+DEVICE_ID=$(ssh root@${SOC_IP} "detector_cli read-reg 0x00" 2>/dev/null || echo "error")
+check "FPGA DEVICE_ID" "$DEVICE_ID" "0xD7E00001"
 
-echo "=== Health Check Complete ==="
+# 4. FPGA error flags (REG_ERROR_FLAGS = 0x80, see docs/api/spi-register-map.md)
+ERROR_FLAGS=$(ssh root@${SOC_IP} "detector_cli read-reg 0x80" 2>/dev/null || echo "error")
+check "FPGA error flags" "$ERROR_FLAGS" "0x0000"
+
+echo "=== Results: ${PASS} passed, ${FAIL} failed ==="
+[ "$FAIL" -eq 0 ]  # Exit code 0 if all pass, 1 if any fail
 ```
+
+### 11.2 Key Registers to Monitor
+
+| Register | Address | Normal Value | Description |
+|----------|---------|-------------|-------------|
+| DEVICE_ID | 0x00 | 0xD7E0 (upper) | Fixed identifier upper 16-bit |
+| DEVICE_ID_LO | 0x01 | 0x0001 (lower) | Fixed identifier lower 16-bit |
+| STATUS | 0x20 | 0x0001 (idle) | FSM state: bit[0]=idle, bit[1]=scanning |
+| ERROR_FLAGS | 0x80 | 0x0000 | Should be zero (write-1-clear) |
+| FRAME_COUNT_LO | 0x30 | Increasing | Frames scanned lower 16-bit |
 
 ---
 
-## 9. Upgrade Procedures
+## 12. Upgrade Procedures
 
-### 9.1 FPGA Upgrade
+### 12.1 FPGA Upgrade
 
-1. Build new bitstream (see Section 3.1)
-2. Verify in staging environment
-3. Program production FPGA via JTAG or flash
-4. Verify DEVICE_ID and heartbeat
-5. Run integration tests
+1. Build new release bitstream (Section 4.1)
+2. Deploy to `integration` environment and run IT-01 through IT-10
+3. Deploy to `staging` and verify
+4. Schedule `production` maintenance window
+5. Program production FPGA flash (Section 5.2)
+6. Power cycle and verify DEVICE_ID
+7. Run post-deployment validation (Section 9)
+8. Monitor for 24 hours
 
-### 9.2 Firmware Upgrade
+### 12.2 Firmware Upgrade
 
-1. Cross-compile new firmware (see Section 3.2)
-2. Deploy to staging SoC
-3. Run verification tests
-4. Deploy to production SoC (see Section 5.1)
-5. Monitor for 24 hours
+1. Cross-compile new firmware release (Section 4.2)
+2. Deploy to `integration` and run integration tests
+3. Deploy to `staging` and run IT-01 through IT-10
+4. Deploy to `production` (Section 6.1)
+5. Verify daemon status and DEVICE_ID
+6. Monitor logs for 24 hours: `journalctl -u xray-detector.service -f`
 
-### 9.3 Host SDK Upgrade
+### 12.3 Configuration-Only Upgrade
 
-1. Build release package (see Section 3.3)
-2. Deploy to staging Host PC
-3. Run all integration tests
-4. Deploy to production Host PC
-5. Verify frame capture and storage
-
-### 9.4 Configuration-Only Update
+When only `detector_config.yaml` changes (no binary changes):
 
 ```bash
-# 1. Validate new config
+# 1. Validate new configuration
 dotnet run --project tools/ConfigConverter -- \
     --input config/detector_config_new.yaml --validate-only
 
-# 2. Deploy to SoC
-scp config/detector_config_new.yaml root@192.168.1.100:/etc/detector/detector_config.yaml
-ssh root@192.168.1.100 "systemctl restart detector"
+# 2. Run integration tests with new config
+dotnet run --project tools/IntegrationRunner -- \
+    --all --config config/detector_config_new.yaml
 
-# 3. Verify
-ssh root@192.168.1.100 "detector_cli status"
+# 3. Deploy to SoC
+scp config/detector_config_new.yaml \
+    root@192.168.1.100:/etc/detector/detector_config.yaml
+ssh root@192.168.1.100 "systemctl restart xray-detector.service"
+
+# 4. Verify
+ssh root@192.168.1.100 "systemctl status xray-detector.service"
 ```
 
 ---
 
-## 10. Backup and Recovery
+## 13. Backup and Recovery
 
-### 10.1 What to Back Up
+### 13.1 What to Back Up
 
-| Component | Location | Frequency |
-|-----------|----------|-----------|
-| FPGA bitstream | `fpga/output/*.bit` | Each release |
-| Firmware binary | `fw/build-release/*` | Each release |
-| Configuration | `config/detector_config.yaml` | Each change |
-| Frame data | `frames/` on Host PC | Per policy |
-| SoC system image | Full eMMC/SD backup | Before upgrade |
+| Artifact | Location | Backup Frequency | Retention |
+|----------|----------|-----------------|-----------|
+| FPGA bitstreams | `fpga/output/*.bit`, `*.mcs` | Each release | All versions |
+| Firmware binaries | `fw/build-release/` | Each release | Last 3 versions |
+| Configuration files | `config/detector_config_*.yaml` | Each change | All versions (Git) |
+| SoC system state | Full eMMC/SD backup | Before major upgrade | Last 2 snapshots |
+| Frame data | `/data/frames/` on Host PC | Per policy | Per retention policy |
 
-### 10.2 SoC Full Backup
+### 13.2 SoC Application Backup
 
 ```bash
-# Backup SoC filesystem
-ssh root@192.168.1.100 "tar czf /tmp/soc_backup.tar.gz /etc/detector/ /usr/bin/detector_*"
-scp root@192.168.1.100:/tmp/soc_backup.tar.gz backups/soc_backup_$(date +%Y%m%d).tar.gz
+# Create application backup (configuration and binaries)
+ssh root@192.168.1.100 \
+    "tar czf /tmp/soc_app_backup.tar.gz \
+     /etc/detector/ /usr/bin/detector_daemon /usr/bin/detector_cli"
+
+scp root@192.168.1.100:/tmp/soc_app_backup.tar.gz \
+    backups/soc_app_$(date +%Y%m%d).tar.gz
 ```
 
-### 10.3 Recovery Procedure
+### 13.3 Recovery from Unrecoverable State
 
-If the system enters an unrecoverable state:
-
-1. **FPGA**: Reprogram via JTAG using known-good bitstream
-2. **SoC**: Restore from backup:
+1. **FPGA**: Reprogram via JTAG with the last known-good bitstream from `fpga/output/`.
+2. **SoC firmware**: Restore application backup:
    ```bash
-   scp backups/soc_backup_YYYYMMDD.tar.gz root@192.168.1.100:/tmp/
-   ssh root@192.168.1.100 "cd / && tar xzf /tmp/soc_backup_YYYYMMDD.tar.gz"
-   ssh root@192.168.1.100 "systemctl restart detector"
+   scp backups/soc_app_YYYYMMDD.tar.gz root@192.168.1.100:/tmp/
+   ssh root@192.168.1.100 "cd / && tar xzf /tmp/soc_app_YYYYMMDD.tar.gz"
+   ssh root@192.168.1.100 "systemctl restart xray-detector.service"
    ```
-3. **Host**: Reinstall from release package
+3. **SoC OS**: Re-flash Yocto image (Section 3.1 of the Installation Guide), then redeploy firmware.
+4. **Host application**: Reinstall from the release package in `release/`.
 
 ---
 
-## 11. Security Considerations
+## 14. Security Hardening
 
-### 11.1 Production Hardening
+Apply these measures before production deployment:
 
-| Measure | Description |
-|---------|-------------|
-| SSH Key Authentication | Disable password login on SoC |
-| Firewall | Only allow ports 8000, 8001, 22 |
-| Read-only Root FS | Mount SoC root filesystem as read-only |
-| Signed Bitstream | Enable Vivado bitstream encryption (optional) |
-| TLS for Control | Encrypt control channel (future enhancement) |
-
-### 11.2 Access Control
+### 14.1 SoC Access Control
 
 ```bash
-# SoC: Disable root password login
-ssh root@192.168.1.100 "sed -i 's/PermitRootLogin yes/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config"
-ssh root@192.168.1.100 "systemctl restart sshd"
+# Disable root password login (use SSH key authentication)
+ssh root@192.168.1.100 \
+    "sed -i 's/#PermitRootLogin.*/PermitRootLogin prohibit-password/' \
+     /etc/ssh/sshd_config && systemctl restart sshd"
 
-# Use SSH key authentication instead
+# Copy your SSH public key for key-based authentication
 ssh-copy-id root@192.168.1.100
 ```
 
+### 14.2 Network Firewall on SoC
+
+```bash
+ssh root@192.168.1.100 << 'EOF'
+# Allow only necessary ports
+iptables -P INPUT DROP
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT    # SSH
+iptables -A INPUT -p udp --dport 8001 -j ACCEPT  # Control (from Host PC)
+# Frame data (8000) is outbound only
+iptables-save > /etc/iptables.rules
+EOF
+```
+
+### 14.3 Production Security Checklist
+
+| Measure | Applied | Notes |
+|---------|---------|-------|
+| SSH key authentication | Required | Disable password login |
+| Firewall: only ports 22, 8001 inbound | Required | Block all other inbound |
+| Debug features disabled | Required | `fault_injection.enabled: false` |
+| Logging to syslog | Required | Enables centralized log collection |
+| Signed/encrypted FPGA bitstream | Optional | Enable in Vivado if IP protection required |
+
 ---
 
-## 12. Troubleshooting Deployment
-
-| Issue | Cause | Solution |
-|-------|-------|---------|
-| Flash programming fails | Wrong MCS format | Verify SPI flash part number in TCL script |
-| Firmware won't start after upgrade | Config format changed | Validate config with ConfigConverter |
-| Host can't connect after upgrade | Port changed in config | Verify port numbers match across all layers |
-| Frame data corrupted | Config mismatch between layers | Re-sync configuration from `detector_config.yaml` |
-| Performance regression | Debug symbols not stripped | Rebuild with Release config, strip binaries |
-
----
-
-## 13. Revision History
+## 15. Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial production deployment guide |
+| 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete deployment guide with environment management, rollback, and security hardening |
+| 1.0.1 | 2026-02-17 | manager-quality | Fix health_check.sh: ERROR_FLAGS address corrected from 0x04 to 0x80. Update Key Registers table: STATUS=0x20 (not 0x02), ERROR_FLAGS=0x80 (not 0x04), FRAME_COUNT_LO=0x30 (not 0x10). |
 
 ---
+
+## Review Record
+
+- Date: 2026-02-17
+- Reviewer: manager-quality
+- Status: Approved (with corrections applied)
+- TRUST 5: T:5 R:5 U:4 S:5 T:4

@@ -1,518 +1,274 @@
-# Host SDK .NET Build Guide
+# Host SDK Build and Test Guide
 
-**Project**: X-ray Detector Panel System
-**Framework**: .NET 8.0 LTS, C# 12
-**Version**: 1.0.0
+**Document Version**: 1.0.0
+**Status**: Draft
 **Last Updated**: 2026-02-17
 
 ---
 
-## 1. Overview
+## Prerequisites
 
-The Host SDK (`XrayDetector.Sdk`) is the primary API for applications interacting with the X-ray Detector Panel System. It runs on the Host PC and communicates with the SoC Controller via 10 GbE UDP to receive pixel frames, send control commands, and manage frame storage.
-
-### 1.1 SDK Architecture
-
-```
-XrayDetector.Sdk/
-  IDetectorClient.cs            # Public API interface
-  DetectorClient.cs             # API implementation
-  Network/
-    PacketReceiver.cs           # UDP packet reception
-    FrameReassembler.cs         # Packet-to-frame reassembly
-  Protocol/
-    FrameHeader.cs              # Frame header struct (32 bytes)
-    CommandPacket.cs            # Control command encoding
-    Crc16.cs                    # CRC-16/CCITT
-  Storage/
-    TiffWriter.cs               # 16-bit TIFF output
-    RawWriter.cs                # Binary RAW + JSON sidecar
-  Display/
-    WindowLevel.cs              # 16-bit to 8-bit mapping
-  Models/
-    Frame.cs                    # Frame data with IDisposable
-    ScanMode.cs                 # Single, Continuous, Calibration
-    ScanStatus.cs               # Runtime statistics
-    DeviceInfo.cs               # Connected device metadata
-    DetectorException.cs        # Domain-specific exceptions
-```
-
-### 1.2 Module Dependencies
-
-```
-Common.Dto (shared interfaces, DTOs)
-    ^
-    |
-XrayDetector.Sdk (SDK library)
-    ^
-    |
-XrayDetector.Sdk.Tests (unit tests)
-```
-
-The SDK depends only on `Common.Dto` for shared types. No direct dependencies on simulator projects.
-
----
-
-## 2. Prerequisites
-
-### 2.1 Required Software
+### Required Software
 
 | Software | Version | Purpose |
 |----------|---------|---------|
-| .NET SDK | 8.0 LTS | Build and run |
-| Visual Studio 2022 | 17.8+ | IDE (Windows) |
-| VS Code | Latest | IDE (cross-platform) |
-| Git | 2.30+ | Version control |
+| .NET SDK | 8.0 LTS | C# build toolchain |
+| Visual Studio 2022 | 17.8+ | IDE with WPF designer (Windows) |
+| VS Code | Latest | Cross-platform editor |
+| ReportGenerator | Latest | HTML coverage report generation |
 
-### 2.2 Install .NET 8.0 SDK
+Install .NET 8.0 SDK (Windows):
 
-**Windows**:
 ```powershell
 winget install Microsoft.DotNet.SDK.8
 dotnet --version
+# Expected: 8.0.x
 ```
 
-**Linux (Ubuntu 22.04+)**:
+Install .NET 8.0 SDK (Linux):
+
 ```bash
-sudo apt-get update
 sudo apt-get install -y dotnet-sdk-8.0
 dotnet --version
 ```
 
-**macOS**:
-```bash
-brew install --cask dotnet-sdk
-dotnet --version
-```
-
-### 2.3 Verify Installation
+Install ReportGenerator globally:
 
 ```bash
-dotnet --list-sdks
-# Expected: 8.0.xxx [/usr/share/dotnet/sdk]
-
-dotnet --list-runtimes
-# Expected: Microsoft.NETCore.App 8.0.xxx
-```
-
----
-
-## 3. Build the SDK
-
-### 3.1 Quick Build
-
-```bash
-cd system-emul-sim
-
-# Restore NuGet packages
-dotnet restore sdk/XrayDetector.Sdk/XrayDetector.Sdk.csproj
-
-# Build SDK
-dotnet build sdk/XrayDetector.Sdk/XrayDetector.Sdk.csproj
-
-# Build in Release mode
-dotnet build sdk/XrayDetector.Sdk/XrayDetector.Sdk.csproj -c Release
-```
-
-### 3.2 Build SDK + Tests
-
-```bash
-# Build both SDK and test project
-dotnet build sdk/XrayDetector.Sdk/XrayDetector.Sdk.csproj
-dotnet build sdk/XrayDetector.Sdk.Tests/XrayDetector.Sdk.Tests.csproj
-
-# Or build the solution (builds everything)
-dotnet build
-```
-
-### 3.3 NuGet Package Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| LibTiff.NET | 2.4.6+ | 16-bit TIFF file read/write |
-| System.IO.Pipelines | 8.0.0 | High-performance I/O pipelines |
-| fo-dicom | 5.0+ | DICOM format output (optional) |
-| xUnit | 2.6+ | Unit test framework |
-| xUnit.runner.visualstudio | 2.5+ | Test runner for Visual Studio |
-| FluentAssertions | 6.12+ | Expressive test assertions |
-| coverlet.collector | 6.0+ | Code coverage collection |
-| NSubstitute | 5.1+ | Mocking framework |
-
-**Package Installation**:
-```bash
-# Add a NuGet package to the SDK project
-cd sdk/XrayDetector.Sdk
-dotnet add package LibTiff.Net --version 2.4.6
-dotnet add package System.IO.Pipelines --version 8.0.0
-
-# Add test packages
-cd ../XrayDetector.Sdk.Tests
-dotnet add package xunit --version 2.6.6
-dotnet add package FluentAssertions --version 6.12.0
-dotnet add package NSubstitute --version 5.1.0
-dotnet add package coverlet.collector --version 6.0.1
-```
-
----
-
-## 4. Run Tests
-
-### 4.1 Run All Tests
-
-```bash
-# Run tests with output
-dotnet test sdk/XrayDetector.Sdk.Tests/ --logger "console;verbosity=normal"
-
-# Run tests in verbose mode
-dotnet test sdk/XrayDetector.Sdk.Tests/ -v detailed
-```
-
-### 4.2 Run Specific Tests
-
-```bash
-# Run tests matching a filter
-dotnet test sdk/XrayDetector.Sdk.Tests/ --filter "FullyQualifiedName~FrameReassembler"
-dotnet test sdk/XrayDetector.Sdk.Tests/ --filter "FullyQualifiedName~Crc16"
-dotnet test sdk/XrayDetector.Sdk.Tests/ --filter "FullyQualifiedName~TiffWriter"
-
-# Run tests by category
-dotnet test sdk/XrayDetector.Sdk.Tests/ --filter "Category=Unit"
-dotnet test sdk/XrayDetector.Sdk.Tests/ --filter "Category=Integration"
-```
-
-### 4.3 Code Coverage
-
-```bash
-# Collect coverage
-dotnet test sdk/XrayDetector.Sdk.Tests/ \
-    --collect:"XPlat Code Coverage" \
-    --results-directory TestResults
-
-# Install report generator (one-time)
 dotnet tool install -g dotnet-reportgenerator-globaltool
+```
 
-# Generate HTML report
+---
+
+## Setup
+
+### Project Structure Overview
+
+```
+sdk/
+├── XrayDetector.SDK/          # Core SDK library (.NET 8.0, C# 12)
+│   ├── IDetectorClient.cs     # Public API interface
+│   ├── DetectorClient.cs      # API implementation
+│   ├── Network/               # UDP packet reception, frame reassembly
+│   ├── Protocol/              # Frame headers, command packets, CRC-16
+│   ├── Storage/               # TIFF and RAW file writers
+│   ├── Display/               # 16-bit to 8-bit window/level mapping
+│   └── Models/                # Frame, ScanMode, DeviceInfo, exceptions
+├── XrayDetector.SDK.Tests/    # xUnit test project
+│   ├── Unit/                  # Unit tests (no hardware required)
+│   └── Integration/           # Integration tests (requires simulator)
+├── XrayDetector.GUI/          # WPF GUI application (Windows only)
+│   ├── App.xaml               # Application entry point
+│   ├── MainWindow.xaml        # Main window
+│   └── Views/                 # MVVM views
+└── XrayDetector.SDK.sln       # Solution file
+```
+
+### Open in Visual Studio 2022
+
+1. Launch Visual Studio 2022.
+2. File > Open > Project/Solution.
+3. Select `sdk/XrayDetector.SDK.sln`.
+4. Wait for NuGet package restore to complete.
+5. Build > Build Solution (Ctrl+Shift+B).
+
+### Open in VS Code
+
+```bash
+cd sdk
+code .
+```
+
+Install the C# Dev Kit extension when prompted.
+
+---
+
+## Build
+
+### Build from CLI
+
+```bash
+cd sdk
+
+# Restore all NuGet packages
+dotnet restore
+
+# Build in Release configuration
+dotnet build --configuration Release
+```
+
+Expected output:
+
+```
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+```
+
+### Build Individual Projects
+
+```bash
+# Build only the SDK library
+dotnet build XrayDetector.SDK/XrayDetector.SDK.csproj --configuration Release
+
+# Build the GUI (Windows only)
+dotnet build XrayDetector.GUI/XrayDetector.GUI.csproj --configuration Release
+```
+
+---
+
+## Test
+
+### Running Tests with Coverage
+
+```bash
+dotnet test --collect:"XPlat Code Coverage" \
+    --results-directory ./coverage \
+    -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+```
+
+### Generate HTML Coverage Report
+
+```bash
 reportgenerator \
-    -reports:"TestResults/*/coverage.cobertura.xml" \
-    -targetdir:TestResults/CoverageReport \
+    -reports:coverage/**/coverage.cobertura.xml \
+    -targetdir:coverage/report \
     -reporttypes:Html
 
-# Open report
-# Windows:
-start TestResults/CoverageReport/index.html
-# Linux:
-xdg-open TestResults/CoverageReport/index.html
+# Open the report
+# Windows
+start coverage/report/index.html
+# Linux
+xdg-open coverage/report/index.html
 ```
 
-**Coverage Target**: 85%+ for all new SDK code (TDD methodology)
+Coverage target: >= 85% line coverage for `XrayDetector.SDK`.
 
-### 4.4 Test Structure
+### Run Specific Test Category
 
-Tests follow TDD (RED-GREEN-REFACTOR) methodology:
+```bash
+# Run only unit tests (no hardware required)
+dotnet test --filter "Category=Unit"
 
-```csharp
-// XrayDetector.Sdk.Tests/Network/FrameReassemblerTests.cs
-using FluentAssertions;
-using Xunit;
+# Run integration tests (requires simulator or hardware)
+dotnet test --filter "Category=Integration"
 
-public class FrameReassemblerTests
-{
-    [Fact]
-    public void Reassemble_AllPacketsInOrder_ProducesCompleteFrame()
-    {
-        // Arrange
-        var reassembler = new FrameReassembler(maxSlots: 8, frameTimeout: TimeSpan.FromSeconds(2));
-        var packets = CreateTestPackets(width: 1024, height: 1024, bitDepth: 16);
+# Run tests matching a name pattern
+dotnet test --filter "FullyQualifiedName~FrameReassembler"
+```
 
-        // Act
-        Frame? result = null;
-        foreach (var packet in packets)
-        {
-            result = reassembler.AddPacket(packet);
-        }
+### Run Tests in Verbose Mode
 
-        // Assert
-        result.Should().NotBeNull();
-        result!.Width.Should().Be(1024);
-        result.Height.Should().Be(1024);
-        result.BitDepth.Should().Be(16);
-        result.PixelData.Length.Should().Be(1024 * 1024);
-    }
-
-    [Fact]
-    public void Reassemble_OutOfOrderPackets_ProducesIdenticalFrame()
-    {
-        // Arrange
-        var reassembler = new FrameReassembler(maxSlots: 8, frameTimeout: TimeSpan.FromSeconds(2));
-        var packets = CreateTestPackets(width: 1024, height: 1024, bitDepth: 16);
-        var shuffled = packets.OrderBy(_ => Random.Shared.Next()).ToList();
-
-        // Act
-        Frame? result = null;
-        foreach (var packet in shuffled)
-        {
-            result = reassembler.AddPacket(packet);
-        }
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.PixelData.Should().Equal(GetExpectedPixelData(1024, 1024));
-    }
-
-    [Fact]
-    public void Reassemble_MissingPackets_TimesOutAndReportsIncomplete()
-    {
-        // Arrange
-        var reassembler = new FrameReassembler(maxSlots: 8, frameTimeout: TimeSpan.FromMilliseconds(100));
-        var packets = CreateTestPackets(width: 1024, height: 1024, bitDepth: 16);
-        // Remove 5% of packets
-        var incomplete = packets.Where((_, i) => i % 20 != 0).ToList();
-
-        // Act
-        foreach (var packet in incomplete)
-        {
-            reassembler.AddPacket(packet);
-        }
-        Thread.Sleep(200); // Wait for timeout
-
-        // Assert
-        var frame = reassembler.GetExpiredFrames().FirstOrDefault();
-        frame.Should().NotBeNull();
-        frame!.IsComplete.Should().BeFalse();
-    }
-}
+```bash
+dotnet test --logger "console;verbosity=detailed" \
+    --filter "Category=Unit"
 ```
 
 ---
 
-## 5. Project Configuration
+## Build Artifacts
 
-### 5.1 SDK Project File
+### Building a NuGet Package
 
-```xml
-<!-- sdk/XrayDetector.Sdk/XrayDetector.Sdk.csproj -->
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>12.0</LangVersion>
-    <RootNamespace>XrayDetector.Sdk</RootNamespace>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../../tools/Common.Dto/Common.Dto.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LibTiff.Net" Version="2.4.6" />
-    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-  </ItemGroup>
-
-</Project>
+```bash
+dotnet pack XrayDetector.SDK/XrayDetector.SDK.csproj \
+    --configuration Release \
+    --output ./packages
 ```
 
-### 5.2 Test Project File
+The output package appears at `packages/XrayDetector.SDK.1.0.0.nupkg`.
 
-```xml
-<!-- sdk/XrayDetector.Sdk.Tests/XrayDetector.Sdk.Tests.csproj -->
-<Project Sdk="Microsoft.NET.Sdk">
+### Code Style Enforcement
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
+Check for formatting issues without applying changes:
 
-  <ItemGroup>
-    <ProjectReference Include="../XrayDetector.Sdk/XrayDetector.Sdk.csproj" />
-  </ItemGroup>
+```bash
+dotnet format --verify-no-changes
+```
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.6.6" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="NSubstitute" Version="5.1.0" />
-    <PackageReference Include="coverlet.collector" Version="6.0.1" />
-  </ItemGroup>
+Apply formatting automatically:
 
-</Project>
+```bash
+dotnet format
+```
+
+### Publishing the GUI Application
+
+Publish a self-contained single-file executable for Windows x64:
+
+```bash
+dotnet publish XrayDetector.GUI \
+    -r win-x64 \
+    --self-contained \
+    -p:PublishSingleFile=true \
+    -o ./publish/win-x64
+```
+
+The published executable is at `publish/win-x64/XrayDetector.GUI.exe`.
+
+Publish for Linux x64:
+
+```bash
+dotnet publish XrayDetector.SDK \
+    -r linux-x64 \
+    --self-contained \
+    -p:PublishSingleFile=true \
+    -o ./publish/linux-x64
 ```
 
 ---
 
-## 6. API Usage Examples
+## Integration Testing with Simulator
 
-### 6.1 Single Frame Capture
+To run integration tests, start the HostSimulator as a mock detector backend:
 
-```csharp
-using XrayDetector.Sdk;
+```bash
+# Terminal 1: Start mock detector simulator
+cd /path/to/system-emul-sim
+dotnet run --project tools/HostSimulator -- --mode server --port 5001
 
-// Create client
-using var client = new DetectorClient();
-
-// Connect to SoC
-await client.ConnectAsync("192.168.1.100");
-
-// Capture single frame
-await client.StartScanAsync(ScanMode.Single);
-var frame = await client.GetFrameAsync(TimeSpan.FromSeconds(5));
-
-// Save frame
-await client.SaveFrameAsync(frame, "output/frame_001.tiff", ImageFormat.Tiff);
-Console.WriteLine($"Captured: {frame.Width}x{frame.Height}, {frame.BitDepth}-bit");
-
-// Disconnect
-await client.DisconnectAsync();
-```
-
-### 6.2 Continuous Streaming
-
-```csharp
-using XrayDetector.Sdk;
-
-using var client = new DetectorClient();
-await client.ConnectAsync("192.168.1.100");
-
-// Start continuous capture
-await client.StartScanAsync(ScanMode.Continuous);
-
-// Stream frames
-int count = 0;
-await foreach (var frame in client.StreamFramesAsync())
-{
-    Console.WriteLine($"Frame {frame.SequenceNumber}: {frame.Width}x{frame.Height}");
-
-    if (++count >= 100) break;
-
-    frame.Dispose(); // Return buffer to pool
-}
-
-await client.StopScanAsync();
-```
-
-### 6.3 Event-Driven Reception
-
-```csharp
-using XrayDetector.Sdk;
-
-using var client = new DetectorClient();
-
-// Subscribe to events
-client.FrameReceived += (sender, frame) =>
-{
-    Console.WriteLine($"Frame received: seq={frame.SequenceNumber}");
-};
-
-client.ErrorOccurred += (sender, error) =>
-{
-    Console.WriteLine($"Error: {error.Message} (recoverable={error.IsRecoverable})");
-};
-
-client.ConnectionChanged += (sender, state) =>
-{
-    Console.WriteLine($"Connection: {state}");
-};
-
-await client.ConnectAsync("192.168.1.100");
-await client.StartScanAsync(ScanMode.Continuous);
-
-// Wait for user to stop
-Console.ReadLine();
-await client.StopScanAsync();
+# Terminal 2: Run integration tests against simulator
+cd sdk
+dotnet test --filter "Category=Integration"
 ```
 
 ---
 
-## 7. Development Workflow
+## Troubleshooting
 
-### 7.1 TDD Cycle
-
-All new SDK code follows TDD (RED-GREEN-REFACTOR):
-
-1. **RED**: Write a failing test
-   ```bash
-   dotnet test sdk/XrayDetector.Sdk.Tests/ --filter "NewFeatureTest"
-   # Expected: FAIL
-   ```
-
-2. **GREEN**: Write minimal code to pass
-   ```bash
-   dotnet test sdk/XrayDetector.Sdk.Tests/ --filter "NewFeatureTest"
-   # Expected: PASS
-   ```
-
-3. **REFACTOR**: Clean up while keeping tests green
-   ```bash
-   dotnet test sdk/XrayDetector.Sdk.Tests/
-   # Expected: ALL PASS
-   ```
-
-### 7.2 Performance Considerations
-
-- Use `ArrayPool<ushort>` for frame pixel buffers (avoid GC pressure)
-- Frame implements `IDisposable` to return buffers to pool
-- Receive loop runs on dedicated thread, not thread pool
-- Use `System.IO.Pipelines` for zero-copy network I/O
-
-### 7.3 Cross-Platform Notes
-
-| Feature | Windows | Linux | macOS |
-|---------|---------|-------|-------|
-| SDK Library | Yes | Yes | Yes |
-| Unit Tests | Yes | Yes | Yes |
-| Integration Tests | Yes | Yes | Yes |
-| WPF GUI | Yes | No | No |
-
-For Linux/macOS, avoid WPF-dependent code paths. Use interface abstraction:
-
-```csharp
-// Platform-agnostic interface
-public interface IFrameRenderer
-{
-    void Render(Frame frame);
-}
-
-// WPF implementation (Windows only)
-#if WINDOWS
-public class WpfFrameRenderer : IFrameRenderer { ... }
-#endif
-```
-
----
-
-## 8. Troubleshooting
-
-### 8.1 Build Issues
+### NuGet Package Issues
 
 | Issue | Cause | Solution |
 |-------|-------|---------|
-| "SDK not found" | .NET 8.0 not installed | Install .NET 8.0 SDK |
-| "Could not find project Common.Dto" | Wrong working directory | Build from project root |
-| NuGet restore fails | Network/proxy issues | `dotnet nuget locals all --clear` |
-| "Nullable warnings as errors" | Missing null checks | Add null checks or `?` annotations |
+| Package restore fails | No network access or wrong feed | Check proxy, run `dotnet nuget locals all --clear` |
+| Package version conflict | Multiple versions of same package | Add `<PackageReference>` with specific version, run `dotnet restore` |
+| Package not found | Private feed not configured | Add NuGet feed to `NuGet.config` |
 
-### 8.2 Test Issues
+### Build Failures
 
 | Issue | Cause | Solution |
 |-------|-------|---------|
-| Tests not discovered | Missing test SDK reference | Add `Microsoft.NET.Test.Sdk` package |
-| Coverage not collected | Missing coverlet | Add `coverlet.collector` package |
-| Timeout in async tests | Default xUnit timeout | Set `[Fact(Timeout = 30000)]` |
-| Socket errors in tests | Port already in use | Use random ports or mock network layer |
+| `CS8618: Non-nullable property must contain a non-null value` | Nullable reference types enabled | Initialize the property or mark nullable with `?` |
+| `CS0246: The type or namespace could not be found` | Missing using directive or package reference | Add `using` statement or add NuGet package |
+| WPF compile error on Linux | WPF is Windows-only | Use `dotnet build` only on Windows for GUI project |
 
 ---
 
-## 9. Revision History
+## Common Errors
+
+| Error | Context | Meaning | Fix |
+|-------|---------|---------|-----|
+| `MSBUILD: error MSB1003` | CLI build | Solution or project file not found | Run from the `sdk/` directory |
+| `error CS0234: namespace does not exist` | Compile | Missing NuGet package | Run `dotnet restore` |
+| `System.IO.FileNotFoundException: Could not load file or assembly` | Runtime | Missing runtime dependency | Run `dotnet publish --self-contained` |
+| `xUnit1004` test warning | Test | Test method not returning Task | Change test return type to `async Task` if async |
+| `No test is available` | Test filter | Filter matched nothing | Check filter syntax: `dotnet test --filter "Category=Unit"` |
+| Coverage report shows 0% | No coverage data | `--collect` flag missing | Include `--collect:"XPlat Code Coverage"` in test command |
+
+---
+
+## Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial SDK build guide |
-
----
+| 1.0.0 | 2026-02-17 | MoAI Agent | Complete Host SDK build and test guide |

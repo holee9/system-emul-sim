@@ -56,7 +56,35 @@ This SPEC covers:
 
 ---
 
-**REQ-SDK-002**: The SDK **shall** implement `IDetectorClient` as the public API interface.
+**REQ-SDK-002**: The SDK **shall** implement `IDetectorClient` as the public API interface with the following 8 methods:
+
+```csharp
+public interface IDetectorClient : IAsyncDisposable
+{
+    // Connection Management
+    Task ConnectAsync(string host, int port = 8000, CancellationToken ct = default);
+    Task DisconnectAsync(CancellationToken ct = default);
+
+    // Scan Control
+    Task StartScanAsync(ScanMode mode, CancellationToken ct = default);
+    Task StopScanAsync(CancellationToken ct = default);
+
+    // Frame Acquisition
+    Task<Frame> GetFrameAsync(TimeSpan timeout, CancellationToken ct = default);
+    IAsyncEnumerable<Frame> StreamFramesAsync(CancellationToken ct = default);
+
+    // Frame Storage
+    Task SaveFrameAsync(Frame frame, string path, ImageFormat format, CancellationToken ct = default);
+
+    // Status
+    Task<ScanStatus> GetStatusAsync(CancellationToken ct = default);
+
+    // Events
+    event EventHandler<FrameEventArgs> FrameReceived;
+    event EventHandler<ErrorEventArgs> ErrorOccurred;
+    event EventHandler<ConnectionEventArgs> ConnectionChanged;
+}
+```
 
 **WHY**: Interface-based design enables unit testing with mocks, dependency injection, and future alternative implementations.
 
@@ -143,6 +171,22 @@ This SPEC covers:
 **WHY**: Frame persistence is required for clinical image archival and post-processing.
 
 **IMPACT**: Supports TIFF (lossless 16-bit), RAW (binary with JSON sidecar), and optionally DICOM.
+
+---
+
+**REQ-SDK-018**: **WHEN** `DisconnectAsync()` is called **THEN** the SDK shall send a DISCONNECT command (0x0008) to the SoC and release all network resources.
+
+**WHY**: Graceful disconnection allows the SoC to clean up state and prepare for the next connection.
+
+**IMPACT**: DisconnectAsync waits for any in-progress scan to complete or times out after 5 seconds. Releases UDP sockets and frame buffers.
+
+---
+
+**REQ-SDK-019**: **WHEN** `GetStatusAsync()` is called **THEN** the SDK shall return a `ScanStatus` object containing: IsConnected, IsScanning, DroppedFrames, FramesReceived, CurrentThroughputGbps.
+
+**WHY**: Status polling enables applications to monitor scan health and performance.
+
+**IMPACT**: Status values updated at 1 Hz minimum. DroppedFrames and FramesReceived are cumulative since ConnectAsync.
 
 ---
 
@@ -462,6 +506,15 @@ This SPEC covers:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial SPEC creation for Host SDK requirements |
+
+---
+
+## Review Record
+
+- Date: 2026-02-17
+- Reviewer: manager-quality
+- Status: Approved
+- TRUST 5: T:5 R:5 U:5 S:4 T:5
 
 ---
 

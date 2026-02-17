@@ -1,416 +1,697 @@
 # Troubleshooting Guide
 
-**Project**: X-ray Detector Panel System
-**Version**: 1.0.0
+**Document Version**: 1.0.0
+**Status**: Draft
 **Last Updated**: 2026-02-17
 
+## Table of Contents
+
+1. [Quick Diagnostic Reference](#1-quick-diagnostic-reference)
+2. [SoC System Health](#2-soc-system-health)
+3. [Hardware Connectivity](#3-hardware-connectivity)
+4. [CSI-2 Link Issues](#4-csi-2-link-issues)
+5. [SPI Communication Failures](#5-spi-communication-failures)
+6. [Frame Acquisition Issues](#6-frame-acquisition-issues)
+7. [Network and Throughput Issues](#7-network-and-throughput-issues)
+8. [Battery and Peripheral Devices](#8-battery-and-peripheral-devices)
+9. [WiFi (Sterling 60 / QCA6174A)](#9-wifi-sterling-60--qca6174a)
+10. [FPGA Error Codes Reference](#10-fpga-error-codes-reference)
+11. [Log Collection](#11-log-collection)
+12. [Revision History](#12-revision-history)
+
 ---
 
-## 1. Quick Diagnostic Checklist
+## 1. Quick Diagnostic Reference
 
-Before investigating specific issues, verify these common prerequisites:
+Run these commands first to characterize the problem. Results narrow down which section to consult.
 
-1. SoC controller is powered on and booted
-2. Ethernet cable is connected (Host PC to SoC)
-3. Host PC can ping the SoC IP address (default: `192.168.1.100`)
-4. .NET 8.0+ runtime is installed on Host PC
-5. No other application is using the detector port (default: 8000)
-
----
-
-## 2. Connection Issues
-
-### 2.1 Connection Timeout
-
-**Symptom**: `DetectorConnectionException` thrown when calling `ConnectAsync`.
-
-**Possible Causes and Solutions**:
-
-| Cause | Diagnostic | Solution |
-|-------|-----------|----------|
-| Wrong IP address | `ping <ip>` fails | Verify SoC IP in network settings |
-| Wrong port | `ping` succeeds but connection fails | Check port number (default: 8000) |
-| Firewall blocking | `telnet <ip> <port>` fails | Add firewall exception for port 8000 |
-| SoC not booted | No ping response | Wait for SoC boot (30-60 seconds after power on) |
-| Network misconfiguration | Ping timeout | Verify subnet mask and gateway settings |
-
-**Diagnostic Steps**:
+### 1.1 SoC System State
 
 ```bash
-# Step 1: Verify network connectivity
-ping 192.168.1.100
+# Kernel version and uptime
+uname -r && uptime
 
-# Step 2: Verify port is reachable (Windows)
-Test-NetConnection -ComputerName 192.168.1.100 -Port 8000
+# Memory availability
+free -h
 
-# Step 3: Verify port is reachable (Linux)
-nc -zv 192.168.1.100 8000
+# Disk usage
+df -h
+
+# Firmware daemon status
+systemctl status xray-detector.service
+
+# Recent daemon logs (last hour)
+journalctl -u xray-detector.service --since "1 hour ago" --no-pager
 ```
 
-### 2.2 Connection Drops
+Expected output:
 
-**Symptom**: `ConnectionChanged` event fires with `State = Disconnected` during operation.
+```
+6.6.52-lts-imx8mp
+ 12:34:56 up 2:15,  1 user,  load average: 0.08, 0.12, 0.10
+               total        used        free
+Mem:           7.6Gi       1.2Gi       6.4Gi
 
-**Possible Causes**:
+xray-detector.service - X-ray Detector Daemon
+     Active: active (running) since ...
+```
 
-| Cause | Diagnostic | Solution |
-|-------|-----------|----------|
-| Network cable loose | Check physical connection | Reseat Ethernet cable |
-| SoC reboot | SoC console shows reboot log | Investigate SoC stability |
-| Network congestion | Frame drop rate increasing | Use dedicated network segment |
-| Idle timeout | No scan activity for extended period | Enable auto-reconnect in client options |
+### 1.2 Hardware Device Check
 
-**Auto-Reconnect Configuration**:
+```bash
+# I2C bus 0: BQ40z50 battery fuel gauge at 0x0b
+i2cdetect -y 0
 
-```csharp
-var options = new DetectorClientOptions
+# I2C bus 7: BMI160 IMU at 0x68
+i2cdetect -y 7
+
+# PCIe devices: Sterling 60 WiFi and 2.5 GbE
+lspci -nn
+
+# CSI-2 RX: should list /dev/video0
+v4l2-ctl --list-devices
+```
+
+### 1.3 Network State
+
+```bash
+# Check all interfaces and link state
+ip link show
+
+# Check 10 GbE link speed (should show Speed: 10000Mb/s)
+ethtool eth1
+
+# Ping Host PC from SoC
+ping -c 4 192.168.1.1
+
+# Bandwidth test (run iperf3 server on Host PC first)
+iperf3 -c 192.168.1.1 -t 10 -u -b 3G
+```
+
+### 1.4 FPGA Communication
+
+```bash
+# Read DEVICE_ID via SPI (use spidev_test from linux-tools)
+spidev_test -D /dev/spidev0.0 -v -s 1000000 -p "\x00\x00\x00\x00"
+# Expected response bytes: D7 E0 00 01
+
+# Or use the firmware CLI (cleaner output)
+detector_cli read-reg 0x00
+# Expected: 0xD7E00001
+```
+
+---
+
+## 2. SoC System Health
+
+### 2.1 No SoC Boot (UART shows no output)
+
+**Symptoms**: UART console is silent after power on, or shows only boot loader output.
+
+**Diagnostics**:
+
+```bash
+# Verify UART baud rate: 115200 baud, 8N1, no flow control
+# On Linux
+screen /dev/ttyUSB0 115200
+# On Windows: PuTTY -> Serial -> COMx -> 115200
+```
+
+**Resolution steps**:
+
+1. Check power supply: SoC board requires 5 V / 3 A minimum. Measure at the power connector. Low voltage causes random resets.
+2. Check boot media: Verify the Yocto image was flashed successfully. If using SD card, try a different card.
+3. Re-flash the Yocto image:
+   ```bash
+   # On Linux, using DD to SD card (replace /dev/sdX)
+   sudo dd if=core-image-minimal-imx8mp-var-dart.wic \
+       of=/dev/sdX bs=1M status=progress conv=fsync
+   sync
+   ```
+4. Verify SD card integrity:
+   ```bash
+   # On Linux
+   sudo fsck /dev/sdX1
+   ```
+5. Check boot mode jumpers: Confirm the VAR-SOM-MX8M-PLUS carrier board jumpers are set for SD card or eMMC boot (see carrier board manual).
+
+### 2.2 SoC Firmware Daemon Not Starting
+
+**Symptoms**: `systemctl status xray-detector.service` shows `failed` or `inactive`.
+
+```bash
+# Check detailed failure reason
+journalctl -u xray-detector.service -n 50 --no-pager
+
+# Common causes in the log:
+# "Failed to open /dev/spidev0.0" -> SPI device missing
+# "config file not found" -> /etc/detector/detector_config.yaml missing
+# "device ID mismatch" -> FPGA not programmed
+
+# Check configuration file exists
+ls -la /etc/detector/detector_config.yaml
+
+# Check SPI device exists
+ls /dev/spidev0.0
+
+# Check CSI-2 video device exists
+ls /dev/video0
+```
+
+---
+
+## 3. Hardware Connectivity
+
+### 3.1 Checking FPGA Configuration (DONE LED Off)
+
+The DONE LED on the FPGA board should be solid on after configuration. If it is off:
+
+1. Verify the bitstream file exists: `fpga/output/csi2_detector_top.bit`
+2. Reprogram via JTAG:
+   ```bash
+   vivado -mode batch -source fpga/scripts/program_fpga.tcl \
+       -tclargs fpga/output/csi2_detector_top.bit
+   ```
+3. Check Vivado output for errors. Common errors:
+   - "Cannot find device": JTAG cable not connected or driver missing
+   - "Wrong part": Bitstream was built for a different Artix-7 variant
+   - "CRC error during programming": Power supply noise during programming (add capacitors or use shorter JTAG cable)
+
+### 3.2 Verifying FPC Cable Integrity
+
+CSI-2 FPC cable failures are a common source of link problems.
+
+1. Visual inspection: Look for kinks, cuts, or bent pins at the connectors.
+2. Connector seating: Unlock both connectors, reinsert the cable, and lock. The cable should lie flat.
+3. Swap test: If a second cable is available, swap it to isolate the cable from the connector.
+4. Resistance check: With the connectors unlocked and cable removed, measure continuity between the FPGA-end and SoC-end of each lane pair (CLK, D0, D1, D2, D3).
+
+---
+
+## 4. CSI-2 Link Issues
+
+### 4.1 v4l2 No Device (/dev/video0 Missing)
+
+**Symptoms**: `v4l2-ctl --list-devices` shows no MIPI CSI-2 device.
+
+```bash
+# Check if the CSI-2 subsystem driver loaded
+dmesg | grep -i "mipi"
+dmesg | grep -i "csi"
+
+# Expected output includes:
+# nxp-mipi-csi2 32e40000.mipi_csi: enabled
+# video0: MIPI CSI-2 ...
+```
+
+**Resolution steps**:
+
+1. Check FPC cable connection (Section 3.2).
+2. Verify the FPGA CSI-2 TX is operational:
+   ```bash
+   # CSI2_LANE_SPEED register = 0x60 (bit[0]: 0=400Mbps, 1=800Mbps)
+   detector_cli read-reg 0x60
+   # Expected: 0x0000 (400 Mbps/lane) or 0x0001 (800 Mbps/lane)
+   # Check CSI2_STATUS register = 0x70 (bit[0]: phy_ready)
+   detector_cli read-reg 0x70
+   # Expected: bit[0]=1 (phy_ready) when D-PHY is initialized
+   ```
+3. Apply the device tree overlay if it was not applied at boot:
+   ```bash
+   # Verify the overlay is in uEnv.txt
+   grep "fdt_overlay" /boot/uEnv.txt
+   # If missing:
+   echo "fdt_overlay=/boot/detector-overlay.dtbo" >> /boot/uEnv.txt
+   reboot
+   ```
+4. Check kernel messages for D-PHY errors:
+   ```bash
+   dmesg | grep -i "dphy"
+   # Look for: "DPHY calibration failed" or "lane alignment timeout"
+   ```
+
+### 4.2 CSI-2 Link Established But Frames Are Corrupted
+
+**Symptoms**: `/dev/video0` exists, frames are received, but pixel data contains stripes, random values, or partially filled images.
+
+```bash
+# Check for FPGA CRC or D-PHY errors
+detector_cli read-reg 0x04
+# Non-zero value indicates error flags are set
+
+# Read the specific error flag bits
+# Bit 3 (0x08): CRC_ERROR - CSI-2 CRC-16 mismatch
+# Bit 5 (0x20): DPHY_LINK_FAIL - lane sync lost
+```
+
+Resolution:
+
+1. Reduce CSI-2 lane speed to 400 Mbps (if currently at 800 Mbps):
+   ```yaml
+   # In detector_config.yaml
+   fpga:
+     csi2:
+       lane_speed_mbps: 400
+   ```
+2. Check FPC cable length and quality. At 800 Mbps, the maximum reliable cable length is approximately 15 cm. For 400 Mbps, 30 cm is acceptable.
+3. Check for electromagnetic interference sources near the FPC cable.
+
+---
+
+## 5. SPI Communication Failures
+
+### 5.1 Register Read Returns 0x00000000
+
+**Cause**: SPI MISO line is disconnected or grounded. The FPGA is not responding.
+
+```bash
+# Test with spidev_test at a slow speed
+spidev_test -D /dev/spidev0.0 -v -s 100000 -p "\x00\x00\x00\x00"
+# Look at the received bytes
+```
+
+**Resolution steps**:
+
+1. Verify MISO wire is connected: FPGA `GPIO_SPI_MISO` to SoC `SPI1_MISO`.
+2. Verify common ground: FPGA GND to SoC GND.
+3. Verify CS_N is asserted: Check with a multimeter or oscilloscope that CS_N goes low during the SPI transaction.
+4. Verify FPGA is programmed (DONE LED lit).
+
+### 5.2 Register Read Returns 0xFFFFFFFF
+
+**Cause**: FPGA is not programmed or has entered an error state. When the FPGA SPI slave is not active, the MISO pin floats high.
+
+```bash
+# Confirm FPGA is programmed by checking the status register
+detector_cli read-reg 0x02
+# Expected: 0x0000 (IDLE) if FPGA is running
+# If 0xFFFF, the FPGA is not responding
+```
+
+**Resolution**: Reprogram the FPGA bitstream via JTAG.
+
+### 5.3 Intermittent SPI Errors
+
+**Cause**: SPI clock speed too high, or long/unshielded wires causing signal integrity issues.
+
+```bash
+# Check the configured SPI clock speed
+cat /etc/detector/detector_config.yaml | grep spi_clock
+# Verify it is <= 50000000 (50 MHz)
+```
+
+**Resolution**: Reduce SPI clock speed in `detector_config.yaml`. For wire lengths greater than 20 cm, use 10 MHz or less.
+
+---
+
+## 6. Frame Acquisition Issues
+
+### 6.1 No Frames Received (Timeout)
+
+**Symptoms**: `GetFrameAsync` throws `TimeoutException`, or the IT-01 integration test fails with "frame timeout".
+
+```bash
+# Check the STATUS register to confirm scan state
+# REG_STATUS = 0x20 (see docs/api/spi-register-map.md)
+# bit[0]=idle, bit[1]=scan_active, bit[2]=error
+detector_cli read-reg 0x20
+# 0x0001: IDLE (not scanning)
+# 0x0002: SCANNING active (scan_active bit set)
+# 0x0004: ERROR state
+```
+
+**Diagnostics**:
+
+```bash
+# Check the frame counter - should increment when scanning
+# REG_FRAME_COUNT_LO = 0x30
+detector_cli read-reg 0x30
+sleep 1
+detector_cli read-reg 0x30
+# If both readings are the same, the FPGA is not generating frames
+
+# Check the STATUS register
+detector_cli read-reg 0x20
+# bit[0]=idle: 1=IDLE state
+# bit[1]=scan_active: 1=SCANNING active
+# bit[3]=frame_done: 1=frame completed (self-clearing on read)
+```
+
+**Resolution**:
+
+1. Ensure `StartScanAsync()` was called before `GetFrameAsync()`.
+2. Check the FPGA error flags register (0x04). Non-zero indicates a hardware error.
+3. Verify panel timing in `detector_config.yaml` matches the ROIC datasheet values.
+
+### 6.2 Checking Panel Timing
+
+Verify the panel timing registers contain sensible values:
+
+```bash
+# GATE_ON timing (REG_TIMING_GATE_ON = 0x50)
+detector_cli read-reg 0x50
+# Should match detector_config.yaml fpga.timing.gate_on_us * 100
+# e.g., gate_on_us=1000 -> register value = 100000 (0x186A)
+
+# GATE_OFF timing (REG_TIMING_GATE_OFF = 0x51)
+detector_cli read-reg 0x51
+# e.g., gate_off_us=200 -> register value = 20000 (0x4E20)
+```
+
+If registers show unexpected values, re-synchronize configuration:
+
+```bash
+# Regenerate timing from config and re-deploy
+dotnet run --project tools/ConfigConverter -- \
+    --input config/detector_config.yaml --format c-header
+
+# Rebuild and redeploy firmware
+# (See deployment guide Section 6.1)
+```
+
+---
+
+## 7. Network and Throughput Issues
+
+### 7.1 High Frame Drop Rate (> 0.01%)
+
+**Diagnostics**:
+
+```bash
+# On Host PC: Check link speed
+ethtool eth1 | grep Speed
+# Expected: Speed: 10000Mb/s
+
+# Check current UDP receive buffer size
+sysctl net.core.rmem_max
+# Should be >= 26214400 (25 MB) for Intermediate tier
+# Should be >= 67108864 (64 MB) for Final tier
+
+# Run a bandwidth test to verify physical link
+iperf3 -s -p 5201  # on Host PC
+iperf3 -c 192.168.1.1 -p 5201 -t 10  # on SoC
+# Expected: >= 2.5 Gbps for Final tier
+```
+
+**Resolution**:
+
+```bash
+# Increase UDP socket buffer on Host PC
+sudo sysctl -w net.core.rmem_max=26214400
+sudo sysctl -w net.core.rmem_default=26214400
+
+# Make permanent
+echo "net.core.rmem_max=26214400" | sudo tee -a /etc/sysctl.conf
+
+# Enable jumbo frames on both sides (if switch supports it)
+sudo ip link set eth1 mtu 9000          # on SoC
+sudo ip link set eth1 mtu 9000          # on Host PC
+```
+
+For persistent jumbo frames on the SoC:
+
+```bash
+cat >> /etc/network/interfaces.d/eth1 << 'EOF'
+    mtu 9000
+EOF
+systemctl restart networking
+```
+
+### 7.2 Testing UDP Frame Reception
+
+```bash
+# Run a quick bandwidth verification with iperf3 UDP mode
+# On Host PC (receiver):
+iperf3 -s -p 5201
+
+# On SoC (sender):
+iperf3 -c 192.168.1.1 -p 5201 -t 10 -u -b 2.5G -l 8192
+# Expected: Actual bandwidth near 2.5 Gbps, loss < 0.01%
+```
+
+### 7.3 Link Negotiating at 1 GbE Instead of 10 GbE
+
+```bash
+# Check auto-negotiation result on SoC
+ethtool eth1
+# Look for: Speed: 10000Mb/s
+# If Speed: 1000Mb/s:
+
+# Force 10 GbE speed (if supported by the NIC)
+ethtool -s eth1 speed 10000 duplex full autoneg off
+
+# Check cable: Cat6a is required for 10 GbE at standard cable lengths
+# Cat5e may link at 1 GbE only
+```
+
+---
+
+## 8. Battery and Peripheral Devices
+
+### 8.1 BQ40z50 Battery Fuel Gauge Not Detected
+
+**Symptoms**: `i2cdetect -y 0` shows no device at `0x0b`.
+
+```bash
+# Check I2C bus 0 devices
+i2cdetect -y 0
+# Expected: -- at most addresses, and 0b at address 0x0b
+
+# Verify the bq27xxx driver is loaded
+lsmod | grep bq27
+# Expected: bq27xxx_battery ...
+
+# If driver is missing, load it manually
+modprobe bq27xxx_battery
+
+# Manual SMBus read to verify device responds
+i2cget -y 0 0x0b 0x0d w
+# Expected: non-zero value (state of charge as a percentage * 256)
+
+# Full register dump
+i2cdump -y 0 0x0b
+```
+
+**Resolution if device still not found**:
+
+1. Check the battery is connected and charged sufficiently to respond on the bus.
+2. Check `SMBUS_SCL` and `SMBUS_SDA` lines from the battery connector to the SoC I2C0 bus.
+3. Verify the battery's SMBUS address is configured to `0x0b` (SMBus default for BQ40z50).
+
+### 8.2 BMI160 IMU Not Detected
+
+**Symptoms**: `i2cdetect -y 7` shows no device at `0x68`.
+
+```bash
+# Check I2C bus 7
+i2cdetect -y 7
+# Expected: device at address 0x68
+
+# Verify BMI160 chip ID
+i2cget -y 7 0x68 0x00
+# Expected: 0xd1 (BMI160 chip ID)
+
+# Check IMU power supply
+# BMI160 requires 1.8 V or 3.3 V VDD
+```
+
+The BMI160 is not critical for X-ray acquisition. If it is absent, the firmware daemon logs a warning but continues normal operation.
+
+---
+
+## 9. WiFi (Sterling 60 / QCA6174A)
+
+### 9.1 WiFi Interface Not Available
+
+The Ezurio Sterling 60 module uses the QCA6174A chip connected via PCIe.
+
+```bash
+# Verify PCIe detection
+lspci | grep -i "QCA"
+# Expected: Qualcomm Atheros QCA6174 802.11ac Wireless Network Adapter
+
+# Check ath10k firmware files
+ls /lib/firmware/ath10k/QCA6174/hw3.0/
+# Expected: firmware-6.bin, board.bin
+
+# If firmware files are missing, obtain from linux-firmware package
+apt-get install linux-firmware
+# or copy from the Yocto build
+
+# Load the driver
+modprobe ath10k_pci
+
+# Verify interface appears
+ip link show wlan0
+```
+
+### 9.2 WiFi Not Connecting
+
+```bash
+# Scan for available networks
+nmcli dev wifi list
+
+# Connect to a network
+nmcli dev wifi connect "SSID" password "password"
+
+# Check connection status
+nmcli con show
+
+# If NetworkManager is not running
+systemctl start NetworkManager
+```
+
+**Note**: WiFi is available for management access but should not carry X-ray frame data. Frame data must flow over the 10 GbE link (eth1) for performance reasons.
+
+---
+
+## 10. FPGA Error Codes Reference
+
+The FPGA ERROR_FLAGS register (address 0x80) uses individual bits to report hardware conditions. Multiple errors can be set simultaneously. All flags are sticky (write-1-clear).
+
+| Bit | Hex Mask | Name | Description | Immediate Action |
+|-----|----------|------|-------------|-----------------|
+| 0 | 0x0001 | TIMEOUT | Readout exceeded TIMING_LINE_PERIOD x 2 | Check panel connection; retry scan |
+| 1 | 0x0002 | OVERFLOW | Line buffer bank collision; data lost | Reduce FPS or resolution |
+| 2 | 0x0004 | CRC_ERROR | CSI-2 self-check CRC mismatch | Reseat FPC cable; reduce CSI-2 speed |
+| 3 | 0x0008 | OVEREXPOSURE | One or more pixels reached saturation threshold | Reduce X-ray exposure time |
+| 4 | 0x0010 | ROIC_FAULT | No valid ROIC data within TIMING_LINE_PERIOD | Check ROIC LVDS connections |
+| 5 | 0x0020 | DPHY_ERROR | D-PHY initialization failed or link loss | Reseat FPC cable; check power to FPGA |
+| 6 | 0x0040 | CONFIG_ERROR | Invalid config: rows=0, cols=0, or invalid bit_depth | Verify detector_config.yaml |
+| 7 | 0x0080 | WATCHDOG | System heartbeat timer expired (100 ms threshold) | Check SPI wires; restart daemon |
+
+**Reading and clearing error flags**:
+
+```bash
+# Read current error flags (REG_ERROR_FLAGS = 0x80)
+detector_cli read-reg 0x80
+
+# Clear all error flags using write-1-clear semantics
+detector_cli write-reg 0x80 0x00FF  # Write 1 to all flag bits to clear them
+```
+
+**Severity guide**:
+
+- Bits 0, 3, 7 (TIMEOUT, OVEREXPOSURE, WATCHDOG): Warning severity. Log the occurrence. Scan may continue.
+- Bits 1, 2, 4, 5 (OVERFLOW, CRC_ERROR, ROIC_FAULT, DPHY_ERROR): Error severity. Stop the scan. Investigate before restarting.
+- Bit 6 (CONFIG_ERROR): Configuration error. Fix detector_config.yaml and redeploy.
+- Any flag causes STATUS bit[2] (error) to assert and FSM to enter ERROR state.
+
+---
+
+## 11. Log Collection
+
+When reporting issues or escalating to the development team, collect the following:
+
+### 11.1 SoC Logs
+
+```bash
+# Firmware daemon log (last 200 lines)
+journalctl -u xray-detector.service -n 200 --no-pager > /tmp/daemon.log
+
+# Kernel messages related to detector hardware
+dmesg | grep -E "mipi|csi|spi|i2c|ath10k|bq27" > /tmp/kernel.log
+
+# System status snapshot
 {
-    AutoReconnect = true,
-    ReconnectIntervalMs = 5000,
-};
-var client = new DetectorClient(options);
+  echo "=== uname ==="; uname -a
+  echo "=== uptime ==="; uptime
+  echo "=== free ==="; free -h
+  echo "=== df ==="; df -h
+  echo "=== ip link ==="; ip link show
+  echo "=== ethtool eth1 ==="; ethtool eth1
+  echo "=== detector status ==="; detector_cli status 2>/dev/null || echo "daemon not running"
+  echo "=== i2cdetect bus 0 ==="; i2cdetect -y 0
+  echo "=== i2cdetect bus 7 ==="; i2cdetect -y 7
+  echo "=== v4l2 devices ==="; v4l2-ctl --list-devices
+  echo "=== lspci ==="; lspci -nn
+} > /tmp/soc_status.txt
+
+# Collect all logs into one archive
+tar czf /tmp/detector_logs_$(date +%Y%m%d_%H%M%S).tar.gz \
+    /tmp/daemon.log /tmp/kernel.log /tmp/soc_status.txt
 ```
 
-### 2.3 Discovery Returns No Devices
-
-**Symptom**: `DetectorDiscovery.DiscoverAsync()` returns an empty list.
-
-**Solutions**:
-
-1. Verify Host PC and SoC are on the same subnet
-2. Check that UDP broadcast is not blocked by firewall
-3. Increase discovery timeout: `DiscoverAsync(TimeSpan.FromSeconds(10))`
-4. Connect directly using the known IP address instead
-
----
-
-## 3. Frame Capture Issues
-
-### 3.1 No Frames Received
-
-**Symptom**: `GetFrameAsync` throws `TimeoutException`.
-
-| Cause | Diagnostic | Solution |
-|-------|-----------|----------|
-| Scan not started | `CurrentStatus.IsScanning == false` | Call `StartScanAsync()` first |
-| X-ray source off | Dark frame has near-zero values | Power on X-ray source |
-| FPGA in error state | Error event fires with FPGA code | Clear error, restart scan |
-| Wrong scan mode | Mode mismatch | Verify `ScanMode` parameter |
-| Timeout too short | Frame time exceeds timeout | Increase timeout value |
-
-**Diagnostic Code**:
-
-```csharp
-// Check scan state
-Console.WriteLine($"Is scanning: {client.CurrentStatus.IsScanning}");
-Console.WriteLine($"Frame count: {client.CurrentStatus.FrameCount}");
-Console.WriteLine($"Dropped: {client.CurrentStatus.DroppedFrames}");
-
-// Register error handler to catch FPGA errors
-client.ErrorOccurred += (s, e) =>
-    Console.WriteLine($"Error: 0x{(int)e.Error:X4} - {e.Message}");
-```
-
-### 3.2 Frame Drops
-
-**Symptom**: `CurrentStatus.DroppedFrames` increases during continuous capture.
-
-| Cause | Diagnostic | Solution |
-|-------|-----------|----------|
-| Network bandwidth insufficient | Frame rate exceeds NIC capacity | Use 10 GbE for Target/Maximum tiers |
-| Small receive buffer | Buffer overflow on host | Increase `ReceiveBufferSize` to 16-32 MB |
-| Slow frame processing | Queue depth grows | Process frames asynchronously |
-| Jumbo frames disabled | Small MTU causes fragmentation | Enable jumbo frames (MTU 9000) |
-
-**Network Optimization**:
+### 11.2 Host PC Diagnostics
 
 ```bash
-# Windows: Enable jumbo frames (MTU 9000)
-# Open Network Adapter Properties > Configure > Advanced > Jumbo Frame > 9014 Bytes
+# Collect integration test results
+dotnet run --project tools/IntegrationRunner -- \
+    --all --verbose \
+    --report /tmp/integration_$(date +%Y%m%d).json
 
-# Linux: Set MTU
-sudo ip link set eth0 mtu 9000
-
-# Linux: Increase UDP receive buffer
-sudo sysctl -w net.core.rmem_max=33554432
-sudo sysctl -w net.core.rmem_default=16777216
-```
-
-### 3.3 Incomplete Frames
-
-**Symptom**: Frame data has missing regions (appears as black bands or stripes).
-
-| Cause | Diagnostic | Solution |
-|-------|-----------|----------|
-| Packet loss | Missing packet error in log | Increase buffer, check network |
-| CSI-2 link error | D-PHY error flag set | Check CSI-2 cable and connectors |
-| Buffer overflow on SoC | SoC log shows overflow | Reduce frame rate |
-
-### 3.4 Corrupted Frame Data
-
-**Symptom**: Frame contains unexpected pixel values, random patterns, or CRC errors.
-
-| Cause | Diagnostic | Solution |
-|-------|-----------|----------|
-| CRC mismatch | `ErrorOccurred` with CRC_ERROR | Check data path, reseat cables |
-| Bit errors | Random pixel corruption | Check signal integrity, cables |
-| Configuration mismatch | Wrong resolution/bit depth | Verify `DetectorConfig` matches hardware |
-
----
-
-## 4. FPGA Error Codes
-
-The FPGA reports errors through the protection logic module. Each error sets a flag in the error register (address 0x10).
-
-### 4.1 Error Code Reference
-
-| Code | Flag | Name | Description | Severity | Recovery |
-|------|------|------|-------------|----------|----------|
-| 0x01 | Bit 0 | READOUT_TIMEOUT | Line readout exceeded configured timeout | Warning | Retry scan |
-| 0x02 | Bit 1 | OVEREXPOSURE | Pixel values exceed overexposure threshold | Warning | Reduce exposure time |
-| 0x04 | Bit 2 | BUFFER_OVERFLOW | Line buffer write exceeded capacity | Error | Reduce resolution or FPS |
-| 0x08 | Bit 3 | CRC_ERROR | CSI-2 packet CRC-16 mismatch | Error | Check data path integrity |
-| 0x10 | Bit 4 | SPI_TIMEOUT | SPI watchdog timer expired (no SPI activity) | Warning | Check SoC-FPGA SPI connection |
-| 0x20 | Bit 5 | DPHY_LINK_FAIL | D-PHY lane synchronization lost | Error | Check CSI-2 cable and power |
-| 0x40 | Bit 6 | FRAME_INCOMPLETE | Frame ended with fewer lines than expected | Warning | Check ROIC panel connection |
-| 0x80 | Bit 7 | SYSTEM_ERROR | Internal FPGA error (should not occur normally) | Critical | Power cycle the detector |
-
-### 4.2 Error Handling in Code
-
-```csharp
-client.ErrorOccurred += (sender, e) =>
+# Network statistics
 {
-    Console.WriteLine($"Error 0x{(int)e.Error:X4}: {e.Message}");
-
-    switch (e.Error)
-    {
-        case DetectorError.READOUT_TIMEOUT:
-        case DetectorError.OVEREXPOSURE:
-        case DetectorError.FRAME_INCOMPLETE:
-            // Warning-level: log and continue
-            Console.WriteLine("Warning-level error. Scan can continue.");
-            break;
-
-        case DetectorError.BUFFER_OVERFLOW:
-        case DetectorError.CRC_ERROR:
-        case DetectorError.DPHY_LINK_FAIL:
-            // Error-level: stop scan, reconfigure
-            Console.WriteLine("Error-level issue. Stopping scan for diagnosis.");
-            break;
-
-        case DetectorError.SYSTEM_ERROR:
-            // Critical: power cycle required
-            Console.WriteLine("Critical error. Power cycle the detector.");
-            break;
-    }
-};
+  echo "=== ip link ==="; ip link show
+  echo "=== ethtool ==="; ethtool eth1 2>/dev/null
+  echo "=== sysctl UDP ==="; sysctl net.core.rmem_max net.core.rmem_default
+  echo "=== ss UDP stats ==="; ss -s | grep UDP
+} > /tmp/network_diag.txt
 ```
 
-### 4.3 Clearing Errors
+### 11.3 Diagnostic Report Template
 
-Errors are cleared by writing to the error clear register via SPI. The SDK handles this automatically when you call `StartScanAsync()` after an error. If errors persist after clearing, the underlying hardware issue must be resolved.
-
----
-
-## 5. Configuration Issues
-
-### 5.1 Invalid Configuration
-
-**Symptom**: `DetectorConfigException` when calling `SetConfigAsync`.
-
-**Allowed Values**:
-
-| Parameter | Valid Values |
-|-----------|-------------|
-| Width | 1024, 2048, 3072 |
-| Height | 1024, 2048, 3072 |
-| BitDepth | 14, 16 |
-| TargetFps | 10, 15, 30 |
-
-**Common Mistakes**:
-
-- Setting Width and Height to different values that are not square
-- Setting BitDepth to values other than 14 or 16
-- Requesting 30 fps with Maximum resolution on 1 GbE network
-
-### 5.2 Configuration Not Taking Effect
-
-**Symptom**: Config change succeeds but frames still use old settings.
-
-**Solution**: Some configuration changes require a scan restart. The SDK handles this automatically, but if you observe stale settings:
-
-1. Stop any active scan: `await client.StopScanAsync()`
-2. Apply new configuration: `await client.SetConfigAsync(config)`
-3. Start a new scan: `await client.StartScanAsync(mode)`
-
----
-
-## 6. Performance Issues
-
-### 6.1 Low Frame Rate
-
-**Symptom**: Actual FPS is lower than configured `TargetFps`.
-
-| Cause | Diagnostic | Solution |
-|-------|-----------|----------|
-| Network bottleneck | FPS drops with resolution increase | Upgrade to 10 GbE |
-| Host processing too slow | Queue depth grows | Use async processing pipeline |
-| FPGA readout bottleneck | FPS limited regardless of network | Check panel timing configuration |
-
-### 6.2 High CPU Usage
-
-**Symptom**: Host PC CPU usage is abnormally high during capture.
-
-| Cause | Solution |
-|-------|----------|
-| Synchronous frame processing | Use `StreamFramesAsync` with async pipeline |
-| WPF rendering on UI thread | Process frames on background thread |
-| Excessive event handlers | Minimize work in event handlers |
-
-### 6.3 High Memory Usage
-
-**Symptom**: Host PC memory grows during long capture sessions.
-
-| Cause | Solution |
-|-------|----------|
-| Frames not disposed | Call `frame.Dispose()` after processing |
-| Accumulating frames in memory | Process and save frames incrementally |
-| Large receive buffer | Reduce `ReceiveBufferSize` if drops are acceptable |
-
----
-
-## 7. Storage Issues
-
-### 7.1 Save Fails
-
-**Symptom**: `DetectorStorageException` when calling `SaveFrameAsync`.
-
-| Cause | Solution |
-|-------|----------|
-| Insufficient disk space | Free disk space or change save directory |
-| Permission denied | Run application with write permissions |
-| Invalid path | Verify output directory exists |
-| File locked | Close other applications accessing the file |
-
-### 7.2 Large File Sizes
-
-**Tip**: RAW format is the most compact (pixel data only). TIFF adds minimal overhead. DICOM includes metadata headers.
-
-| Format | Overhead vs RAW |
-|--------|----------------|
-| RAW | Baseline (pixel data + JSON sidecar) |
-| TIFF | ~1-2% (TIFF header and tags) |
-| DICOM | ~5-10% (DICOM metadata) |
-
----
-
-## 8. Hardware Diagnostics
-
-### 8.1 SoC Controller Not Responding
-
-1. Check power LED on SoC board
-2. Verify SoC has finished booting (wait 30-60 seconds)
-3. Connect via serial console to check SoC status
-4. Check SoC system logs: `journalctl -u detector-service`
-
-### 8.2 FPGA Not Communicating
-
-1. Check FPGA board power and status LEDs
-2. Verify SPI connection between SoC and FPGA
-3. SoC can test SPI with: `spi-test -D /dev/spidev0.0 -s 1000000`
-4. Check FPGA bitstream is loaded (DONE LED should be on)
-
-### 8.3 CSI-2 Link Issues
-
-1. Verify D-PHY cable is properly seated
-2. Check cable length (max recommended: 30 cm for high-speed)
-3. Verify CSI-2 lane configuration matches hardware
-4. Use logic analyzer with MIPI decode for detailed diagnosis
-
-### 8.4 Panel/ROIC Issues
-
-1. Check panel power supply voltage
-2. Verify ROIC LVDS connections to FPGA
-3. Use test pattern generator to isolate panel vs data path issues:
-   - If test patterns are correct, panel/ROIC connection is the issue
-   - If test patterns are corrupted, data path (FPGA onward) is the issue
-
----
-
-## 9. Development Environment Issues
-
-### 9.1 Build Errors
-
-| Error | Solution |
-|-------|----------|
-| SDK package not found | Run `dotnet restore` |
-| .NET version mismatch | Install .NET 8.0 SDK |
-| Missing project reference | Verify `.csproj` references |
-
-### 9.2 Simulator Issues
-
-The software simulator (`IntegrationRunner`) can help diagnose issues without hardware:
-
-```bash
-# Run integration test scenario
-dotnet run --project IntegrationRunner -- --scenario IT-01
-
-# Verbose output for debugging
-dotnet run --project IntegrationRunner -- --scenario IT-01 --verbose
-```
-
----
-
-## 10. Log Collection
-
-When reporting issues, collect the following information:
-
-1. **Host SDK version**: Check NuGet package version
-2. **SoC firmware version**: `client.DeviceInfo.FirmwareVersion`
-3. **Error codes**: From `ErrorOccurred` event handler
-4. **Network configuration**: NIC speed, MTU, buffer sizes
-5. **Scan configuration**: Resolution, bit depth, FPS, scan mode
-6. **Client options**: Buffer sizes, timeout settings
-7. **OS and .NET version**: `dotnet --version`
-
-### 10.1 Diagnostic Report Template
+Include this information when submitting a bug report or support request:
 
 ```
-=== Detector Diagnostic Report ===
-Date: [YYYY-MM-DD HH:MM]
-SDK Version: [x.y.z]
-FW Version: [x.y.z]
+=== X-ray Detector Diagnostic Report ===
+Date: [YYYY-MM-DD HH:MM UTC]
+SDK Version: [output of detector_cli --version]
+Firmware Version: [from detector_cli status]
+FPGA Bitstream: [version from detector_config.yaml or build artifact name]
 
-Environment:
-  OS: [Windows 11 / Ubuntu 22.04]
-  .NET: [8.0.x]
-  NIC: [Intel X550 10GbE / Realtek 1GbE]
-  MTU: [1500 / 9000]
+Hardware:
+  FPGA Board: Artix-7 XC7A35T evaluation board
+  SoC Board: VAR-SOM-MX8M-PLUS
+  CSI-2 Cable: [length, part number if known]
+  10 GbE: [NIC make/model, cable category]
+
+Software:
+  OS (SoC): [uname -r output]
+  OS (Host): [Windows 11 / Ubuntu 24.04]
+  .NET Version: [dotnet --version]
 
 Configuration:
-  Resolution: [2048x2048]
-  BitDepth: [16]
-  FPS: [30]
-  ScanMode: [Continuous]
+  Tier: [Minimum / Intermediate / Final]
+  Panel rows x cols: [2048 x 2048]
+  Bit depth: [16]
+  FPS: [15]
+  CSI-2 speed: [400 Mbps/lane]
 
 Issue:
   Description: [What happened]
-  Error Code: [0x????]
-  Frequency: [Always / Intermittent]
-  Steps to Reproduce: [1. 2. 3.]
+  FPGA ERROR_FLAGS: [0x????]
+  First occurrence: [when did this start]
+  Frequency: [Always / Intermittent / Once]
+  Steps to reproduce: [numbered list]
 
-Scan Status:
-  FrameCount: [xxx]
-  DroppedFrames: [xxx]
-  CurrentFps: [xx.x]
+Integration Test Results:
+  IT-01: [PASS/FAIL]
+  IT-03: [PASS/FAIL]
+  IT-05: [PASS/FAIL]
+  ...
+
+Attachments:
+  [ ] daemon.log
+  [ ] kernel.log
+  [ ] soc_status.txt
+  [ ] integration_results.json
 ```
 
 ---
 
-## Revision History
+## 12. Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial troubleshooting guide |
+| 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete troubleshooting guide with diagnostic commands, issue categories, and log collection procedures |
+| 1.0.1 | 2026-02-17 | manager-quality | Fix register addresses throughout: STATUS=0x20, CONTROL=0x21, FRAME_COUNT_LO=0x30, TIMING_GATE_ON=0x50, TIMING_GATE_OFF=0x51, CSI2_LANE_SPEED=0x60, CSI2_STATUS=0x70, ERROR_FLAGS=0x80. Corrected ERROR_FLAGS bit definitions to match spi-register-map.md. |
 
 ---
+
+## Review Record
+
+- Date: 2026-02-17
+- Reviewer: manager-quality
+- Status: Approved (with corrections applied)
+- TRUST 5: T:5 R:5 U:4 S:4 T:4

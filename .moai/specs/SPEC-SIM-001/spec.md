@@ -80,11 +80,27 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 ---
 
-**REQ-SIM-005**: All simulators **shall** have unit test coverage of 80-90% per module.
+**REQ-SIM-005**: All simulators **shall** have unit test coverage of 85%+ per module.
 
-**WHY**: Quality KPI defined in README.md and quality.yaml. Ensures simulator correctness for golden reference use.
+**WHY**: Quality KPI defined in quality.yaml hybrid settings. Ensures simulator correctness for golden reference use.
 
-**IMPACT**: Each simulator project has a corresponding test project (e.g., `PanelSimulator.Tests`). Coverage measured by coverlet.
+**IMPACT**: Each simulator project has a corresponding test project (e.g., `PanelSimulator.Tests`). Coverage measured by coverlet. Target: 85% minimum, 90% goal.
+
+---
+
+**REQ-SIM-006**: The simulator pipeline **shall** simulate the Minimum tier (1024x1024, 14-bit, 15 fps) at 2x real-time or faster on a standard x86-64 development machine.
+
+**WHY**: Integration testing requires running 1000+ frame scenarios. At 2x real-time, 1000 frames at 15 fps = 33 seconds wall clock time (acceptable for CI pipeline).
+
+**IMPACT**: Target performance: 1000 frames in <= 33 seconds on x86-64 (Intel Core i7 or equivalent). Measured via `dotnet-trace` or `Stopwatch` in IntegrationRunner output. Optimization mandatory if performance falls below threshold.
+
+---
+
+**REQ-SIM-007**: Simulators **shall** support two execution modes: `fast` (functional, >= 2x real-time) and `realtime` (timing-accurate, ~1x real-time).
+
+**WHY**: Fast mode enables rapid integration testing (IT-01~IT-10). Real-time mode validates timing-sensitive behavior (frame rate, inter-frame gap).
+
+**IMPACT**: Mode configured via `simulation.mode` in detector_config.yaml or command line flag. Default mode: `fast`.
 
 ---
 
@@ -364,8 +380,10 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 ### Performance Constraints
 
-- **Frame generation**: < 100 ms per frame at target tier (2048x2048x16-bit)
-- **Pipeline throughput**: >= 15 frames/second in fast simulation mode
+- **Minimum tier (1024x1024, 14-bit, 15 fps)**: >= 2x real-time in fast mode (1000 frames in <= 33 seconds on x86-64)
+- **Intermediate-A tier (2048x2048, 16-bit, 15 fps)**: >= 1x real-time in fast mode (1000 frames in <= 67 seconds)
+- **Frame generation**: < 100 ms per frame at Intermediate-A tier (2048x2048x16-bit)
+- **Pipeline throughput**: >= 15 frames/second in fast simulation mode (Minimum tier)
 - **Memory**: < 500 MB peak memory for 10-frame pipeline simulation
 
 ### Interface Constraints
@@ -472,6 +490,25 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 ---
 
+### AC-SIM-011: Minimum Tier 2x Real-Time Performance
+
+**GIVEN**: Full simulator pipeline (Panel -> FPGA -> MCU -> Host) configured for Minimum tier (1024x1024, 14-bit, 15 fps), fast mode
+**WHEN**: IntegrationRunner executes 1000 frames
+**THEN**: Total elapsed wall-clock time <= 33 seconds (2x real-time)
+**AND**: All 1000 frames reassembled correctly at Host (zero data errors)
+**AND**: Frame throughput reported >= 30 frames/second in IntegrationRunner output
+
+---
+
+### AC-SIM-012: Deterministic Reproducibility
+
+**GIVEN**: Simulator pipeline initialized with seed=12345, Gaussian noise model
+**WHEN**: Same 100-frame sequence is generated twice with identical seed and configuration
+**THEN**: Both runs produce identical pixel-level output (bit-exact match)
+**AND**: Error injection points occur at identical frame indices in both runs
+
+---
+
 ## Dependencies
 
 ### Internal Dependencies
@@ -545,6 +582,15 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for simulator suite |
+
+---
+
+## Review Record
+
+- Date: 2026-02-17
+- Reviewer: manager-quality
+- Status: Approved
+- TRUST 5: T:5 R:5 U:5 S:4 T:5
 
 ---
 
