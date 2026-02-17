@@ -1,6 +1,6 @@
 # X-ray Detector Panel System
 
-엑스레이 검출기 패널을 구동하고 제어하기 위한 통합 시스템입니다. FPGA 기반 하드웨어 제어와 소프트웨어 시뮬레이션 환경을 제공합니다.
+**ABYZ Lab** | 의료 영상 장비용 엑스레이 검출기 패널의 데이터 수집, 전송, 처리를 위한 계층형 시스템입니다. FPGA 기반 하드웨어 제어와 소프트웨어 시뮬레이션 환경을 제공합니다.
 
 ## 현재 상태
 
@@ -46,7 +46,7 @@
 #### FPGA (Xilinx Artix-7 XC7A35T)
 - **패널 스캔 타이밍 FSM**: 정밀한 타이밍 제어로 패널 스캔 시퀀스 실행
 - **라인 버퍼**: Ping-Pong BRAM 구조로 데이터 손실 없이 라인 데이터 수집
-- **CSI-2 TX**: 고속 데이터를 SoC로 전송 (4-lane D-PHY, ~4-5 Gbps)
+- **CSI-2 TX**: 고속 데이터를 SoC로 전송 (4-lane D-PHY, 1.6 Gbps @ 400M / 3.2 Gbps @ 800M)
 - **보호 로직**: 타임아웃, 과노출 등 오류 감지 및 복구
 
 #### SoC Controller (NXP i.MX8M Plus 권장)
@@ -377,7 +377,7 @@ cd config
 
 ## 기여
 
-본 프로젝트는 ABYZ-Lab-ADK 개발 방법론을 따릅니다:
+본 프로젝트는 **ABYZ Lab** 개발 방법론을 따릅니다:
 - 코드 리뷰 필수
 - TRUST 5 품질 프레임워크 준수
 - TDD/DDD Hybrid 개발 방법론
@@ -390,13 +390,12 @@ cd config
 
 ## 연락처
 
-프로젝트 문의: [연락처 정보 추가 필요]
+**ABYZ Lab** | 프로젝트 문의: [연락처 정보 추가 필요]
 
 ---
 
-*생성: ABYZ-Lab Agent Teams (researcher + analyst + architect)*
-*기반 문서: X-ray_Detector_Dev_Plan_Final_v2.md + deep-research-report.md*
+*개발: ABYZ Lab*
 *FPGA 제약: Xilinx Artix-7 XC7A35T-FGG484*
 *SoC: Variscite VAR-SOM-MX8M-PLUS | Yocto Scarthgap (5.0 LTS) | Linux 6.6.52*
 *Phase 1 교차검증 완전 승인: 2026-02-17 (Critical 10건 + Major 10건 수정 완료)*
-*업데이트: 2026-02-17 — 성능 계층 정규화, PoC 일정 수정, D-PHY 검증 상태 반영*
+*업데이트: 2026-02-17 — ABYZ Lab 브랜딩 반영, CSI-2 TX 대역폭 수정*
