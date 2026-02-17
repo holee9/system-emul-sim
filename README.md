@@ -272,12 +272,17 @@ XC7A35T가 개발 중 불충분할 경우 pin-compatible 업그레이드 가능:
 
 ### 하드웨어
 - **FPGA**: Xilinx Artix-7 XC7A35T-FGG484
-- **SoC**: NXP i.MX8M Plus (권장) 또는 Rockchip RK3588
-- **인터페이스**: CSI-2 MIPI 4-lane D-PHY, SPI, 10 GbE
+- **SoC SoM**: Variscite VAR-SOM-MX8M-PLUS (NXP i.MX8M Plus, Quad-core Cortex-A53)
+- **인터페이스**: CSI-2 MIPI 4-lane D-PHY, SPI, 10 GbE / 2.5 GbE
+- **WiFi/BT**: Ezurio Sterling 60 (QCA6174A, M.2)
+- **Battery**: TI BQ40z50 (SMBus, I2C addr 0x0b)
+- **IMU**: Bosch BMI160 (I2C7, addr 0x68)
 
 ### 소프트웨어
 - **FPGA 개발**: AMD Vivado (synthesis + simulation)
 - **시뮬레이션**: ModelSim / Questa
+- **SoC 빌드**: Yocto Project Scarthgap (5.0 LTS), Variscite BSP imx-6.6.52-2.2.0-v1.3
+- **SoC 커널**: Linux 6.6.52 (LTS)
 - **SW 개발**: .NET 8.0+ C# (시뮬레이터, GUI), C/C++ (SoC 펌웨어)
 - **버전 관리**: Gitea (6개 저장소)
 - **CI/CD**: n8n webhooks + Gitea 통합
@@ -383,4 +388,5 @@ cd config
 *생성: MoAI Agent Teams (researcher + analyst + architect)*
 *기반 문서: X-ray_Detector_Dev_Plan_Final_v2.md + deep-research-report.md*
 *FPGA 제약: Xilinx Artix-7 XC7A35T-FGG484*
-*날짜: 2026-02-16*
+*SoC: Variscite VAR-SOM-MX8M-PLUS | Yocto Scarthgap (5.0 LTS) | Linux 6.6.52*
+*날짜: 2026-02-17*
