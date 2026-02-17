@@ -193,7 +193,7 @@ public enum ImageFormat
 public class Frame : IDisposable
 {
     public uint SequenceNumber { get; }
-    public long TimestampUs { get; }
+    public long TimestampNs { get; }
     public int Width { get; }
     public int Height { get; }
     public int BitDepth { get; }
@@ -410,7 +410,7 @@ internal class ReassemblySlot
     {
         var pixels = new ushort[Width * Height];
         Buffer.BlockCopy(_buffer, 0, pixels, 0, Width * Height * 2);
-        return new Frame(FrameSeq, TimestampUs, Width, Height, BitDepth, pixels);
+        return new Frame(FrameSeq, TimestampNs, Width, Height, BitDepth, pixels);
     }
 }
 ```
@@ -751,6 +751,7 @@ Per project `quality.yaml` (Hybrid mode):
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial Host SDK architecture design document |
 | 1.0.1 | 2026-02-17 | MoAI Agent | Fixed Section 4.2 TryParseHeader: added Crc16 field at offset 28 (uint16), corrected BitDepth to offset 30, corrected Flags to offset 31, added CRC-16/CCITT validation call after magic check |
+| 1.0.2 | 2026-02-17 | MoAI Agent (chief-architect) | MINOR-2: Renamed Frame.TimestampUs → Frame.TimestampNs in §3.2 data model and §5.2 FrameAssembler.BuildFrame() for nanosecond precision consistency with host-sdk-api.md. |
 
 ---
 

@@ -309,7 +309,7 @@ clk_roic domain:                 clk_csi2_byte domain:
 | Parameter | Setting | Rationale |
 |-----------|---------|-----------|
 | Number of Lanes | 4 data + 1 clock | Maximum bandwidth configuration |
-| Lane Speed | 1.0 Gbps/lane (configurable to 1.25) | Conservative initial, sweepable |
+| Lane Speed | 400 Mbps/lane (stable, verified) / 800 Mbps/lane (debugging in progress) | HW-validated operating range |
 | Data Type | RAW16 (0x2E) | 16-bit pixel format |
 | Virtual Channel | VC0 | Single sensor, no multiplexing |
 | Input Interface | AXI4-Stream | Standard streaming protocol |
@@ -415,7 +415,8 @@ Signals:
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0x00 | DEVICE_ID | R | [15:0] id | Fixed: 0xA735 (Artix-7 35T) |
+| 0x00 | DEVICE_ID | R | [15:0] id | Fixed: 0xD7E0 (upper 16 bits; reg 0x01 = 0x0001, full DEVICE_ID = 0xD7E0_0001) |
+| 0x01 | DEVICE_ID_LO | R | [15:0] id_lo | Fixed: 0x0001 (lower 16 bits of full 32-bit DEVICE_ID) |
 | 0x10 | ILA_CAPTURE_0 | R | [15:0] data | ILA capture data word 0 |
 | 0x11 | ILA_CAPTURE_1 | R | [15:0] data | ILA capture data word 1 |
 | 0x12 | ILA_CAPTURE_2 | R | [15:0] data | ILA capture data word 2 |
@@ -911,6 +912,7 @@ FpgaSimulator (C#)                  FPGA RTL (SystemVerilog)
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial FPGA architecture design document |
+| 1.0.1 | 2026-02-17 | MoAI Agent (chief-architect) | CRITICAL-1: Fixed §6.3 DEVICE_ID from 0xA735 to 0xD7E0 (upper 16 bits), added DEVICE_ID_LO reg 0x01=0x0001 (full 32-bit ID = 0xD7E0_0001). MINOR-1: Fixed §5.2 Lane Speed from incorrect "1.0 Gbps/lane" to verified "400 Mbps/lane (stable) / 800 Mbps/lane (debugging in progress)". |
 
 ---
 

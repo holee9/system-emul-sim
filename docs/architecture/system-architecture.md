@@ -246,23 +246,23 @@ Panel Scan FSM
 | Tier | Resolution | Bit Depth | FPS | Throughput | CSI-2 Lane Speed | Status |
 |------|-----------|-----------|-----|------------|-----------------|--------|
 | **Minimum** | 1024×1024 | 14-bit | 15 | 0.22 Gbps | 400M | ✅ Baseline (stable) |
-| **Intermediate-A** | 2048×2048 | 16-bit | 15 | 1.01 Gbps | 400M | ✅ Development baseline (stable) |
-| **Intermediate-B** | 2048×2048 | 16-bit | 30 | 2.01 Gbps | 800M | ⚠️ Requires 800M debugging |
-| **Target (Final)** | **3072×3072** | **16-bit** | **15** | **2.26 Gbps** | **800M** | ⚠️ **Requires 800M debugging** |
+| **Mid-A** | 2048×2048 | 16-bit | 15 | 1.01 Gbps | 400M | ✅ Development baseline (stable) |
+| **Mid-B** | 2048×2048 | 16-bit | 30 | 2.01 Gbps | 800M | ⚠️ Requires 800M debugging |
+| **Target (Final Goal)** | **3072×3072** | **16-bit** | **15** | **2.26 Gbps** | **800M** | ⚠️ **Requires 800M debugging** |
 
 ### 4.2 Development Strategy
 
-**Phase 1 (W1-W8)**: Document all tiers, design for Intermediate-A baseline
+**Phase 1 (W1-W8)**: Document all tiers, design for Mid-A baseline
 - detector_config.yaml: default to 2048×2048@15fps
 - Extensible design: line buffer sized for 3072 pixels
 
-**Phase 2 (W9-W22)**: Implement simulators and tools for Intermediate-A
+**Phase 2 (W9-W22)**: Implement simulators and tools for Mid-A
 - Integration tests: IT-01~IT-10 validate 2048×2048@15fps
 
 **Phase 3 (W23-W28)**: Enable Target tier if 800M debugging succeeds
 - W26 PoC: measure 3072×3072@15fps throughput
-- If pass: activate Target tier
-- If fail: maintain Intermediate-A
+- If pass: activate Target (Final Goal) tier
+- If fail: maintain Mid-A
 
 ---
 
@@ -295,7 +295,8 @@ Panel Scan FSM
 **Register Map** (preliminary):
 | Address | Name | Access | Description |
 |---------|------|--------|-------------|
-| 0x00 | DEVICE_ID | R | Fixed: 0xA735 (Artix-7 35T identification) |
+| 0x00 | DEVICE_ID | R | Fixed: 0xD7E0 (upper 16 bits; reg 0x01 = 0x0001, full DEVICE_ID = 0xD7E0_0001) |
+| 0x01 | DEVICE_ID_LO | R | Fixed: 0x0001 (lower 16 bits of full 32-bit DEVICE_ID) |
 | 0x10 | ILA_CAPTURE_0 | R | ILA capture data word 0 |
 | 0x11 | ILA_CAPTURE_1 | R | ILA capture data word 1 |
 | 0x12 | ILA_CAPTURE_2 | R | ILA capture data word 2 |
@@ -357,7 +358,7 @@ Panel Scan FSM
 | Tier | Throughput | 1 GbE (0.95 Gbps) | 10 GbE (9.5 Gbps) |
 |------|-----------|-------------------|-------------------|
 | Minimum | 0.22 Gbps | ✅ Supported | ✅ Supported |
-| Intermediate-A | 1.01 Gbps | ❌ Exceeds | ✅ Supported |
+| Mid-A | 1.01 Gbps | ❌ Exceeds | ✅ Supported |
 | Target | 2.26 Gbps | ❌ Exceeds | ✅ Supported |
 
 **Recommendation**: 10 GbE is mandatory for Target tier. 1 GbE only suitable for Minimum tier.
@@ -385,7 +386,7 @@ Panel Scan FSM
 
 **Impact**:
 - Target tier (3072×3072@15fps) unachievable
-- Fall back to Intermediate-A (2048×2048@15fps)
+- Fall back to Mid-A (2048×2048@15fps)
 
 **Mitigation Options**:
 1. **Option A**: External D-PHY IC (e.g., TI DLPC3439)
@@ -393,7 +394,7 @@ Panel Scan FSM
    - Achieves 2.5 Gbps/lane (10 Gbps total)
    - Schedule: +2 weeks for integration
 
-2. **Option B**: Maintain Intermediate-A as final target
+2. **Option B**: Maintain Mid-A as final target
    - Cost: $0
    - 2048×2048 still suitable for many clinical applications
 
@@ -476,6 +477,7 @@ Panel Scan FSM
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent | Initial draft based on verified HW (400M/800M CSI-2) |
+| 1.0.1 | 2026-02-17 | MoAI Agent (chief-architect) | CRITICAL-2: Renamed performance tiers throughout — Intermediate-A → Mid-A, Intermediate-B → Mid-B, Target (Final) → Target (Final Goal) (§4.1, §4.2, §6.2, §7.1). Also aligned §5.2 SPI Register Map DEVICE_ID from 0xA735 to 0xD7E0_0001 (full 32-bit). |
 
 ---
 
