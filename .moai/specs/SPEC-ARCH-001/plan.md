@@ -202,11 +202,19 @@ This implementation plan outlines the three-phase approach to completing M0 mile
 - CSI-2: MIPI CSI-2 receiver (4-lane D-PHY)
 
 **Firmware Stack**:
-- Compiler: GCC ARM 11.x or later (arm-none-eabi-gcc)
-- RTOS: FreeRTOS or Linux (Yocto Project)
-- Network Stack: lwIP 2.1.x or later
-- CSI-2 Driver: NXP i.MX8M Plus BSP
-- Build System: CMake 3.20 or later
+- Build System: Yocto Project Scarthgap (5.0 LTS)
+  - BSP Version: Variscite imx-6.6.52-2.2.0-v1.3
+  - Linux Kernel: 6.6.52 (LTS support until December 2026, Yocto LTS until April 2028)
+- Toolchain: GCC ARM 13.x (from Yocto SDK, arm-linux-gnueabihf-gcc)
+- Network Stack: Linux glibc networking (TCP/UDP via standard sockets)
+- CSI-2 Driver: Custom V4L2 driver (new development for FPGA data acquisition)
+
+**Confirmed Hardware Peripherals** (as of 2026-02-17):
+- WiFi/BT: Ezurio Sterling 60 (M.2, QCA6174A chip) | ath10k_pci driver | ✅ Kernel 6.6
+- Battery: TI BQ40z50 (SMBus, 7-bit addr 0x0b) | bq27xxx_battery driver | ⚠️ Port from 4.4 needed
+- IMU: Bosch BMI160 (I2C7, addr 0x68) | bmi160_i2c driver (IIO) | ✅ Kernel 6.6
+- GPIO: NXP PCA9534 (8-bit I/O expander) | gpio-pca953x driver | ✅ Kernel 6.6
+- 2.5GbE: On-board chip (model TBD) | TBD driver | ⚠️ Identify via lspci
 
 **Alternative SoC Platforms** (Fallback):
 - Raspberry Pi Compute Module 4 (BCM2711, Cortex-A72, 2-lane CSI-2)

@@ -84,6 +84,46 @@
 | USB 3.x | ~5 Gbps | 이론적으로 가능 | **불가능** (LUT 부족) |
 | 10 GbE | ~10 Gbps | 모든 계층 지원 | SoC → Host 전용 |
 
+### SoC 빌드 시스템 (최종 확정)
+
+**빌드 시스템**: Yocto Project Scarthgap (5.0 LTS)
+- **BSP**: Variscite imx-6.6.52-2.2.0-v1.3
+- **Linux Kernel**: 6.6.52 (LTS until December 2026, Yocto LTS until April 2028)
+- **마이그레이션**: Mickledore (4.2, EOL Nov 2024) → Scarthgap (W1-W2, 8일)
+
+**확정 하드웨어 플랫폼** (2026-02-17 검증 완료):
+
+| 구성요소 | 모델 | 인터페이스 | 드라이버 | Kernel 6.6 상태 |
+|---------|------|-----------|---------|-----------------|
+| SoM | Variscite VAR-SOM-MX8M-PLUS (DART) | - | - | ✅ Scarthgap BSP |
+| WiFi/BT | Ezurio Sterling 60 (QCA6174A) | M.2 PCIe + USB | ath10k_pci + btusb | ✅ 포함 |
+| Battery | TI BQ40z50 | SMBus (I2C addr 0x0b) | bq27xxx_battery | ⚠️ 포트 필요 (from 4.4) |
+| IMU | Bosch BMI160 | I2C7 (addr 0x68) | bmi160_i2c (IIO) | ✅ 포함 |
+| GPIO | NXP PCA9534 | I2C | gpio-pca953x | ✅ 포함 |
+| 2.5GbE | TBD (on-board) | PCIe/RGMII | TBD | ⚠️ 칩 확인 필요 (lspci -nn) |
+
+**신규 개발 대상**:
+1. FPGA → i.MX8MP CSI-2 RX 드라이버 (V4L2, kernel 6.6)
+2. FPGA-SoC 데이터 포맷 정의 (MIPI CSI-2 RAW16 or custom)
+3. 2.5GbE 네트워크 드라이버 검증
+
+**폐기된 레거시 드라이버**:
+- ❌ dscam6.ko (CSI-2 카메라 → FPGA RX 드라이버로 대체)
+- ❌ ax_usb_nic.ko (AX88279 USB Ethernet → 2.5GbE로 대체)
+- ❌ imx8-media-dev.ko (V4L2 프레임워크로 대체)
+
+### 개발 방법론
+
+**프로젝트 접근법**: 문서 우선 (Document-First Waterfall)
+- **Phase 1** (W1-W8): 모든 계획서, 사양서, SPEC 문서 작성 및 승인
+- **Phase 2** (W9-W22): 시뮬레이터, 도구, RTL 구현 및 통합 테스트
+- **Phase 3** (W23-W28): FPGA RTL, SoC 펌웨어 개발 및 HW 검증 (PoC, HIL)
+
+**개발 방법론**: Hybrid (quality.yaml 설정)
+- **신규 코드**: TDD (Test-Driven Development, RED-GREEN-REFACTOR)
+- **기존 코드**: DDD (Domain-Driven Development, ANALYZE-PRESERVE-IMPROVE)
+- **커버리지 목표**: 85%+ (RTL: Line ≥95%, Branch ≥90%, FSM 100%)
+
 ## 소프트웨어 구조
 
 프로젝트는 10개의 모듈과 8개의 테스트 프로젝트로 구성됩니다:

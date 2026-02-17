@@ -120,6 +120,42 @@ The X-ray Detector Panel System is a three-layer hierarchical architecture desig
 
 **Why SoC?**: Linux OS flexibility, native CSI-2 support, high-bandwidth network interface
 
+**SoC Platform Details** (Confirmed Hardware):
+- **SoM**: Variscite VAR-SOM-MX8M-PLUS (DART variant)
+- **Processor**: NXP i.MX8M Plus (Quad-core ARM Cortex-A53, 1.8 GHz)
+- **Build System**: Yocto Project Scarthgap (5.0 LTS)
+  - BSP: Variscite imx-6.6.52-2.2.0-v1.3
+  - Linux Kernel: 6.6.52 (LTS until December 2026)
+- **Memory**: 2GB LPDDR4 (expandable to 4GB or 8GB variants)
+- **Network**: Gigabit Ethernet (1 GbE) + 2.5 Gigabit Ethernet (on-board, chip TBD)
+
+**Peripheral Integration** (Verified as of 2026-02-17):
+
+| Peripheral | Model | Interface | Driver | Kernel 6.6 Status |
+|-----------|-------|-----------|--------|-------------------|
+| WiFi/BT | Ezurio Sterling 60 (QCA6174A) | M.2 PCIe + USB | ath10k_pci + btusb | ✅ Included |
+| Battery Management | TI BQ40z50 | SMBus (I2C addr 0x0b) | bq27xxx_battery | ⚠️ Port from kernel 4.4 needed |
+| IMU | Bosch BMI160 | I2C7 (addr 0x68) | bmi160_i2c (IIO framework) | ✅ Included |
+| GPIO Expander | NXP PCA9534 | I2C | gpio-pca953x | ✅ Included |
+| 2.5GbE Network | TBD (on-board chip) | PCIe or RGMII | TBD | ⚠️ Identify via lspci -nn |
+
+**New Development Scope**:
+1. **FPGA → i.MX8MP CSI-2 RX Driver** (V4L2 subsystem, kernel 6.6)
+   - Custom driver for FPGA data acquisition (replaces deprecated dscam6.ko)
+   - MIPI CSI-2 4-lane D-PHY receiver configuration
+   - V4L2 video device node (/dev/videoX) with VIDIOC_* ioctls
+   - DMA buffer management for frame capture
+
+2. **FPGA-SoC Data Format Definition** (W1-W8 documentation phase)
+   - Pixel format: MIPI CSI-2 RAW16 or custom format
+   - Frame header: Metadata, timestamps, sequence numbers
+   - Error detection: CRC validation, frame loss handling
+
+3. **2.5GbE Network Configuration** (W15-W18 validation phase)
+   - Chip identification: `lspci -nn | grep -i ethernet`
+   - Driver validation: Confirm kernel 6.6 support
+   - Performance testing: Sustained throughput validation
+
 #### Layer 3: Host PC (Frame Processing and Display)
 
 **Primary Function**: Frame reassembly, storage, and user interface

@@ -29,11 +29,44 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
    - Flash LED blink test bitstream to verify FPGA programming
 
 2. **SoC Board Setup** (Day 1)
-   - Unbox NXP i.MX8M Plus EVK
-   - Flash Linux BSP to eMMC or SD card (Yocto or Buildroot image with imx8-mipi-csi2 driver)
-   - Connect UART console (USB-to-serial adapter, 115200 baud)
-   - Boot SoC and verify kernel version: `uname -r` (Linux 5.15+ preferred)
-   - Test CSI-2 receiver driver: `lsmod | grep mipi` (should show imx8_mipi_csi2 module)
+   - Unbox NXP i.MX8M Plus EVK (Variscite VAR-SOM-MX8M-PLUS DART variant)
+   - Flash Yocto Scarthgap (5.0 LTS) image to eMMC or SD card:
+     ```bash
+     # Variscite BSP: imx-6.6.52-2.2.0-v1.3
+     dd if=core-image-minimal-imx8mp-var-dart.wic of=/dev/mmcblk0 bs=1M status=progress
+     sync
+     ```
+   - Connect UART console (USB-to-serial adapter, 115200 baud, 8N1)
+   - Boot SoC and verify kernel version: `uname -r` (Expected: Linux 6.6.52)
+   - Verify confirmed hardware peripherals:
+     ```bash
+     # WiFi/BT: Ezurio Sterling 60 (QCA6174A, M.2)
+     lspci | grep -i qca
+     dmesg | grep ath10k
+     iw dev  # Check wlan0 interface
+
+     # Battery: TI BQ40z50 (SMBus, I2C addr 0x0b)
+     i2cdetect -y 0
+     cat /sys/class/power_supply/bq40z50-0/capacity  # If driver loaded
+
+     # IMU: Bosch BMI160 (I2C7, addr 0x68)
+     i2cdetect -y 7
+     cat /sys/bus/iio/devices/iio:device0/name  # Expected: bmi160
+
+     # GPIO: NXP PCA9534 (I2C)
+     dmesg | grep pca953x
+
+     # 2.5GbE: Identify chip model
+     lspci -nn | grep -i ethernet
+     ip link show
+     ethtool eth0  # Check link speed
+     ```
+   - Test CSI-2 receiver readiness:
+     ```bash
+     # V4L2 device (custom FPGA driver, new development)
+     v4l2-ctl --list-devices
+     ls -l /dev/video*
+     ```
 
 3. **FPC Cable Connection** (Day 2)
    - Identify FPGA CSI-2 TX connector pinout (data lanes D0-D3, clock lane, grounds)

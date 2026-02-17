@@ -62,6 +62,19 @@ vivado -mode batch -source run_tests.tcl
 # Integration Test
 cd tools/IntegrationRunner
 dotnet run -- --scenario IT-01
+
+# SoC Build (Yocto Scarthgap)
+cd /path/to/yocto_scarthgap
+source setup-environment build-imx8mp
+bitbake core-image-minimal
+
+# Hardware Verification
+uname -r                              # Kernel 6.6.52
+i2cdetect -y 0                        # BQ40z50 at 0x0b
+i2cdetect -y 7                        # BMI160 at 0x68
+lspci | grep -i qca                   # Sterling 60 WiFi
+lspci -nn | grep -i ethernet          # 2.5GbE chip
+v4l2-ctl --list-devices               # CSI-2 RX
 ```
 
 ## 📊 핵심 제약

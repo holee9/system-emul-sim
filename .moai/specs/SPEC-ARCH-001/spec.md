@@ -342,6 +342,161 @@ This SPEC documents the following P0 architecture decisions:
 
 ---
 
+## P0-006: SoC Firmware Build System Selection
+
+### Overview
+
+**Decision**: Yocto Project Scarthgap (5.0 LTS) shall be used as the exclusive build system for i.MX8M Plus firmware.
+
+**Rationale**:
+- Scarthgap is a Long-Term Support (LTS) release maintained until April 2028
+- Provides Linux kernel 6.6 (LTS until December 2026)
+- Medical device certification requires LTS operating system with security patch support
+- Variscite provides official BSP support (imx-6.6.52-2.2.0-v1.3)
+- Existing Mickledore (4.2) environment reached EOL in November 2024
+
+**Migration Timeline**: W1-W2 (8 days total)
+
+---
+
+### Requirements
+
+**REQ-ARCH-020**: The SoC firmware **shall** be built using Yocto Project Scarthgap (5.0 LTS) based on Variscite BSP.
+
+**WHY**: LTS release ensures long-term security support, kernel stability, and vendor BSP compatibility.
+
+**IMPACT**: All firmware development must use Yocto Scarthgap toolchain. No alternative build systems (Buildroot, Ubuntu Core) permitted.
+
+---
+
+**REQ-ARCH-021**: The SoC firmware **shall** use Linux kernel 6.6.52 from Variscite BSP.
+
+**WHY**: Kernel 6.6 is LTS (supported until December 2026) and includes required drivers for peripherals.
+
+**IMPACT**: Kernel module development must target kernel 6.6 API. Legacy drivers require recompilation or porting.
+
+---
+
+**REQ-ARCH-022**: The SoC firmware **shall** integrate the following hardware components with verified drivers:
+
+| Component | Model | Interface | Driver | Kernel 6.6 Status |
+|-----------|-------|-----------|--------|-------------------|
+| WiFi/BT | Ezurio Sterling 60 (QCA6174A) | M.2 PCIe + USB | ath10k_pci | ✅ Included |
+| Battery | TI BQ40z50 | SMBus (I2C addr 0x0b) | bq27xxx_battery | ⚠️ Port from 4.4 needed |
+| IMU | Bosch BMI160 | I2C7 (addr 0x68) | bmi160_i2c (IIO) | ✅ Included |
+| GPIO | NXP PCA9534 | I2C | gpio-pca953x | ✅ Included |
+| 2.5GbE | TBD (on-board chip) | PCIe/RGMII | TBD | ⚠️ Verify chip model |
+
+**WHY**: Hardware platform validation ensures all peripherals are supported before integration.
+
+**IMPACT**: BQ40z50 battery driver requires porting from kernel 4.4 to 6.6. 2.5GbE chip identification required via `lspci -nn`.
+
+---
+
+**REQ-ARCH-023**: The SoC firmware **shall** implement new CSI-2 receiver driver for FPGA data acquisition.
+
+**WHY**: Existing dscam6.ko driver is deprecated. FPGA→i.MX8MP data path requires custom V4L2 driver.
+
+**IMPACT**: New driver development required:
+1. MIPI CSI-2 4-lane D-PHY receiver configuration
+2. V4L2 video device node (/dev/videoX)
+3. FPGA-SoC data format definition (MIPI CSI-2 RAW16 or custom)
+4. Buffer management and DMA integration
+
+---
+
+**REQ-ARCH-024**: The SoC firmware **shall** define FPGA-SoC data format specification.
+
+**WHY**: FPGA CSI-2 TX and SoC CSI-2 RX must agree on pixel format, frame structure, and metadata encoding.
+
+**IMPACT**: Data format specification must be documented in W1-W8 documentation phase. Possible formats:
+- MIPI CSI-2 RAW16 (16-bit grayscale)
+- Custom frame format with header metadata
+- Multi-frame buffering strategy
+
+---
+
+### New Development Scope
+
+**Deprecated Legacy Drivers** (NOT migrated):
+- ❌ dscam6.ko - Legacy CSI-2 camera driver (replaced by new FPGA RX driver)
+- ❌ ax_usb_nic.ko - Failed AX88279 USB Ethernet (replaced by 2.5GbE on-board)
+- ❌ imx8-media-dev.ko - Generic media device (V4L2 framework used instead)
+
+**New Development Required**:
+1. **FPGA → i.MX8MP CSI-2 RX Driver** (V4L2 subsystem)
+   - Target: Linux kernel 6.6
+   - Framework: Video4Linux2 (V4L2)
+   - Interface: MIPI CSI-2 4-lane D-PHY
+   - Development phase: W9-W14 (after documentation)
+
+2. **FPGA-SoC Data Format Definition** (W1-W8 documentation)
+   - Pixel format: 16-bit grayscale or custom RAW
+   - Frame header: Metadata, timestamps, sequence numbers
+   - Error handling: CRC, frame loss detection
+
+3. **2.5GbE Network Driver Validation** (W15-W18)
+   - Chip identification: `lspci -nn | grep -i ethernet`
+   - Driver verification: Confirm kernel 6.6 support
+   - Performance testing: Validate sustained throughput
+
+---
+
+### Migration Impact Assessment
+
+**Reduced Complexity** (vs initial estimate):
+- **Original estimate**: 13 days (legacy driver recompilation)
+- **Revised estimate**: 8 days (legacy drivers deprecated)
+- **Cost reduction**: 38% (5 days saved)
+
+**Migration Scope** (W1-W2):
+- Day 1-2: Document revision (7 essential documents)
+- Day 3-4: Yocto Scarthgap BSP build and image creation
+- Day 5-6: Hardware validation (WiFi, Battery, IMU, GPIO)
+- Day 7: 2.5GbE chip identification and driver check
+- Day 8: Migration completion report and M0 approval
+
+**Risk Assessment**:
+- **Low Risk**: WiFi (ath10k stable), IMU (IIO framework stable), GPIO (PCA9534 stable)
+- **Medium Risk**: Battery (driver port needed, SMBus protocol validation)
+- **High Risk**: 2.5GbE (chip model unknown, driver compatibility TBD)
+
+---
+
+### Acceptance Criteria
+
+**AC-006**: Scarthgap BSP build completes successfully
+- **GIVEN**: Variscite imx-6.6.52-2.2.0-v1.3 BSP
+- **WHEN**: Yocto build is executed with MACHINE=imx8mp-var-dart
+- **THEN**: core-image-minimal-imx8mp-var-dart.wic image shall be generated
+- **AND**: Image shall boot on VAR-SOM-MX8M-PLUS hardware
+
+---
+
+**AC-007**: All hardware peripherals verified on Scarthgap
+- **GIVEN**: Confirmed hardware list (WiFi, Battery, IMU, GPIO, 2.5GbE)
+- **WHEN**: Scarthgap image boots on target hardware
+- **THEN**: All devices shall appear in kernel dmesg and lspci/i2cdetect output
+- **AND**: Basic driver functionality shall be verified (WiFi scan, I2C read, network link)
+
+---
+
+**AC-008**: 2.5GbE chip identified and driver validated
+- **GIVEN**: On-board 2.5GbE module
+- **WHEN**: `lspci -nn | grep -i ethernet` is executed
+- **THEN**: Chip vendor and model shall be identified
+- **AND**: Kernel 6.6 driver availability shall be confirmed
+
+---
+
+**AC-009**: Migration documentation complete
+- **GIVEN**: 7 essential documents (SPEC-ARCH-001, SPEC-POC-001, README, etc.)
+- **WHEN**: All documents are revised with Scarthgap details
+- **THEN**: Documents shall include Scarthgap BSP version, hardware table, migration timeline
+- **AND**: Git commit with conventional commit message shall be created
+
+---
+
 ## Traceability
 
 This SPEC aligns with the following project documents:
