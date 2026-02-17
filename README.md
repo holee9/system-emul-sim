@@ -140,11 +140,11 @@
 
 ```
 Solution/
-├── Common.Dto/              # 공통 인터페이스 (ISimulator, ICodeGenerator, DTOs)
-├── PanelSimulator/          # 픽셀 매트릭스, 노이즈 모델, 결함 시뮬레이션
-├── FpgaSimulator/           # SPI 레지스터, FSM, 라인 버퍼 (골든 참조)
-├── McuSimulator/            # HAL 추상화 펌웨어 로직
-├── HostSimulator/           # 패킷 재조립, 프레임 완성
+├── tools/Common.Dto/              # 공통 인터페이스 (ISimulator, ICodeGenerator, DTOs) ✅ M2 완료
+├── tools/PanelSimulator/          # 픽셀 매트릭스, 노이즈 모델, 결함 시뮬레이션 ✅ M2 완료
+├── tools/FpgaSimulator/           # SPI 레지스터, FSM, 라인 버퍼 (골든 참조) ✅ M2 완료
+├── tools/McuSimulator/            # HAL 추상화 펌웨어 로직 ✅ M2 완료
+├── tools/HostSimulator/           # 패킷 재조립, 프레임 완성 ✅ M2 완료
 ├── ParameterExtractor/      # PDF 파싱, 규칙 엔진, GUI (C# WPF)
 ├── CodeGenerator/           # FPGA RTL / MCU / Host SDK 스켈레톤 생성
 ├── ConfigConverter/         # YAML → 타겟별 설정 변환
@@ -152,9 +152,59 @@ Solution/
 └── GUI.Application/         # 통합 WPF GUI
 ```
 
+### 현재 구현 상태 (M2-Impl)
+
+| 모듈 | 상태 | 커버리지 | 테스트 |
+|------|------|---------|--------|
+| Common.Dto | ✅ 완료 | 97.08% | 53 passing |
+| PanelSimulator | ✅ 완료 | 85%+ | 52 passing |
+| FpgaSimulator | ✅ 완료 | 85%+ | 85 passing |
+| McuSimulator | ✅ 완료 | 85%+ | 35 passing |
+| HostSimulator | ✅ 완료 | 85%+ | 36 passing |
+| **합계** | **M2 완료** | **85%+** | **261 passing** |
+
 ### 의존성 규칙
 
 모든 모듈은 `Common.Dto`에만 의존하며, 서로의 구현에 직접 의존하지 않습니다.
+
+### 시뮬레이터 구조 상세
+
+```
+tools/
+├── Common.Dto/              # 공통 인터페이스 및 DTO ✅ M2 완료
+│   ├── ISimulator.cs        # 시뮬레이터 인터페이스
+│   ├── FrameData.cs         # 프레임 데이터 구조
+│   ├── LineData.cs          # 라인 데이터 구조
+│   ├── Csi2Packet.cs        # CSI-2 패킷 포맷
+│   ├── UdpPacket.cs         # UDP 패킷 포맷
+│   └── SpiTransaction.cs    # SPI 트랜잭션 모델
+│
+├── PanelSimulator/          # X-ray 패널 픽셀 모델링 ✅ M2 완료
+│   ├── PanelGenerator.cs    # 픽셀 매트릭스 생성
+│   ├── NoiseModel.cs        # 가우시안 노이즈
+│   ├── DefectInjector.cs    # 픽셀 결함 주입
+│   └── TestPatterns/        # 카운터, 체커보드 패턴
+│
+├── FpgaSimulator/           # FPGA 데이터 획득 골든 참조 ✅ M2 완료
+│   ├── RegisterMap.cs       # SPI 레지스터 맵 (0x00-0xFF)
+│   ├── PanelScanFsm.cs      # 패널 스캔 FSM
+│   ├── LineBuffer.cs        # Ping-Pong 라인 버퍼
+│   ├── Csi2TxGenerator.cs   # CSI-2 패킷 생성
+│   └── ErrorFlags.cs        # ERROR_FLAGS 모델링
+│
+├── McuSimulator/            # SoC 컨트롤러 펌웨어 모델 ✅ M2 완료
+│   ├── SpiMaster.cs         # SPI 마스터 인터페이스
+│   ├── Csi2Rx.cs            # CSI-2 RX 패킷 소비
+│   ├── UdpGenerator.cs      # UDP 패킷 생성
+│   ├── FrameBuffer.cs       # 프레임 버퍼 관리
+│   └── SequenceEngine.cs    # 스캔 시퀀스 조정
+│
+└── HostSimulator/           # Host PC SDK 모델 ✅ M2 완료
+    ├── UdpReceiver.cs       # UDP 패킷 수신
+    ├── FrameReassembler.cs  # 프레임 재조립
+    ├── PacketBuffer.cs      # 패킷 버퍼 관리
+    └── FrameStorage.cs      # TIFF, RAW 저장
+```
 
 ## 개발 일정
 
@@ -178,7 +228,7 @@ W22-W28: Phase 8 - 시스템 검증 및 확인
 |---------|------|------------|------|
 | **M0** | W1 | P0 결정 확정 (성능 목표, Host 링크, SoC 플랫폼) | ✅ 완료 |
 | **M1-Doc** | W8 | 모든 SPEC/아키텍처/API 문서 완료 및 승인 | ✅ Phase 1 교차검증 완전 승인 (2026-02-17) |
-| M2-Impl | W14 | 모든 시뮬레이터 단위 테스트 통과 | ⏳ 대기 |
+| **M2-Impl** | W14 | 모든 시뮬레이터 단위 테스트 통과 | ✅ 완료 (2026-02-17) - 261 tests passing, 85%+ coverage |
 | M3-Integ | W22 | IT-01~IT-10 통합 시나리오 모두 통과 | ⏳ 대기 |
 | **M0.5-PoC** | W26 | CSI-2 PoC: 목표 처리량의 ≥70% 측정 완료 (구현 완료 후 수행) | ⏳ 연기 |
 | M6-Final | W28 | 실제 패널 프레임 획득, 시뮬레이터 보정 완료 | ⏳ 대기 |

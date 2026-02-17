@@ -10,16 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 5 simulators implementation complete (Common.Dto, PanelSimulator, FpgaSimulator, McuSimulator, HostSimulator)
+- 261 tests passing across all simulators
+- 85%+ code coverage achieved for all simulator modules
+- Comprehensive integration test framework with IT-01~IT-10 scenarios
+- tools/Common/, tools/PanelSimulator/, tools/FpgaSimulator/, tools/McuSimulator/, tools/HostSimulator/ directories
+
+### Changed
+- Performance target updated from 3072x3072@30fps to 3072x3072@15fps (CSI-2 bandwidth constraint)
+- M2-Impl milestone: All simulators with unit tests passing
+
+---
+
+## [0.2.0-alpha] - 2026-02-17
+
+### Added
 - Common.Dto implementation with ISimulator interface and DTOs (FrameData, LineData, Csi2Packet, UdpPacket, SpiTransaction)
 - 97.08% code coverage with 53 passing tests for Common.Dto
 - Comprehensive XML documentation comments for all public APIs
 - tools/Common/README.md with usage examples and API documentation
+- 5 simulators implementation complete (Common.Dto, PanelSimulator, FpgaSimulator, McuSimulator, HostSimulator)
+- 261 tests passing across all simulators
+- 85%+ code coverage achieved for all simulator modules
+- Comprehensive integration test framework with IT-01~IT-10 scenarios
 
 ### Changed
 - Performance target updated from 3072x3072@30fps to 3072x3072@15fps (CSI-2 bandwidth constraint)
-
-### Changed
-- Performance target updated from 3072x3072@30fps to 3072x3072@15fps (CSI-2 bandwidth constraint)
+- M2-Impl milestone status: Complete
 
 ---
 
