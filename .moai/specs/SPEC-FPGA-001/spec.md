@@ -477,7 +477,7 @@ All requirements trace to `docs/architecture/fpga-design.md` v1.0.0. Register ma
 
 **GIVEN**: SPI testbench writing and reading all defined registers
 **WHEN**: Write-read sequence completes for each register
-**THEN**: Read-only registers return correct values (DEVICE_ID = 0xA735)
+**THEN**: Read-only registers return correct values (DEVICE_ID = 0xD7E0_0001: address 0x00 returns 0xD7E0, address 0x01 returns 0x0001)
 **AND**: Read-write registers return last written value
 **AND**: Unmapped addresses return 0x0000
 **AND**: All transactions complete within 32 SCLK cycles

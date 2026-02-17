@@ -773,7 +773,7 @@ public class FpgaSimulatorTests
         var packets = transmitter.GenerateFramePackets(width: 2048, height: 2048, bitDepth: 16);
 
         Assert.Equal(2048, packets.Count); // One packet per line
-        Assert.All(packets, p => Assert.Equal(0x2C, p.DataType)); // RAW16 data type
+        Assert.All(packets, p => Assert.Equal(0x2E, p.DataType)); // RAW16 data type
     }
 }
 ```
@@ -1121,7 +1121,7 @@ mcp__context7__get-library-docs(library_id, "System.Text.Json")
 - **Lanes**: 4 data lanes + 1 clock lane
 - **Lane Speed**: 1.0-1.25 Gbps/lane (configurable via GUI or TCL)
 - **D-PHY**: Xilinx D-PHY via OSERDES primitives + LVDS I/O buffers
-- **Data Type**: RAW16 (0x2C, 16-bit raw pixel data)
+- **Data Type**: RAW16 (0x2E, 16-bit raw pixel data)
 - **Virtual Channel**: VC0 (single virtual channel)
 - **Line Blanking**: Configurable (default: 100 pixel clocks)
 - **Frame Blanking**: Configurable (default: 10 line times)

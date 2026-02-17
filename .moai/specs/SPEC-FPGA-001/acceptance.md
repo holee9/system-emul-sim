@@ -178,7 +178,7 @@ Then the following register groups shall respond correctly:
   | CSI-2 Config | 0x80-0x8F | R/W | Write lane speed, verify readback |
   | Data Status | 0x90-0x9F | RO | Read, verify runtime values |
   | Error Flags | 0xA0-0xAF | R/W1C | Read flags, write-1-to-clear |
-  | Identification | 0xF0-0xFF | RO | DEVICE_ID = 0xA735 |
+  | Identification | 0x00-0x01 | RO | DEVICE_ID = 0xD7E0_0001 (0x00: 0xD7E0, 0x01: 0x0001) |
 And unmapped addresses shall return 0x0000 on read and ignore writes
 And all transactions shall complete within 32 SCLK cycles
 ```
@@ -193,7 +193,7 @@ And the next transaction shall proceed normally
 
 **Success Criteria**:
 - All defined registers accessible per specification
-- DEVICE_ID (0xF0) returns 0xA735
+- DEVICE_ID returns 0xD7E0_0001: address 0x00 returns 0xD7E0 (upper 16 bits), address 0x01 returns 0x0001 (lower 16 bits)
 - Read-only registers ignore write attempts
 - CS_N abort does not corrupt register state
 - 32-bit transaction completes within 32 SCLK cycles

@@ -152,7 +152,26 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 **WHY**: FpgaSimulator serves as the golden reference for RTL development. Register-accurate behavior enables bit-exact comparison.
 
-**IMPACT**: All registers (CONTROL, STATUS, FRAME_COUNTER, timing, panel config, CSI-2 config, error flags, identification) must be modeled.
+**IMPACT**: All registers (CONTROL, STATUS, FRAME_COUNTER, timing, panel config, CSI-2 config, error flags, identification, diagnostics, debug/status) must be modeled. This includes the following SPI register addresses:
+
+| Address | Name | Access | Description |
+|---------|------|--------|-------------|
+| 0x00 | DEVICE_ID | RO | Device identifier upper 16 bits |
+| 0x21 | CONTROL | RW | Scan control and reset |
+| 0x20 | STATUS | RO | FSM and hardware status |
+| 0x30 | FRAME_COUNT_LO | RO | Frame counter lower 16 bits |
+| 0x31 | FRAME_COUNT_HI | RO | Frame counter upper 16 bits |
+| 0x40 | CONFIG_ROWS | RW | Panel row count |
+| 0x41 | CONFIG_COLS | RW | Panel column count |
+| 0x42 | BIT_DEPTH | RW | Pixel bit depth |
+| 0x50-0x55 | TIMING_* | RW | Panel scan timing registers |
+| 0x60-0x62 | CSI2_* | RW | CSI-2 configuration registers |
+| 0x70 | CSI2_STATUS | RO | CSI-2 link status |
+| 0x80 | ERROR_FLAGS | RW1C | Error flag bits (write-1-clear) |
+| 0x90 | DIAG_CONTROL | RW | Diagnostic mode control |
+| 0xF0 | DEBUG_STATUS | RO | Debug and extended status |
+
+See `docs/api/spi-register-map.md` for the full register specification.
 
 ---
 
@@ -194,6 +213,22 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 **IMPACT**: Error injection API allows tests to trigger specific error conditions. Error clearing via CONTROL register write.
 
+**ERROR_FLAGS Register (SPI address 0x80) - Bit Assignments**:
+
+The FpgaSimulator models the following ERROR_FLAGS bits. Each bit is sticky (remains set until explicitly cleared). Bits not listed read as 0 and are reserved.
+
+| Bit | Mask | Name | Description |
+|-----|------|------|-------------|
+| 0 | 0x0001 | ERR_CSI2_SYNC | CSI-2 synchronization error |
+| 1 | 0x0002 | ERR_FRAME_DROP | Frame was dropped (buffer overflow) |
+| 2 | 0x0004 | ERR_CRC_FAIL | Frame CRC validation failed |
+| 3 | 0x0008 | ERR_TIMEOUT | Data acquisition timeout |
+| 4 | 0x0010 | ERR_OVERRUN | Data overrun detected |
+| 5 | 0x0020 | ERR_PANEL_COMM | Panel communication failure |
+| 15 | 0x8000 | ERR_FATAL | Fatal unrecoverable error |
+
+**Simulator behavior**: When any ERROR_FLAGS bit is asserted the FpgaSimulator transitions to the ERROR state and disables CSI-2 TX output. The host clears errors by writing 1 to the corresponding bit position (write-1-clear semantics). ERR_FATAL requires a full soft reset (CONTROL register bit[2]) to recover.
+
 ---
 
 **REQ-SIM-026**: The FpgaSimulator output **shall** be bit-exact compared to FPGA RTL simulation output for the same input and configuration.
@@ -226,7 +261,7 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 **WHY**: SoC streams frames to Host PC via UDP. Packet format must match SDK expectations.
 
-**IMPACT**: Frame header includes: magic (0xDEADBEEF), frame_seq, timestamp, width, height, bit_depth, packet_index, total_packets, crc16.
+**IMPACT**: Frame header includes: magic (0xD7E01234), frame_seq, timestamp, width, height, bit_depth, packet_index, total_packets, crc16.
 
 ---
 
@@ -446,7 +481,7 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 **GIVEN**: McuSimulator connected to FpgaSimulator (CSI-2) and configured for UDP output
 **WHEN**: StartScan command is sent, one frame is processed
-**THEN**: UDP packets generated with correct frame header (magic=0xDEADBEEF)
+**THEN**: UDP packets generated with correct frame header (magic=0xD7E01234)
 **AND**: Total UDP payload size = rows * cols * 2 bytes
 **AND**: packet_index is sequential from 0 to total_packets-1
 

@@ -99,9 +99,8 @@ using XrayDetector.Sdk;
 using var client = new DetectorClient();
 await client.ConnectAsync("192.168.1.100");
 
-await client.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Single, PerformanceTier.IntermediateA));
-using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-var frame = await client.CaptureFrameAsync(cts.Token);
+await client.StartAcquisitionAsync(ScanMode.Single);
+var frame = await client.CaptureFrameAsync(TimeSpan.FromSeconds(5));
 
 Console.WriteLine($"Captured: {frame.Width}x{frame.Height}, {frame.BitDepth}-bit");
 await client.SaveFrameAsync(frame, "capture.tiff", ImageFormat.Tiff);
@@ -144,7 +143,7 @@ await client.ConnectAsync("192.168.1.100", 9000);
 #### DisconnectAsync
 
 ```csharp
-Task DisconnectAsync();
+Task DisconnectAsync(CancellationToken ct = default);
 ```
 
 Gracefully disconnects from the detector. Stops any active scan.
@@ -174,14 +173,14 @@ Returns device information after connection. `null` if not connected.
 #### StartAcquisitionAsync
 
 ```csharp
-Task StartAcquisitionAsync(AcquisitionParams parameters, CancellationToken ct = default);
+Task StartAcquisitionAsync(ScanMode mode, CancellationToken ct = default);
 ```
 
 Starts frame acquisition.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| parameters | AcquisitionParams | Acquisition mode, tier, and optional frame count |
+| mode | ScanMode | Acquisition mode: Single, Continuous, or Calibration |
 | ct | CancellationToken | Cancellation token |
 
 **Throws**: `InvalidOperationException` if not connected or scan already active.
@@ -189,13 +188,13 @@ Starts frame acquisition.
 **Example**:
 ```csharp
 // Single frame capture
-await client.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Single, PerformanceTier.IntermediateA));
+await client.StartAcquisitionAsync(ScanMode.Single);
 
 // Continuous streaming
-await client.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Continuous, PerformanceTier.Target));
+await client.StartAcquisitionAsync(ScanMode.Continuous);
 
 // Dark frame calibration
-await client.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Calibration, PerformanceTier.Minimum));
+await client.StartAcquisitionAsync(ScanMode.Calibration);
 ```
 
 ---
@@ -203,7 +202,7 @@ await client.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Calibration, P
 #### StopAcquisitionAsync
 
 ```csharp
-Task StopAcquisitionAsync();
+Task StopAcquisitionAsync(CancellationToken ct = default);
 ```
 
 Stops an active continuous scan. No-op if scan is not active.
@@ -231,23 +230,23 @@ Console.WriteLine($"FPS: {status.Fps:F1}");
 #### CaptureFrameAsync
 
 ```csharp
-Task<Frame> CaptureFrameAsync(CancellationToken ct = default);
+Task<Frame> CaptureFrameAsync(TimeSpan timeout, CancellationToken ct = default);
 ```
 
 Waits for and returns the next complete frame.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| ct | CancellationToken | Cancellation token (use with timeout via CancellationTokenSource) |
+| timeout | TimeSpan | Maximum time to wait for a complete frame |
+| ct | CancellationToken | Cancellation token |
 
 **Returns**: `Frame` object with pixel data.
 
-**Throws**: `TimeoutException` if no frame received within timeout (set via CancellationTokenSource).
+**Throws**: `TimeoutException` if no frame received within timeout.
 
 **Example**:
 ```csharp
-using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-var frame = await client.CaptureFrameAsync(cts.Token);
+var frame = await client.CaptureFrameAsync(TimeSpan.FromSeconds(5));
 ushort centerPixel = frame.GetPixel(frame.Height / 2, frame.Width / 2);
 ```
 
@@ -263,7 +262,7 @@ Returns an async stream of frames for continuous capture.
 
 **Example**:
 ```csharp
-await client.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Continuous, PerformanceTier.Target));
+await client.StartAcquisitionAsync(ScanMode.Continuous);
 
 int count = 0;
 await foreach (var frame in client.StreamFramesAsync(cts.Token))
@@ -281,7 +280,7 @@ await client.StopAcquisitionAsync();
 #### ConfigureAsync
 
 ```csharp
-Task ConfigureAsync(DetectorConfig config);
+Task ConfigureAsync(DetectorConfig config, CancellationToken ct = default);
 ```
 
 Updates detector configuration.
@@ -319,7 +318,7 @@ Retrieves current detector configuration.
 #### SaveFrameAsync
 
 ```csharp
-Task SaveFrameAsync(Frame frame, string path, ImageFormat format);
+Task SaveFrameAsync(Frame frame, string path, ImageFormat format, CancellationToken ct = default);
 ```
 
 Saves a frame to disk.
@@ -329,6 +328,7 @@ Saves a frame to disk.
 | frame | Frame | Frame to save |
 | path | string | Output file path |
 | format | ImageFormat | Raw, Tiff, or Dicom |
+| ct | CancellationToken | Cancellation token |
 
 **Example**:
 ```csharp
@@ -346,13 +346,13 @@ await client.SaveFrameAsync(frame, "image.raw", ImageFormat.Raw);
 #### FrameReceived
 
 ```csharp
-event EventHandler<FrameReceivedEventArgs> FrameReceived;
+event EventHandler<FrameEventArgs> FrameReceived;
 ```
 
 Raised when a complete frame is received.
 
 ```csharp
-public class FrameReceivedEventArgs : EventArgs
+public class FrameEventArgs : EventArgs
 {
     public Frame Frame { get; }
     public int QueueDepth { get; }  // Frames waiting in buffer
@@ -528,35 +528,35 @@ public interface IDetectorClient : IAsyncDisposable
 {
     // Connection management
     Task ConnectAsync(string host, int port = 8000, CancellationToken ct = default);
-    Task DisconnectAsync();
+    Task DisconnectAsync(CancellationToken ct = default);
     bool IsConnected { get; }
     DetectorInfo DeviceInfo { get; }
 
     // Scan control
-    Task StartAcquisitionAsync(AcquisitionParams parameters, CancellationToken ct = default);
-    Task StopAcquisitionAsync();
+    Task StartAcquisitionAsync(ScanMode mode, CancellationToken ct = default);
+    Task StopAcquisitionAsync(CancellationToken ct = default);
     ScanStatus CurrentStatus { get; }
 
     // Frame access (two patterns: polling and streaming)
-    Task<Frame> CaptureFrameAsync(CancellationToken ct = default);
+    Task<Frame> CaptureFrameAsync(TimeSpan timeout, CancellationToken ct = default);
     IAsyncEnumerable<Frame> StreamFramesAsync(CancellationToken ct = default);
 
     // Configuration
-    Task ConfigureAsync(DetectorConfig config);
+    Task ConfigureAsync(DetectorConfig config, CancellationToken ct = default);
     Task<DetectorConfig> GetConfigAsync();
-    Task<DetectorStatus> GetStatusAsync();
+    Task<ScanStatus> GetStatusAsync(CancellationToken ct = default);
 
     // Device discovery
     Task<IEnumerable<DeviceInfo>> DiscoverDevicesAsync(
         TimeSpan timeout = default, CancellationToken ct = default);
 
     // Storage
-    Task SaveFrameAsync(Frame frame, string path, ImageFormat format);
+    Task SaveFrameAsync(Frame frame, string path, ImageFormat format, CancellationToken ct = default);
 
     // Events
-    event EventHandler<FrameReceivedEventArgs> FrameReceived;
-    event EventHandler<DetectorErrorEventArgs> ErrorOccurred;
-    event EventHandler<ConnectionStateChangedEventArgs> ConnectionChanged;
+    event EventHandler<FrameEventArgs> FrameReceived;
+    event EventHandler<ErrorEventArgs> ErrorOccurred;
+    event EventHandler<ConnectionEventArgs> ConnectionChanged;
 }
 ```
 
@@ -631,7 +631,7 @@ public record AcquisitionParams(
 
 ```csharp
 // Process frames in parallel with async pipeline
-await client.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Continuous, PerformanceTier.Target));
+await client.StartAcquisitionAsync(ScanMode.Continuous);
 
 var processChannel = Channel.CreateBounded<Frame>(8);
 
@@ -674,14 +674,12 @@ await Task.WhenAll(
 
 // Synchronized capture
 await Task.WhenAll(
-    client1.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Single, PerformanceTier.IntermediateA)),
-    client2.StartAcquisitionAsync(new AcquisitionParams(ScanMode.Single, PerformanceTier.IntermediateA))
+    client1.StartAcquisitionAsync(ScanMode.Single),
+    client2.StartAcquisitionAsync(ScanMode.Single)
 );
 
-using var cts1 = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-using var cts2 = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-var frame1 = await client1.CaptureFrameAsync(cts1.Token);
-var frame2 = await client2.CaptureFrameAsync(cts2.Token);
+var frame1 = await client1.CaptureFrameAsync(TimeSpan.FromSeconds(5));
+var frame2 = await client2.CaptureFrameAsync(TimeSpan.FromSeconds(5));
 ```
 
 ### 6.3 Window/Level Display Integration
@@ -822,6 +820,7 @@ var client = new DetectorClient(options);
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Complete API reference with IDetectorClient, data models, DeviceInfo, DetectorStatus, FpgaStatus, AcquisitionParams, NuGet configuration, DiscoverDevicesAsync |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed: API inconsistencies between Section 3 (StartScanAsync/StopScanAsync/GetFrameAsync) and Section 5.1 IDetectorClient interface (StartAcquisitionAsync/StopAcquisitionAsync/CaptureFrameAsync); aligned ErrorEventArgs -> DetectorErrorEventArgs, ConnectionChangedEventArgs -> ConnectionStateChangedEventArgs across all sections |
+| 1.0.2 | 2026-02-17 | MoAI Agent | MAJOR-002: Fixed 7 API signature mismatches vs SPEC-SDK-001: (1) DisconnectAsync added CancellationToken; (2) ConfigureAsync added CancellationToken; (3) StartAcquisitionAsync changed AcquisitionParams -> ScanMode mode; (4) StopAcquisitionAsync added CancellationToken; (5) CaptureFrameAsync added TimeSpan timeout parameter; (6) SaveFrameAsync added CancellationToken; (7) FrameReceived event changed FrameReceivedEventArgs -> FrameEventArgs. Section 5.1 complete interface and all code examples updated to match. |
 
 ---
 

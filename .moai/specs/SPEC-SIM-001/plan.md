@@ -176,7 +176,7 @@ This implementation plan outlines the phased approach to building the Simulator 
 
 3. **UDP Packet Generator (REQ-SIM-032)**
    - TDD: Write failing tests for UDP packet format
-   - Implement frame header: magic (0xDEADBEEF), frame_seq, timestamp, width, height, bit_depth, packet_index, total_packets, crc16
+   - Implement frame header: magic (0xD7E01234), frame_seq, timestamp, width, height, bit_depth, packet_index, total_packets, crc16
    - Implement frame data packetization (split frame into UDP-sized chunks)
    - Verify total payload size = rows * cols * 2 bytes
 

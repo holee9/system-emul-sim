@@ -2,7 +2,7 @@
 
 ---
 id: SPEC-FW-001
-version: 1.1.0
+version: 1.2.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
@@ -38,6 +38,8 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 | Frame Manager | `frame_manager.c` | DDR4 4-buffer ring management and DMA |
 | Command Protocol | `protocol/command_protocol.c` | Host command handling (port 8001) |
 | Battery Driver | `hal/bq40z50_driver.c` | TI BQ40z50 battery gauge (ported from kernel 4.4 to 6.6) |
+| IMU HAL | `hal/imu_hal.c` | Bosch BMI160 accelerometer + gyroscope via IIO subsystem (Phase 3, W23-W28) |
+| GPIO HAL | `hal/gpio_hal.c` | NXP PCA9534 GPIO expander - panel power, LED, enable signals (Phase 2, W9-W22) |
 
 ### Definitions
 
@@ -47,12 +49,15 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 | V4L2 | Video4Linux2 kernel driver framework for CSI-2 RX |
 | DMA | Direct Memory Access for zero-copy frame transfer |
 | SMBus | System Management Bus (I2C variant) for BQ40z50 |
+| IIO | Industrial I/O subsystem - Linux kernel framework for sensors (IMU, ADC) |
 
 ### Development Methodology
 
 - **New firmware code**: TDD (RED-GREEN-REFACTOR) per quality.yaml hybrid settings
 - **HAL integration with BSP**: DDD (ANALYZE-PRESERVE-IMPROVE)
 - **Battery driver port**: DDD (ANALYZE existing kernel 4.4 driver, PRESERVE functionality, IMPROVE for kernel 6.6 API)
+- **IMU HAL**: TDD (kernel 6.6 bmi160_i2c IIO driver already included, HAL is new userspace code)
+- **GPIO HAL**: TDD (kernel 6.6 gpio-pca953x driver already included, HAL is new userspace code)
 
 ---
 
@@ -160,7 +165,50 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 4. Sequence Engine Requirements
+### 4. Command Protocol Requirements
+
+**REQ-FW-025**: The firmware **shall** implement a command handler on port 8001 (UDP) that recognizes command frames identified by the magic value `0xBEEFCAFE` (host→FPGA direction).
+
+**WHY**: A well-known magic value allows the command handler to distinguish valid host commands from noise, stale UDP packets, or replay attacks before processing the payload.
+
+**IMPACT**: `protocol/command_protocol.c` parses each received UDP packet; packets whose first 4 bytes do not equal `0xBEEFCAFE` are discarded silently and counted as `auth_failure` events.
+
+---
+
+**REQ-FW-026**: **WHEN** the firmware sends a response to a host command **THEN** the response frame **shall** carry the magic value `0xCAFEBEEF` (FPGA→host direction) as the first 4 bytes of the response payload.
+
+**WHY**: The mirrored response magic lets the Host SDK validate that a received UDP packet on port 8001 is a genuine firmware response and not a stale or misdirected packet.
+
+**IMPACT**: All command response paths in `protocol/command_protocol.c` must write `0xCAFEBEEF` as the first field before serializing status, counters, or error codes.
+
+---
+
+**REQ-FW-027**: The command protocol frame format **shall** be:
+
+| Offset (bytes) | Size (bytes) | Field | Description |
+|----------------|-------------|-------|-------------|
+| 0 | 4 | magic | `0xBEEFCAFE` (command) or `0xCAFEBEEF` (response) |
+| 4 | 4 | sequence | Monotonic command sequence number (replay protection) |
+| 8 | 2 | command_id | Command opcode (e.g., START_SCAN=0x01, STOP_SCAN=0x02, GET_STATUS=0x10, SET_CONFIG=0x20) |
+| 10 | 2 | payload_len | Length of command-specific payload in bytes |
+| 12 | 32 | hmac | HMAC-SHA256 over bytes 0–11 and the payload (per REQ-FW-100) |
+| 44 | variable | payload | Command-specific data |
+
+**WHY**: A fixed, documented frame layout enables independent implementation in firmware and Host SDK without tight coupling.
+
+**IMPACT**: `protocol/command_protocol.h` defines the above struct. Both sender (SDK) and receiver (firmware) must use the same field offsets and byte order (little-endian).
+
+---
+
+**REQ-FW-028**: **WHEN** the firmware receives a command frame with a sequence number less than or equal to the last accepted sequence number **THEN** it **shall** discard the packet as a replay and increment the `auth_failure` counter.
+
+**WHY**: Monotonic sequence numbers prevent replay attacks where a previously captured valid command is re-injected.
+
+**IMPACT**: Firmware maintains a `last_seq` per-source-IP state variable. Response frames echo the received sequence number so the Host SDK can correlate responses.
+
+---
+
+### 6. Sequence Engine Requirements
 
 **REQ-FW-030**: The Sequence Engine **shall** implement a state machine with states: IDLE, CONFIGURE, ARM, SCANNING, STREAMING, COMPLETE, ERROR.
 
@@ -194,7 +242,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 5. Network Streaming Requirements
+### 7. Network Streaming Requirements
 
 **REQ-FW-040**: The Ethernet TX module **shall** fragment each frame into UDP packets with the frame header format defined in `soc-firmware-design.md` Section 6.1.
 
@@ -228,7 +276,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 6. Frame Buffer Management Requirements
+### 8. Frame Buffer Management Requirements
 
 **REQ-FW-050**: The Frame Manager **shall** allocate 4 frame buffers in DDR4 using V4L2 MMAP mechanism.
 
@@ -254,7 +302,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 7. Error Handling Requirements
+### 9. Error Handling Requirements
 
 **REQ-FW-060**: The firmware **shall** implement a health monitor thread with a watchdog timer.
 
@@ -272,7 +320,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 8. Yocto Build System Requirements
+### 10. Yocto Build System Requirements
 
 **REQ-FW-080**: The firmware **shall** be built using Yocto Project Scarthgap 5.0 LTS with the Variscite BSP layer (meta-variscite-bsp, imx-6.6.52-2.2.0-v1.3).
 
@@ -290,7 +338,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 9. Battery Driver Port Requirements
+### 11. Battery Driver Port Requirements
 
 **REQ-FW-090**: The BQ40z50 battery gauge driver **shall** be ported from Linux kernel 4.4 SMBus API to Linux kernel 6.6 SMBus/I2C API.
 
@@ -316,7 +364,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 10. Security Requirements
+### 12. Security Requirements
 
 **REQ-FW-100**: The UDP command channel (port 8001) **shall** implement HMAC-SHA256 message authentication for all incoming commands.
 
@@ -342,7 +390,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 11. Diagnostics and Logging Requirements
+### 13. Diagnostics and Logging Requirements
 
 **REQ-FW-110**: The firmware **shall** log all state transitions, errors, and significant events to syslog with structured fields (timestamp, module, severity, message).
 
@@ -368,7 +416,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 12. Daemon Lifecycle Requirements
+### 14. Daemon Lifecycle Requirements
 
 **REQ-FW-120**: The firmware daemon **shall** be managed by systemd with `Restart=on-failure` and `RestartSec=5`.
 
@@ -386,7 +434,7 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 13. Configuration Validation Requirements
+### 15. Configuration Validation Requirements
 
 **REQ-FW-130**: **WHEN** the firmware loads `detector_config.yaml` at startup **THEN** it **shall** validate all parameters against expected ranges and reject the configuration if any parameter is out of range.
 
@@ -404,7 +452,97 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-### 14. Unwanted Requirements
+### 15. IMU HAL Requirements (BMI160 - Phase 3, W23-W28)
+
+**Scope Decision**: BMI160 IMU (I2C7, address 0x68) is **IN SCOPE - Phase 3 (W23-W28)**.
+
+The Bosch BMI160 IIO driver (`bmi160_i2c`) is already included in Linux kernel 6.6. No porting is required. The firmware implements a user-space HAL that reads from the IIO sysfs interface.
+
+**Use cases**: Equipment orientation detection, motion blur prevention during X-ray acquisition (scan is blocked if device is in motion).
+
+---
+
+**REQ-FW-140**: The IMU HAL **shall** read accelerometer and gyroscope data from the BMI160 IIO device at `/sys/bus/iio/devices/iio:device0` (I2C7, address 0x68).
+
+**WHY**: The BMI160 bmi160_i2c IIO driver is already in kernel 6.6, so the HAL consumes the standardized IIO sysfs interface without kernel modifications.
+
+**IMPACT**: HAL reads `in_accel_x_raw`, `in_accel_y_raw`, `in_accel_z_raw` and corresponding gyroscope channels. Scaling applied using `in_accel_scale` and `in_gyro_scale` sysfs attributes.
+
+---
+
+**REQ-FW-141**: The IMU HAL **shall** provide the following API:
+
+```c
+/* Read 3-axis accelerometer data in milli-g units */
+int imu_get_accel(imu_accel_t *accel_mg);
+
+/* Read 3-axis gyroscope data in milli-degrees per second */
+int imu_get_gyro(imu_gyro_t *gyro_mdps);
+
+/* Returns true if device is stationary (total acceleration magnitude within threshold_mg of 1g) */
+bool imu_is_stationary(uint32_t threshold_mg);
+```
+
+**WHY**: A stable, well-defined HAL API isolates the sequence engine from IIO subsystem details.
+
+**IMPACT**: `imu_is_stationary()` is called by the Sequence Engine before transitioning to ARM state. If motion is detected, ARM is deferred until stationary.
+
+---
+
+**REQ-FW-142**: **WHEN** `imu_is_stationary(threshold_mg)` returns false **THEN** the Sequence Engine **shall** defer scan arming and report MOTION_DETECTED status to the Host.
+
+**WHY**: Motion during X-ray acquisition causes motion blur in the detector image, degrading diagnostic quality.
+
+**IMPACT**: Sequence Engine adds a MOTION_CHECK step before the ARM state. Host receives a MOTION_DETECTED status code and can instruct the operator to hold still.
+
+---
+
+### 16. GPIO HAL Requirements (PCA9534 - Phase 2, W9-W22)
+
+**Scope Decision**: NXP PCA9534 GPIO expander (I2C, gpio-pca953x driver) is **IN SCOPE - Phase 2 (W9-W22)**.
+
+The `gpio-pca953x` driver is already included in Linux kernel 6.6. The firmware implements a user-space HAL via the Linux sysfs GPIO interface (`/sys/class/gpio`).
+
+**Use cases**: Panel power control, LED status indicators, hardware enable signals for X-ray detector subsystems.
+
+---
+
+**REQ-FW-150**: The GPIO HAL **shall** control NXP PCA9534 GPIO expander pins via the Linux sysfs GPIO interface (`/sys/class/gpio`) using the `gpio-pca953x` kernel driver.
+
+**WHY**: The gpio-pca953x driver is already present in kernel 6.6, providing a stable sysfs interface without custom kernel development.
+
+**IMPACT**: HAL exports and controls GPIO pins via `/sys/class/gpio/export`, `/sys/class/gpio/gpioN/direction`, and `/sys/class/gpio/gpioN/value`. GPIO base offset determined at runtime from the kernel-assigned base.
+
+---
+
+**REQ-FW-151**: The GPIO HAL **shall** provide the following API:
+
+```c
+/* Control panel power supply (true = power on, false = power off) */
+int gpio_set_panel_power(bool enable);
+
+/* Control LED indicator (id: 0-3 for LED0..LED3, state: true = on) */
+int gpio_set_led(uint8_t id, bool state);
+
+/* Read hardware status input pin (pin: 0-7) */
+int gpio_get_status_input(uint8_t pin, bool *state);
+```
+
+**WHY**: Named HAL functions decouple the sequence engine and health monitor from raw GPIO pin numbers, simplifying board-specific changes.
+
+**IMPACT**: `gpio_set_panel_power(false)` is called during graceful shutdown (REQ-FW-121) and low-battery emergency (REQ-FW-092). `gpio_set_led()` provides visual status feedback. `gpio_get_status_input()` reads hardware interlock signals.
+
+---
+
+**REQ-FW-152**: **WHEN** the firmware daemon starts **THEN** the GPIO HAL **shall** initialize all output pins to a safe default state (panel power OFF, all LEDs OFF).
+
+**WHY**: Safe initialization prevents the panel from powering on before firmware is ready to receive CSI-2 data.
+
+**IMPACT**: `gpio_hal_init()` is called during daemon startup before any other subsystem initialization.
+
+---
+
+### 17. Unwanted Requirements
 
 **REQ-FW-070**: The firmware **shall not** implement frame compression in the initial release.
 
@@ -528,6 +666,40 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
+### AC-FW-009: BMI160 IMU HAL (Phase 3, W23-W28)
+
+**GIVEN**: BMI160 connected on I2C7 (address 0x68) with bmi160_i2c IIO driver loaded in kernel 6.6
+**WHEN**: `imu_get_accel()` and `imu_get_gyro()` are called
+**THEN**: Accelerometer values are in range -16000 to +16000 milli-g (16g full scale)
+**AND**: Gyroscope values are in range -2000000 to +2000000 milli-degrees per second (2000 dps full scale)
+**AND**: IIO sysfs reads complete without error
+
+**WHEN**: `imu_is_stationary(50)` is called with device at rest on a flat surface
+**THEN**: Returns true (total acceleration magnitude within 50 mg of 1g = 9800 mg)
+
+**WHEN**: `imu_is_stationary(50)` is called while device is being moved
+**THEN**: Returns false
+
+---
+
+### AC-FW-010: PCA9534 GPIO HAL (Phase 2, W9-W22)
+
+**GIVEN**: PCA9534 GPIO expander connected via I2C with gpio-pca953x driver loaded in kernel 6.6
+**WHEN**: `gpio_hal_init()` is called at daemon startup
+**THEN**: All output pins are set to safe defaults (panel power OFF, all LEDs OFF)
+**AND**: GPIO sysfs export completes without error
+
+**WHEN**: `gpio_set_panel_power(true)` is called
+**THEN**: Panel power GPIO pin transitions to HIGH (confirmed via sysfs read-back)
+
+**WHEN**: `gpio_set_led(0, true)` is called
+**THEN**: LED0 GPIO pin transitions to HIGH (confirmed via sysfs read-back)
+
+**WHEN**: `gpio_set_panel_power(false)` is called during shutdown
+**THEN**: Panel power GPIO pin transitions to LOW within 100 ms
+
+---
+
 ---
 
 ## Dependencies
@@ -539,6 +711,8 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 - Variscite BSP layer: meta-variscite-bsp (imx-6.6.52-2.2.0-v1.3)
 - 10 GbE PCIe NIC and driver (ixgbe or mlx5)
 - TI BQ40z50 SMBus specification and Linux kernel 4.4 driver source (for port reference)
+- Bosch BMI160 IIO datasheet (bmi160_i2c kernel driver, IIO sysfs interface) - Phase 3 (W23-W28)
+- NXP PCA9534 datasheet (gpio-pca953x kernel driver, sysfs GPIO interface) - Phase 2 (W9-W22)
 
 ---
 
@@ -562,6 +736,18 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 **Probability**: Medium. **Impact**: Low (battery monitoring is not in critical data path).
 **Mitigation**: DDD approach: analyze kernel changelogs for SMBus/Power Supply class API diffs between 4.4 and 6.6. Use `power_supply_register()` updated API. Fallback: user-space SMBus via i2c-dev.
 
+### R-FW-004: BMI160 IIO sysfs Interface Availability
+
+**Risk**: bmi160_i2c IIO driver enumeration order or sysfs path differs between kernel builds, causing HAL to read from wrong device.
+**Probability**: Low. **Impact**: Low (IMU data is advisory, not in critical acquisition path).
+**Mitigation**: HAL probes IIO device list at startup to identify BMI160 by device name (`bmi160`), not by fixed path. Fallback: log warning and disable motion-check gate if BMI160 is not found.
+
+### R-FW-005: PCA9534 GPIO Base Assignment
+
+**Risk**: Kernel dynamically assigns GPIO base number to PCA9534; hardcoded base offsets break HAL.
+**Probability**: Medium. **Impact**: Medium (panel power control failure prevents X-ray acquisition).
+**Mitigation**: HAL discovers PCA9534 GPIO base at startup by reading `/sys/bus/i2c/devices/*/gpio/` and matching the device address. GPIO numbers resolved dynamically, not hardcoded.
+
 ---
 
 ## Revision History
@@ -571,6 +757,8 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 | 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for SoC firmware |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed REQ-FW-001: Linux 5.15+ corrected to Linux 6.6.52 (Variscite BSP imx-6.6.52-2.2.0-v1.3, Yocto Scarthgap 5.0 LTS) |
 | 1.1.0 | 2026-02-17 | spec-fw agent | Added Security (REQ-FW-100-102), Diagnostics (REQ-FW-110-112), Daemon Lifecycle (REQ-FW-120-121), Configuration Validation (REQ-FW-130-131) sections. Fixed AC-FW-003 magic number to 0xD7E01234. Created acceptance.md and plan.md. Status: approved |
+| 1.2.0 | 2026-02-17 | MoAI Agent | MAJOR-003: Added Command Protocol section (REQ-FW-025–028) covering magic values 0xBEEFCAFE/0xCAFEBEEF, frame format, sequence replay protection. Renumbered subsequent sections (4→6 through 14→16) to accommodate new section 4. |
+| 1.3.0 | 2026-02-17 | MoAI Agent | MAJOR-008: Added BMI160 IMU HAL section (REQ-FW-140~142, AC-FW-009) - IN SCOPE Phase 3 (W23-W28). MAJOR-009: Added PCA9534 GPIO HAL section (REQ-FW-150~152, AC-FW-010) - IN SCOPE Phase 2 (W9-W22). Updated Scope table, Definitions, Development Methodology, Dependencies, Risks (R-FW-004~005). |
 
 ---
 

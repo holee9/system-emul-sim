@@ -316,6 +316,43 @@ int send_frame(int sock_fd, struct sockaddr_in *dst,
 }
 ```
 
+### 3.4 Battery Management - BQ40z50 (SMBus/I2C)
+
+**Hardware**: TI BQ40z50 Smart Battery Manager
+**Interface**: SMBus (I2C bus at address 0x0b)
+**Kernel Driver**: `bq27xxx_battery` (ported from kernel 4.4)
+
+#### 3.4.1 Driver Architecture
+
+The BQ40z50 uses the Linux `bq27xxx_battery` driver framework with a custom port
+for kernel 6.6 compatibility (Scarthgap BSP).
+
+Port requirements:
+- `bq27xxx_battery` driver from kernel 4.4 → 6.6 adaptation
+- I2C slave address: `0x0b`
+- SMBus commands: standard SBS (Smart Battery Specification) command set
+
+#### 3.4.2 HAL API
+
+| Function | Description |
+|----------|-------------|
+| `bat_get_capacity_percent()` | Returns State of Charge (0-100%) |
+| `bat_get_voltage_mv()` | Returns battery voltage in mV |
+| `bat_get_current_ma()` | Returns charge/discharge current in mA |
+| `bat_get_temperature_dc()` | Returns temperature in 0.1°C units |
+| `bat_get_status()` | Returns battery status flags |
+| `bat_get_remaining_capacity_mwh()` | Returns remaining energy in mWh |
+| `bat_is_charging()` | Returns true if charging |
+
+#### 3.4.3 Integration Notes
+
+- Port `drivers/power/supply/bq27xxx_battery.c` from kernel 4.4 to kernel 6.6
+- Create device tree entry for i2c bus node with BQ40z50 child
+- Expose battery information via Linux `power_supply` class interface
+- Log battery status every 60 seconds to syslog
+- Alert SoC application when SoC drops below 20% (low battery warning)
+- Alert SoC application when SoC drops below 5% (critical, initiate safe shutdown)
+
 ---
 
 ## 4. Sequence Engine

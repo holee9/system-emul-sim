@@ -189,12 +189,12 @@ csi2_detector_top
 
 | Parameter | Register | Range | Default | Unit |
 |-----------|----------|-------|---------|------|
-| timing_row_period | 0x40 | 1-65535 | 16 | microseconds |
-| gate_on_us | 0x41 | 1-65535 | 1000 | microseconds |
-| gate_off_us | 0x42 | 1-65535 | 100 | microseconds |
-| roic_settle_us | 0x43 | 1-255 | 10 | microseconds |
-| adc_conv_us | 0x44 | 1-255 | 5 | microseconds |
-| frame_blanking_us | 0x45 | 1-65535 | 500 | microseconds |
+| gate_on_us | 0x50 | 1-65535 | 1000 | 10ns ticks |
+| gate_off_us | 0x51 | 1-65535 | 100 | 10ns ticks |
+| roic_settle_us | 0x52 | 1-255 | 10 | 10ns ticks |
+| adc_conv_us | 0x53 | 1-255 | 5 | 10ns ticks |
+| line_period | 0x54 | 1-65535 | 16 | 10ns ticks |
+| frame_blanking_us | 0x55 | 1-65535 | 500 | 10ns ticks |
 
 ### 3.4 Operating Modes
 
@@ -443,38 +443,39 @@ Signals:
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0x30 | FRAME_COUNT_HI | R | [15:0] frame_count_h | Upper 16 bits of 32-bit frame counter |
-| 0x31 | FRAME_COUNT_LO | R | [15:0] frame_count | Lower 16 bits of 32-bit frame counter |
+| 0x30 | FRAME_COUNT_LO | R | [15:0] frame_count | Lower 16 bits of 32-bit frame counter |
+| 0x31 | FRAME_COUNT_HI | R | [15:0] frame_count_h | Upper 16 bits of 32-bit frame counter |
 
-#### Timing Configuration Registers (0x40 - 0x5F)
-
-| Address | Name | Access | Bits | Description |
-|---------|------|--------|------|-------------|
-| 0x40 | TIMING_ROW_PERIOD | R/W | [15:0] row_period | Total row period in microseconds |
-| 0x41 | TIMING_GATE_ON | R/W | [15:0] gate_on | Gate ON duration in microseconds |
-| 0x42 | TIMING_GATE_OFF | R/W | [15:0] gate_off | Gate OFF duration in microseconds |
-| 0x43 | ROIC_SETTLE_US | R/W | [7:0] settle | ROIC settling time in microseconds |
-| 0x44 | ADC_CONV_US | R/W | [7:0] conv | ADC conversion time in microseconds |
-| 0x45 | FRAME_BLANK_US | R/W | [15:0] blank | Inter-frame blanking in microseconds |
-
-#### Panel Configuration Registers (0x50 - 0x5F)
+#### Panel Configuration Registers (0x40 - 0x4F)
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0x50 | PANEL_ROWS | R/W | [11:0] rows | Number of panel rows (max 3072) |
-| 0x51 | PANEL_COLS | R/W | [11:0] cols | Number of panel columns (max 3072) |
-| 0x52 | BIT_DEPTH | R/W | [4:0] depth | Pixel bit depth (14 or 16) |
-| 0x53 | PIXEL_FORMAT | R/W | [7:0] format | CSI-2 data type (0x2E = RAW16) |
+| 0x40 | CONFIG_ROWS | R/W | [13:0] rows | Number of panel rows (1-3072) |
+| 0x41 | CONFIG_COLS | R/W | [13:0] cols | Number of panel columns (1-3072) |
+| 0x42 | BIT_DEPTH | R/W | [4:0] depth | Pixel bit depth (14 or 16) |
+| 0x43 | PIXEL_FORMAT | R | [7:0] format | CSI-2 data type (0x2E = RAW16, auto-set from BIT_DEPTH) |
 
-#### CSI-2 Configuration Registers (0x60 - 0x7F)
+#### Timing Configuration Registers (0x50 - 0x5F)
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0x60 | CSI2_LANE_COUNT | R/W | [1:0] lane_count | 00=1-lane, 01=2-lane, 10=4-lane |
+| 0x50 | TIMING_GATE_ON | R/W | [15:0] gate_on | Gate ON duration in 10ns units |
+| 0x51 | TIMING_GATE_OFF | R/W | [15:0] gate_off | Gate OFF settling time in 10ns units |
+| 0x52 | TIMING_ROIC_SETTLE | R/W | [7:0] settle | ROIC settling time in 10ns units |
+| 0x53 | TIMING_ADC_CONV | R/W | [7:0] conv | ADC conversion time in 10ns units |
+| 0x54 | TIMING_LINE_PERIOD | R/W | [15:0] line_period | Total line period in 10ns units |
+| 0x55 | TIMING_FRAME_BLANK | R/W | [15:0] blank | Inter-frame blanking in 10ns units |
+
+#### CSI-2 Configuration Registers (0x60 - 0x6F)
+
+| Address | Name | Access | Bits | Description |
+|---------|------|--------|------|-------------|
+| 0x60 | CSI2_LANE_SPEED | R/W | [0] speed_select | 0 = 400 Mbps/lane (stable), 1 = 800 Mbps/lane (debugging) |
+| | | | [15:1] reserved | Must be 0 |
+| 0x61 | CSI2_CONTROL | R/W | [1:0] lane_count | 00=1-lane, 01=2-lane, 10=4-lane (recommended) |
 | | | | [2] tx_enable | 1 = Enable CSI-2 TX |
 | | | | [3] continuous_clk | 1 = Continuous HS clock |
 | | | | [7:4] reserved | Must be 0 |
-| 0x61 | CSI2_LANE_SPEED | R/W | [7:0] speed_code | Lane speed: 0x64=1.0G, 0x6E=1.1G, 0x78=1.2G, 0x7D=1.25G |
 
 #### Data Interface Status Registers (0x90 - 0x9F)
 

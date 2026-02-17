@@ -2,7 +2,7 @@
 
 ---
 id: SPEC-ARCH-001
-version: 1.0.0
+version: 1.1.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
@@ -90,33 +90,35 @@ This SPEC documents the following P0 architecture decisions:
 
 **WHY**: Performance tier determines pixel data rate, which must not exceed CSI-2 4-lane aggregate bandwidth (~4-5 Gbps with Artix-7 OSERDES constraints).
 
-**IMPACT**: Target tier (2048×2048, 16-bit, 30fps, ~2.01 Gbps) is achievable. Maximum tier (3072×3072, 16-bit, 30fps, ~4.53 Gbps) requires validation and may be development reference only.
+**IMPACT**: Mid-B tier (2048×2048, 16-bit, 30fps, ~2.01 Gbps) requires 800 Mbps/lane (debugging in progress). Target (Final Goal) tier (3072×3072, 16-bit, 15fps, ~2.26 Gbps) also requires 800 Mbps/lane. Maximum tier (3072×3072, 16-bit, 30fps, ~4.53 Gbps) exceeds hardware limits and is not a supported tier.
 
 ---
 
 ### 3. State-Driven Requirements (Performance Tier Modes)
 
-**REQ-ARCH-007**: **IF** Target tier is selected (2048×2048, 16-bit, 30fps) **THEN** CSI-2 D-PHY shall operate at 1.0-1.25 Gbps/lane with 4 lanes.
+**REQ-ARCH-007**: **IF** Mid-B tier (2048×2048, 16-bit, 30fps) or Target (Final Goal) tier (3072×3072, 16-bit, 15fps) is selected **THEN** CSI-2 D-PHY shall operate at 800 Mbps/lane with 4 lanes (3.2 Gbps aggregate).
 
-**WHY**: Target tier requires ~2.01 Gbps aggregate bandwidth, achievable within CSI-2 D-PHY operational range.
+**WHY**: Mid-B tier requires ~2.01 Gbps and Target (Final Goal) tier requires ~2.26 Gbps aggregate bandwidth. Both exceed the 400 Mbps/lane verified capacity (1.6 Gbps) and require 800 Mbps/lane operation. The 800 Mbps/lane mode is operational but undergoing stability debugging as of W1.
 
-**IMPACT**: MIPI CSI-2 TX Subsystem IP configuration must support 1.0-1.25 Gbps/lane. SoC CSI-2 receiver must support equivalent or higher data rates.
-
----
-
-**REQ-ARCH-008**: **IF** 10 Gigabit Ethernet is selected as Host link **THEN** the system shall support all three performance tiers (Minimum, Target, Maximum).
-
-**WHY**: 10 GbE provides 10 Gbps bandwidth, sufficient for Maximum tier (4.53 Gbps) with headroom for protocol overhead and future expansion.
-
-**IMPACT**: 10 GbE selection enables full performance tier range. Firmware and Host SDK must implement tier-specific configuration and validation.
+**IMPACT**: MIPI CSI-2 TX Subsystem IP configuration must be validated at 800 Mbps/lane before Mid-B or Target tier development begins. Development baseline is Mid-A tier (400 Mbps/lane, verified stable).
 
 ---
 
-**REQ-ARCH-009**: **IF** 1 Gigabit Ethernet is selected as Host link **THEN** the system shall support Minimum tier only.
+**REQ-ARCH-008**: **IF** 10 Gigabit Ethernet is selected as Host link **THEN** the system shall support all four supported performance tiers (Minimum, Mid-A, Mid-B, Target (Final Goal)).
 
-**WHY**: 1 GbE provides ~1 Gbps bandwidth, insufficient for Target tier (2.01 Gbps) or Maximum tier (4.53 Gbps).
+**WHY**: 10 GbE provides 10 Gbps bandwidth, sufficient for the Target (Final Goal) tier (2.26 Gbps) and Mid-B tier (2.01 Gbps) with ample headroom. Maximum tier (3072×3072@30fps, ~4.53 Gbps) is not a supported development tier as it exceeds hardware limits.
 
-**IMPACT**: 1 GbE limits system to Minimum tier, reducing project scope and clinical applicability. Not recommended for production deployment.
+**IMPACT**: 10 GbE selection enables all four supported tiers. Firmware and Host SDK must implement tier-specific configuration and validation.
+
+---
+
+**REQ-ARCH-009**: **IF** 1 Gigabit Ethernet is selected as Host link **THEN** the system shall support Minimum tier and Mid-A tier only.
+
+**WHY**: 1 GbE provides approximately 0.94 Gbps effective throughput after protocol overhead. This is sufficient for Minimum tier (0.21 Gbps) and Mid-A tier (1.01 Gbps) but insufficient for Mid-B tier (2.01 Gbps) or higher.
+
+**Note: Mid-B tier and above require 10 GbE network connection. 1 GbE supports only Minimum and Mid-A tiers.**
+
+**IMPACT**: 1 GbE limits system to Minimum and Mid-A tiers. Mid-B tier (2048x2048@30fps), Target tier (3072x3072@15fps), and Maximum tier (3072x3072@30fps) all require 10 GbE. Not recommended for production deployment in clinical environments requiring higher performance.
 
 ---
 
@@ -201,15 +203,21 @@ This SPEC documents the following P0 architecture decisions:
 
 **Performance Tier Bandwidth Requirements**:
 
-| Tier | Resolution | Bit Depth | FPS | Data Rate (Gbps) | CSI-2 Feasible |
-|------|-----------|-----------|-----|------------------|----------------|
-| Minimum | 1024×1024 | 14-bit | 15 | 0.21 | ✅ Yes |
-| Target | 2048×2048 | 16-bit | 30 | 2.01 | ✅ Yes |
-| Maximum | 3072×3072 | 16-bit | 30 | 4.53 | ⚠️ Validation Required |
+| Tier | Resolution | Bit Depth | FPS | Data Rate (Gbps) | CSI-2 Feasible | Host Link Required |
+|------|-----------|-----------|-----|------------------|----------------|--------------------|
+| Minimum | 1024×1024 | 14-bit | 15 | 0.21 | ✅ Yes | 1 GbE or 10 GbE |
+| Mid-A | 2048×2048 | 16-bit | 15 | 1.01 | ✅ Yes (400 Mbps/lane) | 1 GbE or 10 GbE |
+| Mid-B | 2048×2048 | 16-bit | 30 | 2.01 | ⚠️ 800 Mbps/lane | **10 GbE required** |
+| Target (Final) | 3072×3072 | 16-bit | 15 | 2.26 | ⚠️ 800 Mbps/lane | **10 GbE required** |
+| Maximum | 3072×3072 | 16-bit | 30 | 4.53 | ⚠️ Validation Required | **10 GbE required** |
 
-**10 GbE Host Link Bandwidth**: 10 Gbps (supports all tiers)
+**Note: Mid-B tier and above require 10 GbE network connection. 1 GbE supports only Minimum and Mid-A tiers.**
 
-**1 GbE Host Link Bandwidth**: 1 Gbps (Minimum tier only)
+1 GbE effective throughput is approximately 0.94 Gbps after protocol overhead, which is insufficient for Mid-B tier (2.01 Gbps) and higher. Using 1 GbE with Mid-B or above will result in severe frame drops and buffer overflow.
+
+**10 GbE Host Link Bandwidth**: 10 Gbps (supports all tiers including Mid-B and above)
+
+**1 GbE Host Link Bandwidth**: ~0.94 Gbps effective (Minimum and Mid-A tiers only)
 
 ---
 
@@ -228,15 +236,49 @@ This SPEC documents the following P0 architecture decisions:
 
 ---
 
+### Inter-Layer Command Protocol
+
+The three-layer architecture (FPGA / SoC Firmware / Host SDK) uses the following command protocol for the control channel. This protocol is implemented in SoC firmware (see SPEC-FW-001) and Host SDK (see SPEC-SDK-001), and defines the logical interface between layers.
+
+**Transport**: UDP, port 8001 (control channel). Frame data uses UDP port 8000 (data channel).
+
+**Magic Values**:
+
+| Direction | Magic Value | Description |
+|-----------|-------------|-------------|
+| Host → SoC Firmware | `0xBEEFCAFE` | Identifies an outbound host command frame |
+| SoC Firmware → Host | `0xCAFEBEEF` | Identifies an inbound firmware response frame |
+
+**Command Frame Structure** (little-endian byte order):
+
+| Offset (bytes) | Size (bytes) | Field | Description |
+|----------------|-------------|-------|-------------|
+| 0 | 4 | magic | `0xBEEFCAFE` for commands, `0xCAFEBEEF` for responses |
+| 4 | 4 | sequence | Monotonic sequence number for replay protection |
+| 8 | 2 | command_id | Opcode (START_SCAN=0x01, STOP_SCAN=0x02, GET_STATUS=0x10, SET_CONFIG=0x20) |
+| 10 | 2 | payload_len | Length of the command-specific payload in bytes |
+| 12 | 32 | hmac | HMAC-SHA256 authentication tag (per SPEC-FW-001 REQ-FW-100) |
+| 44 | variable | payload | Command-specific data |
+
+**Protocol Rules**:
+- Any received frame whose first 4 bytes do not match `0xBEEFCAFE` (on firmware side) or `0xCAFEBEEF` (on SDK side) **shall** be discarded.
+- Sequence numbers are monotonically increasing; frames with sequence <= last accepted sequence are treated as replays and discarded.
+- The SoC firmware echoes the received sequence number in the response frame.
+
+**Rationale**: Documenting the command protocol at the architecture level ensures that FPGA simulator (SPEC-SIM-001), SoC firmware (SPEC-FW-001), and Host SDK (SPEC-SDK-001) implementations are consistent and independently verifiable.
+
+---
+
 ## Acceptance Criteria
 
 ### Success Criteria for M0 Completion
 
 **AC-001**: Performance tier selection documented with bandwidth validation
-- **GIVEN**: Three performance tiers (Minimum, Target, Maximum)
+- **GIVEN**: Four supported performance tiers (Minimum, Mid-A, Mid-B, Target (Final Goal)) and one infeasible reference tier (Maximum)
 - **WHEN**: Bandwidth calculations are performed for each tier
-- **THEN**: Target tier shall be selected, with Minimum as baseline and Maximum as reference
-- **AND**: Bandwidth validation confirms Target tier feasibility within CSI-2 D-PHY limits
+- **THEN**: Target (Final Goal) tier (3072×3072, 16-bit, 15fps, ~2.26 Gbps) shall be the final development target, with Mid-A (2048×2048, 16-bit, 15fps) as the verified development baseline
+- **AND**: Bandwidth validation confirms Target (Final Goal) tier feasibility at 800 Mbps/lane (3.2 Gbps aggregate, 71% utilization)
+- **AND**: Maximum tier (3072×3072@30fps, ~4.53 Gbps) shall be documented as exceeding hardware limits and excluded from development scope
 
 ---
 
@@ -244,7 +286,7 @@ This SPEC documents the following P0 architecture decisions:
 - **GIVEN**: 10 GbE and 1 GbE options
 - **WHEN**: Bandwidth requirements for each tier are compared against link capacity
 - **THEN**: 10 GbE shall be recommended for production deployment
-- **AND**: 1 GbE shall be noted as Minimum tier only with limited applicability
+- **AND**: 1 GbE shall be noted as Minimum and Mid-A tiers only (insufficient for Mid-B and above) with limited applicability
 
 ---
 
@@ -514,6 +556,8 @@ This SPEC aligns with the following project documents:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial SPEC creation for M0 milestone P0 decisions |
+| 1.1.0 | 2026-02-17 | MoAI Agent | MAJOR-003: Added Inter-Layer Command Protocol section (magic 0xBEEFCAFE/0xCAFEBEEF, frame format, protocol rules). MAJOR-004: Fixed performance tier naming conflict — renamed "Target" (2048×2048@30fps) to "Mid-B", established "Target (Final Goal)" as 3072×3072@15fps, documented Maximum tier as infeasible. Updated REQ-ARCH-006/007/008 and AC-001/002 accordingly. |
+| 1.2.0 | 2026-02-17 | MoAI Agent | MAJOR-007: Added Host Link Required column to bandwidth table showing 10 GbE is required for Mid-B tier and above. Updated REQ-ARCH-009 to explicitly state 1 GbE supports Minimum and Mid-A tiers only. Added note that 1 GbE effective throughput (~0.94 Gbps) is insufficient for Mid-B (2.01 Gbps) and higher. |
 
 ---
 

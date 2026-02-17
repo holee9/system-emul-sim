@@ -321,18 +321,24 @@ public interface IDetectorClient : IAsyncDisposable
 | Language | C# 12 | Modern language features |
 | OS Support | Windows 10+, Linux (Ubuntu 22.04+) | Cross-platform requirement |
 | Memory (min) | 8 GB RAM | 16 GB for Target tier |
-| Network (min) | 1 GbE | 10 GbE for Target tier |
+| Network (min) | 1 GbE | Minimum and Mid-A tiers only |
+| Network (recommended) | 10 GbE | Required for Mid-B tier and above |
+
+**Note: Mid-B tier and above require 10 GbE network connection. 1 GbE supports only Minimum and Mid-A tiers.**
+
+1 GbE effective throughput is approximately 0.94 Gbps, which is insufficient for Mid-B tier (2.01 Gbps), Target tier (2.26 Gbps), and Maximum tier (4.53 Gbps). The SDK must validate network tier compatibility during `ConnectAsync` and raise a warning if the detected network interface cannot sustain the configured performance tier data rate.
 
 ### Protocol Constraints
 
 | Constraint | Value | Reference |
 |-----------|-------|-----------|
-| Frame Header Size | 32 bytes | docs/api/ethernet-protocol.md |
+| Frame Header Size | 32 bytes | docs/api/ethernet-protocol.md Section 2.1 |
 | Max Payload | 8192 bytes | UDP datagram size |
 | Magic Number | 0xD7E01234 | Frame data packets |
 | Command Magic | 0xBEEFCAFE | Control commands |
 | Response Magic | 0xCAFEBEEF | Command responses |
-| CRC Algorithm | CRC-16/CCITT | Polynomial 0x8408 |
+| Frame Header CRC | CRC-16/CCITT at offset 28, covers bytes 0-27 | docs/api/ethernet-protocol.md Section 7.2 |
+| CRC Algorithm | CRC-16/CCITT | Polynomial 0x8408 (reflected), init 0xFFFF |
 
 ### Performance Constraints
 
@@ -419,9 +425,11 @@ public interface IDetectorClient : IAsyncDisposable
 ### AC-008: CRC-16 Validation
 
 **GIVEN**: UDP packets with FrameHeader including CRC-16
-**WHEN**: CRC is calculated over header bytes 0-27
-**THEN**: Calculated CRC matches header.crc16 for valid packets
+**WHEN**: CRC is calculated over header bytes 0-27 (fields: magic, version, reserved0, frame_id, packet_seq, total_packets, timestamp_ns, rows, cols)
+**THEN**: Calculated CRC matches header.crc16 (offset 28, uint16) for valid packets
 **AND**: Invalid CRC causes packet discard and warning log
+
+**Reference**: CRC field layout and algorithm defined in `docs/api/ethernet-protocol.md` Section 2.2 (field crc16 at offset 28) and Section 7.2 (frame header CRC scope and pseudocode).
 
 ---
 
@@ -520,6 +528,8 @@ public interface IDetectorClient : IAsyncDisposable
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial SPEC creation for Host SDK requirements |
+| 1.0.1 | 2026-02-17 | manager-quality | Fixed CRIT-007: AC-008 expanded with field-by-field CRC scope and offset reference; Protocol Constraints updated with Frame Header CRC row and algorithm details |
+| 1.1.0 | 2026-02-17 | MoAI Agent | MAJOR-007: Expanded Platform Constraints table to explicitly list 10 GbE as required for Mid-B tier and above. Added note that 1 GbE (~0.94 Gbps effective) supports only Minimum and Mid-A tiers. Added requirement for SDK to warn when network interface cannot sustain configured tier data rate. |
 
 ---
 

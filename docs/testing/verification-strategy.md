@@ -321,11 +321,113 @@ For DDD modules:
 
 ---
 
+## 2.5 GbE Driver Verification Plan
+
+The on-board 2.5 GbE chip model is TBD (requires `lspci -nn` on target hardware). This section defines the verification steps to identify the chip and validate the driver before any network performance testing.
+
+**Milestone**: M1 (W3) - chip identification; M4 (W18) - throughput validation
+
+### Step 1: Chip Identification
+
+**When**: W1-W2 (Yocto Scarthgap migration, Day 7)
+**Method**: Execute on VAR-SOM-MX8M-PLUS hardware with Scarthgap image booted:
+
+```sh
+lspci -nn | grep -i ethernet
+lspci -nn | grep -i network
+# Also check RGMII-connected chips (may not appear in lspci):
+cat /sys/class/net/*/device/uevent 2>/dev/null | grep -i modalias
+dmesg | grep -i eth
+```
+
+**Pass Criteria**: Chip vendor and model identified (e.g., Realtek RTL8125, Intel I225, Aquantia AQC107).
+**Action on Failure**: Escalate - chip identification is a hard dependency for all subsequent network verification.
+
+---
+
+### Step 2: Kernel 6.6 In-Tree Driver Check
+
+**When**: W2 (immediately after Step 1)
+**Method**: Cross-reference identified chip against kernel 6.6 driver tree:
+
+```sh
+# On build host with kernel 6.6 source:
+grep -r "<CHIP_VENDOR_ID>:<CHIP_DEVICE_ID>" drivers/net/ethernet/
+# Or check loaded modules on target:
+lsmod | grep -i <driver_name>
+modinfo <driver_name>
+```
+
+**Pass Criteria**: Driver is confirmed in-tree for kernel 6.6 AND loads successfully on target hardware.
+**Action on Failure (driver not in-tree)**: Proceed to Step 3 (driver port). Log as Risk R-NET-001.
+
+---
+
+### Step 3: Out-of-Tree Driver Port (Conditional)
+
+**When**: W3-W4 (if Step 2 fails - driver not in-tree for kernel 6.6)
+**Method**: Port driver from vendor source or backport from later kernel:
+
+1. Obtain vendor driver source or identify the kernel version where the driver was introduced.
+2. Apply kernel 6.6 API compatibility patches (netdev API, DMA API, PCI probe interface).
+3. Add driver to Yocto custom layer as an external kernel module.
+4. Validate driver loads without errors: `insmod <driver>.ko && dmesg | tail -20`.
+
+**Pass Criteria**: Driver compiles for kernel 6.6, loads without errors, network interface appears (`ip link`).
+**Fallback**: If port is not feasible within W4, use USB 3.0 to 2.5 GbE adapter as temporary workaround for development (not production).
+
+---
+
+### Step 4: Bandwidth Test with iperf3
+
+**When**: W15-W18 (after firmware network stack is operational)
+**Method**: Measure sustained throughput between VAR-SOM-MX8M-PLUS and Host PC:
+
+```sh
+# On Host PC (iperf3 server):
+iperf3 -s -p 5201
+
+# On VAR-SOM-MX8M-PLUS (iperf3 client):
+iperf3 -c <host_ip> -p 5201 -t 60 -P 4 --bidir
+# Target: >= 2.2 Gbps sustained (Mid-A tier data rate = 1.01 Gbps, requires headroom)
+```
+
+**Pass Criteria**: Sustained bidirectional throughput >= 2.2 Gbps over 60 seconds with 4 parallel streams. CPU utilization during test < 50% (leaves capacity for firmware processing).
+**Note**: The Target (Final Goal) tier requires 2.26 Gbps. The 2.5 GbE interface must sustain at least 2.2 Gbps to provide adequate headroom.
+
+---
+
+### Step 5: 24-Hour Stress Test
+
+**When**: W18 (HIL Pattern B gate, M4)
+**Method**: Continuous frame transmission at Mid-A tier (2048x2048@15fps, ~1.01 Gbps) for 24 hours:
+
+```sh
+# Run detector_daemon in continuous scan mode for 24 hours
+# Monitor on Host PC:
+watch -n 10 'iperf3 -c <soc_ip> -p 5201 -t 10 | tail -4'
+
+# Monitor on VAR-SOM-MX8M-PLUS:
+ethtool -S <eth_iface> | grep -i error   # Check for hardware errors
+cat /proc/net/dev | grep <eth_iface>      # Check packet counters
+```
+
+**Pass Criteria**:
+- Zero network hardware errors (ethtool statistics show zero rx_errors, tx_errors)
+- Zero frame drops due to network exhaustion (firmware drop counter stable)
+- Throughput remains >= 1.01 Gbps throughout 24-hour period
+- Network interface does not reset or disconnect
+
+**KPI Reference**: This test maps to the Frame Drop Rate KPI (< 0.01%) and Memory Stability KPI (zero leaks, 1-hour continuous) in the Quality KPIs table above.
+
+---
+
 ## Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial verification strategy |
 | 2.0.0 | 2026-02-17 | spec-fw agent | Added FW/SDK to pyramid, Layer 1, Layer 2 (4 sub-tables). Expanded traceability matrix (4 domain tables with SPEC requirement links). Updated milestones (added M3.5). Added FW-specific KPIs (SPI jitter, CPU util). Fixed coverage targets to 85%+. |
+| 2.1.0 | 2026-02-17 | MoAI Agent | MAJOR-010: Added 2.5 GbE Driver Verification Plan (Steps 1-5: chip identification via lspci, kernel 6.6 in-tree driver check, optional out-of-tree port, iperf3 bandwidth test targeting 2.2 Gbps, 24-hour stress test at Mid-A tier). |
 
 ---

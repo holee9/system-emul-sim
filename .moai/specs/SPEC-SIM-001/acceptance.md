@@ -337,7 +337,7 @@ Then McuSimulator shall parse CSI-2 Frame Start, Line Data, Frame End packets
 And McuSimulator shall validate CRC-16 on each Line Data packet
 And UDP packets shall be generated with correct frame header:
   | Field | Value |
-  | magic | 0xDEADBEEF |
+  | magic | 0xD7E01234 |
   | frame_seq | Sequential frame number |
   | width | Configured panel width |
   | height | Configured panel height |

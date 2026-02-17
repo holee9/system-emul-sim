@@ -79,7 +79,7 @@ This document defines unit test scenarios for all system modules. Tests are orga
 | FV-03-002 | Line data packet | Transmit one line of RAW16 data | Packet with correct word count and CRC-16 |
 | FV-03-003 | Frame End packet | Complete frame transmission | FE packet after last line |
 | FV-03-004 | CRC-16 validation | Known test vector | CRC matches precomputed value |
-| FV-03-005 | RAW16 data type | Configure for 16-bit pixels | Data type = 0x2C in packet header |
+| FV-03-005 | RAW16 data type | Configure for 16-bit pixels | Data type = 0x2E in packet header |
 | FV-03-006 | RAW14 data type | Configure for 14-bit pixels | Data type = 0x2D in packet header |
 | FV-03-007 | Multi-frame sequence | Transmit 10 consecutive frames | Sequential frame numbers, no gaps |
 | FV-03-008 | AXI4-Stream backpressure | Deassert `tready` mid-line | TX pauses, resumes when ready |

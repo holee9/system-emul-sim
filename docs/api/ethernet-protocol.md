@@ -65,9 +65,9 @@ struct __attribute__((packed)) FrameHeader {
     uint64_t timestamp_ns;    // Offset 16: Nanoseconds since SoC boot epoch
     uint16_t rows;            // Offset 24: Image height in pixels
     uint16_t cols;            // Offset 26: Image width in pixels
-    uint8_t  bit_depth;       // Offset 28: Pixel bit depth (14 or 16)
-    uint8_t  flags;           // Offset 29: Status flags
-    uint8_t  reserved1[2];    // Offset 30: Reserved (must be 0x00)
+    uint16_t crc16;           // Offset 28: CRC-16/CCITT over bytes 0-27 (all preceding fields)
+    uint8_t  bit_depth;       // Offset 30: Pixel bit depth (14 or 16)
+    uint8_t  flags;           // Offset 31: Status flags
 };
 ```
 
@@ -86,11 +86,11 @@ struct __attribute__((packed)) FrameHeader {
 | timestamp_ns | 16 | uint64 | SoC CLOCK_MONOTONIC timestamp in nanoseconds at frame capture start. Epoch is SoC boot time (not Unix epoch). |
 | rows | 24 | uint16 | Frame height in pixels (1024, 2048, or 3072). |
 | cols | 26 | uint16 | Frame width in pixels (1024, 2048, or 3072). |
-| bit_depth | 28 | uint8 | Pixel bit depth: 14 or 16. |
-| flags | 29 | uint8 | Status flags (see Flags table). |
-| reserved1 | 30 | uint8[2] | Reserved, set to 0x00. |
+| crc16 | 28 | uint16 | CRC-16/CCITT integrity check over header bytes 0-27 (all fields preceding this one). Receiver must verify before processing. See Section 7 for algorithm details. |
+| bit_depth | 30 | uint8 | Pixel bit depth: 14 or 16. |
+| flags | 31 | uint8 | Status flags (see Flags table). |
 
-### 2.3 Flags Field (uint8, offset 29)
+### 2.3 Flags Field (uint8, offset 31)
 
 | Bit | Name | Description |
 |-----|------|-------------|
@@ -165,7 +165,7 @@ Input:  Unordered UDP packets with FrameHeader
 Output: Complete Frame (width x height x 2 bytes)
 
 Algorithm:
-  1. Parse FrameHeader, validate magic and CRC
+  1. Parse FrameHeader, validate magic and CRC-16 (bytes 0-27)
   2. Look up or create reassembly slot for frame_seq
   3. Copy payload to correct offset: packet_index * max_payload
   4. Mark packet as received in bitmap
@@ -394,9 +394,9 @@ udp.payload[0:4] == 34:12:e0:d7
 udp.payload[8:4] == 00:00:00:01
 ```
 
-**Show only last packets (flags byte at offset 29, bit 0 set)**:
+**Show only last packets (flags byte at offset 31, bit 0 set)**:
 ```
-(udp.payload[29] & 0x01) == 0x01
+(udp.payload[31] & 0x01) == 0x01
 ```
 
 ### 6.3 Bandwidth Verification
@@ -415,6 +415,12 @@ When capturing with Wireshark, the "Statistics > IO Graphs" feature can verify a
 
 ## 7. CRC-16 Specification
 
+This section defines the CRC-16/CCITT algorithm used in two places:
+1. **Frame Header** (`FrameHeader.crc16`, offset 28): covers header bytes 0-27 (all fields preceding `crc16`)
+2. **Control Protocol** (`CommandPacket.crc16`, `ResponsePacket.crc16`): covers the respective command/response bytes
+
+Both uses share the same algorithm and parameters below.
+
 ### 7.1 Algorithm
 
 | Property | Value |
@@ -426,7 +432,40 @@ When capturing with Wireshark, the "Statistics > IO Graphs" feature can verify a
 | Reflect Input | Yes |
 | Reflect Output | Yes |
 
-### 7.2 Reference Implementation
+### 7.2 Frame Header CRC Scope
+
+The `FrameHeader.crc16` field (offset 28, 2 bytes) is computed over the first 28 bytes of the frame header:
+
+| Bytes | Fields Covered |
+|-------|----------------|
+| 0-3 | magic |
+| 4 | version |
+| 5-7 | reserved0 |
+| 8-11 | frame_id |
+| 12-13 | packet_seq |
+| 14-15 | total_packets |
+| 16-23 | timestamp_ns |
+| 24-25 | rows |
+| 26-27 | cols |
+
+The `crc16` field itself (bytes 28-29) and subsequent fields (`bit_depth`, `flags`) are **not** included in the CRC calculation. The receiver computes CRC over bytes 0-27 and compares against `header.crc16`. On mismatch, the packet must be discarded (see Section 8.1).
+
+**SoC transmitter pseudocode**:
+```c
+void frame_header_set_crc(FrameHeader *hdr) {
+    hdr->crc16 = crc16_calculate((const uint8_t *)hdr, 28);
+}
+```
+
+**Host receiver pseudocode**:
+```c
+bool frame_header_verify_crc(const FrameHeader *hdr) {
+    uint16_t expected = crc16_calculate((const uint8_t *)hdr, 28);
+    return expected == hdr->crc16;
+}
+```
+
+### 7.3 Reference Implementation
 
 ```c
 uint16_t crc16_calculate(const uint8_t *data, size_t length) {
@@ -444,7 +483,7 @@ uint16_t crc16_calculate(const uint8_t *data, size_t length) {
 }
 ```
 
-### 7.3 Test Vectors
+### 7.4 Test Vectors
 
 | Input (ASCII) | Length | CRC-16 |
 |--------------|-------|--------|
@@ -490,6 +529,7 @@ uint16_t crc16_calculate(const uint8_t *data, size_t length) {
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Initial specification with UDP frame protocol, control protocol, discovery protocol, CRC-16, Wireshark filters |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed: Section 7 heading numbering (6.x -> 7.x), invalid magic value in Section 8.1 (0xDEADBEEF -> 0xD7E01234), Discovery Protocol port (8001 -> 8002) |
+| 1.0.2 | 2026-02-17 | manager-quality | Fixed CRIT-007: Added CRC-16 field to FrameHeader at offset 28; shifted bit_depth to offset 30, flags to offset 31; removed reserved1[2]; added Section 7.2 (frame header CRC scope and pseudocode); updated Wireshark flags filter offset (29 -> 31) |
 
 ---
 

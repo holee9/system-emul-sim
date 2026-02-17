@@ -287,7 +287,7 @@ Parses frame headers and validates CRC.
 ```csharp
 internal static class PacketProtocol
 {
-    public const uint FrameMagic = 0xDEADBEEF;
+    public const uint FrameMagic = 0xD7E01234;
     public const uint CommandMagic = 0xBEEFCAFE;
     public const uint ResponseMagic = 0xCAFEBEEF;
     public const int HeaderSize = 32;  // FrameHeader size
@@ -300,22 +300,23 @@ internal static class PacketProtocol
         header = new FrameHeader
         {
             Magic = BinaryPrimitives.ReadUInt32LittleEndian(data),
-            FrameSeq = BinaryPrimitives.ReadUInt32LittleEndian(data[4..]),
-            TimestampUs = BinaryPrimitives.ReadUInt64LittleEndian(data[8..]),
-            Width = BinaryPrimitives.ReadUInt16LittleEndian(data[16..]),
-            Height = BinaryPrimitives.ReadUInt16LittleEndian(data[18..]),
-            BitDepth = BinaryPrimitives.ReadUInt16LittleEndian(data[20..]),
-            PacketIndex = BinaryPrimitives.ReadUInt16LittleEndian(data[22..]),
-            TotalPackets = BinaryPrimitives.ReadUInt16LittleEndian(data[24..]),
-            Flags = BinaryPrimitives.ReadUInt16LittleEndian(data[26..]),
+            FrameSeq = BinaryPrimitives.ReadUInt32LittleEndian(data[8..]),
+            PacketIndex = BinaryPrimitives.ReadUInt16LittleEndian(data[12..]),
+            TotalPackets = BinaryPrimitives.ReadUInt16LittleEndian(data[14..]),
+            TimestampNs = BinaryPrimitives.ReadUInt64LittleEndian(data[16..]),
+            Width = BinaryPrimitives.ReadUInt16LittleEndian(data[24..]),
+            Height = BinaryPrimitives.ReadUInt16LittleEndian(data[26..]),
             Crc16 = BinaryPrimitives.ReadUInt16LittleEndian(data[28..]),
+            BitDepth = data[30],
+            Flags = data[31],
         };
 
         if (header.Magic != FrameMagic) return false;
 
-        // Validate CRC (over header excluding CRC field)
-        ushort calculatedCrc = Crc16.Calculate(data[..28]);
-        return calculatedCrc == header.Crc16;
+        // Validate CRC-16/CCITT over header bytes 0-27 (all fields preceding crc16)
+        if (!Crc16Ccitt.Verify(data[..28], header.Crc16)) return false;
+
+        return true;
     }
 }
 ```
@@ -749,6 +750,7 @@ Per project `quality.yaml` (Hybrid mode):
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial Host SDK architecture design document |
+| 1.0.1 | 2026-02-17 | MoAI Agent | Fixed Section 4.2 TryParseHeader: added Crc16 field at offset 28 (uint16), corrected BitDepth to offset 30, corrected Flags to offset 31, added CRC-16/CCITT validation call after magic check |
 
 ---
 
@@ -771,7 +773,7 @@ Per project `quality.yaml` (Hybrid mode):
 
 - **Testable (5/5)**: Section 12 defines 13 test cases (SDK-UT-01 through SDK-IT-03) covering all critical code paths. TDD methodology explicitly stated for all new SDK code. Coverage target 85%+ specified. Test project structure matches source (XrayDetector.Sdk.Tests/). Concrete pass criteria defined (e.g., "100 frames <1% drops", "auto-reconnect within 10s").
 - **Readable (5/5)**: Component diagram with dependency arrows clearly shows module hierarchy and Common.Dto isolation. Public API (IDetectorClient) defined with C# XML documentation comments. Usage examples in Section 3.3 demonstrate three common patterns. Frame reassembly algorithm explained with ASCII packet-ordering diagram.
-- **Unified (5/5)**: Network protocol matches soc-firmware-design.md exactly (FrameHeader 32 bytes, magic 0xDEADBEEF, port 8000, 8192-byte payload). Control channel on port 8001 consistent. Performance tiers (Minimum/IntermediateA/IntermediateB/Target) match system-architecture.md definitions. PerformanceTier enum values and frame sizes are consistent. BinaryPrimitives.ReadUInt32LittleEndian usage is consistent with FrameHeader little-endian declaration in soc-firmware-design.md.
+- **Unified (5/5)**: Network protocol matches soc-firmware-design.md exactly (FrameHeader 32 bytes, magic 0xD7E01234, port 8000, 8192-byte payload). Control channel on port 8001 consistent. Performance tiers (Minimum/IntermediateA/IntermediateB/Target) match system-architecture.md definitions. PerformanceTier enum values and frame sizes are consistent. BinaryPrimitives.ReadUInt32LittleEndian usage is consistent with FrameHeader little-endian declaration in soc-firmware-design.md.
 - **Secured (5/5)**: Section 10 documents all 6 error categories with SDK responses. Resilience patterns include auto-reconnect, packet dedup (frame_seq + packet_index), buffer overflow drop policy, and configurable timeouts. Channel bounded capacity (4096 packets, 16 frames) prevents unbounded memory growth. CRC-16 validation on every packet header is enforced in PacketProtocol.TryParseHeader.
 - **Trackable (5/5)**: Document metadata complete. Section 13 lists 8 design decisions with rationale and dates. Section 15 provides traceability to SPEC-ARCH-001 requirements, project plan, and downstream artifacts. Revision history present.
 

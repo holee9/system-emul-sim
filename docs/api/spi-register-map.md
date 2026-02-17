@@ -118,6 +118,8 @@ uint16_t rx[2] = {0};
 | 0x60 - 0x6F | CSI-2 Configuration | Read/Write |
 | 0x70 - 0x7F | Data Interface Status | Read-Only |
 | 0x80 - 0x8F | Error Flags | Read/Write-1-Clear |
+| 0x90 - 0x9F | Diagnostics | Read/Write |
+| 0xF0 - 0xFF | Debug and Extended Status | Read-Only |
 
 ---
 
@@ -289,14 +291,14 @@ These registers define the panel resolution and pixel format. Must be written be
 
 | Bit | Name | Default | Valid values | Description |
 |-----|------|---------|-------------|-------------|
-| [4:0] | bit_depth | 16 | 14 or 16 | Pixel bit depth. 14 sets CSI-2 DT to RAW14 (0x2D). 16 sets DT to RAW16 (0x2C). |
+| [4:0] | bit_depth | 16 | 14 or 16 | Pixel bit depth. 14 sets CSI-2 DT to RAW14 (0x2D). 16 sets DT to RAW16 (0x2E). |
 | [15:5] | reserved | 0 | - | Must write 0 |
 
 #### 0x43: PIXEL_FORMAT (Read-Only)
 
 | Bit | Name | Description |
 |-----|------|-------------|
-| [7:0] | csi2_data_type | Current CSI-2 data type code (auto-set from BIT_DEPTH: 16->0x2C, 14->0x2D) |
+| [7:0] | csi2_data_type | Current CSI-2 data type code (auto-set from BIT_DEPTH: 16->0x2E, 14->0x2D) |
 | [15:8] | reserved | Read as 0 |
 
 ---
@@ -427,6 +429,61 @@ All error flags are sticky: they remain set until explicitly cleared by the SoC.
 
 ---
 
+### 3.11 Diagnostics Registers (0x90 - 0x9F)
+
+#### 0x90: DIAG_CONTROL (Read/Write)
+
+Diagnostic mode control register. Used during manufacturing test and in-field diagnostics. Default value 0x0000 (all diagnostic modes disabled).
+
+| Bit | Name | Default | Description |
+|-----|------|---------|-------------|
+| [0] | DIAG_ENABLE | 0 | 1 = Enable diagnostic mode. Required before BIST_MODE or LOOPBACK_EN can be asserted. |
+| [1] | BIST_MODE | 0 | 1 = Activate Built-In Self-Test (BIST). FSM runs an internal self-check sequence and reports pass/fail in DEBUG_STATUS. Requires DIAG_ENABLE=1. |
+| [2] | LOOPBACK_EN | 0 | 1 = Enable internal CSI-2 TX-to-RX loopback path for link integrity testing. Requires DIAG_ENABLE=1. |
+| [15:3] | reserved | 0 | Must write 0 |
+
+**Usage notes**:
+- Diagnostic mode must be disabled (DIAG_ENABLE=0) before starting a normal scan sequence.
+- BIST_MODE and LOOPBACK_EN are mutually exclusive; do not assert both simultaneously.
+- DIAG_ENABLE is a gate bit; writing BIST_MODE=1 without DIAG_ENABLE=1 has no effect.
+
+#### 0x91 - 0x9F: Reserved
+
+Read as 0x0000. Do not write.
+
+---
+
+### 3.12 Debug and Extended Status Registers (0xF0 - 0xFF)
+
+#### 0xF0: DEBUG_STATUS (Read-Only)
+
+Debug and extended status register. Provides additional diagnostic information beyond the primary STATUS register. Updated every clock cycle; read at any time.
+
+| Bit | Name | Description |
+|-----|------|-------------|
+| [7:0] | STATUS_EXT | Extended status byte. Bit-encoded supplementary state flags: bit[0]=bist_pass, bit[1]=bist_running, bit[2]=loopback_active, bit[3]=phy_cal_done, bit[7:4]=reserved (read as 0). |
+| [15:8] | DEBUG_CODE | Debug code field. 0x00 = no debug event. Non-zero values are set by the BIST engine or internal watchdog to indicate the most recent diagnostic event. See table below for codes. |
+
+**DEBUG_CODE values**:
+
+| Code | Name | Description |
+|------|------|-------------|
+| 0x00 | DBG_NONE | No debug event pending |
+| 0x01 | DBG_BIST_PASS | BIST completed without errors |
+| 0x02 | DBG_BIST_FAIL | BIST detected internal fault |
+| 0x03 | DBG_LOOPBACK_PASS | Loopback test passed (CRC match) |
+| 0x04 | DBG_LOOPBACK_FAIL | Loopback test failed (CRC mismatch) |
+| 0x10 | DBG_PHY_TIMEOUT | D-PHY calibration did not complete within 5 ms |
+| 0xFF | DBG_INTERNAL | Unclassified internal event; collect ILA capture for analysis |
+
+DEBUG_CODE is cleared to 0x00 when CONTROL register bit[2] (reset) is asserted.
+
+#### 0xF1 - 0xFF: Reserved
+
+Read as 0x0000. Do not write.
+
+---
+
 ## 4. Complete Register Table
 
 | Address | Name | Access | Default | Description |
@@ -451,7 +508,7 @@ All error flags are sticky: they remain set until explicitly cleared by the SoC.
 | 0x40 | CONFIG_ROWS | RW | 0x0800 | Panel row count (1-3072) |
 | 0x41 | CONFIG_COLS | RW | 0x0800 | Panel column count (1-3072) |
 | 0x42 | BIT_DEPTH | RW | 0x0010 | Pixel bit depth (14 or 16) |
-| 0x43 | PIXEL_FORMAT | RO | 0x002C | CSI-2 data type (derived from BIT_DEPTH) |
+| 0x43 | PIXEL_FORMAT | RO | 0x002E | CSI-2 data type (derived from BIT_DEPTH) |
 | 0x50 | TIMING_GATE_ON | RW | 0x186A | Gate ON time (10ns units) |
 | 0x51 | TIMING_GATE_OFF | RW | 0x2710 | Gate OFF time (10ns units) |
 | 0x52 | TIMING_ROIC_SETTLE | RW | 0x0064 | ROIC settle time (10ns units) |
@@ -463,6 +520,8 @@ All error flags are sticky: they remain set until explicitly cleared by the SoC.
 | 0x62 | CSI2_VIRTUAL_CHANNEL | RW | 0x0000 | Virtual channel (always 0) |
 | 0x70 | CSI2_STATUS | RO | 0x0000 | CSI-2 link and TX status |
 | 0x80 | ERROR_FLAGS | RW1C | 0x0000 | Error flag bits (write-1-clear) |
+| 0x90 | DIAG_CONTROL | RW | 0x0000 | Diagnostic mode control (DIAG_ENABLE, BIST_MODE, LOOPBACK_EN) |
+| 0xF0 | DEBUG_STATUS | RO | 0x0000 | Debug code [15:8] and extended status flags [7:0] |
 
 ---
 
