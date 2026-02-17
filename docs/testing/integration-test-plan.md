@@ -1,297 +1,289 @@
 # Integration Test Plan
 
-**Project**: X-ray Detector Panel System
-**Document Version**: 1.0.0
-**Last Updated**: 2026-02-17
-**Milestone**: M3 (W14) - All IT scenarios pass
-
----
-
 ## Overview
 
-Integration tests validate end-to-end data flow across module boundaries. All scenarios use the software simulator pipeline before hardware-in-the-loop (HIL) testing.
+This document defines IT-01 through IT-10 integration test scenarios for the X-ray Detector Panel System. Tests are executed using the IntegrationRunner tool.
 
----
+**Reference**: SPEC-TOOLS-001 REQ-TOOLS-030, SPEC-SIM-001
 
 ## Test Environment
 
-**Software Stack**:
-- .NET 8.0+ runtime
-- IntegrationRunner CLI tool
-- All 4 simulators: PanelSimulator, FpgaSimulator, McuSimulator, HostSimulator
+- **Simulator Stack**: FpgaSimulator + McuSimulator + HostSimulator
+- **Integration Runner**: `dotnet run --project tools/IntegrationRunner -- --scenario IT-XX`
+- **Log Output**: `logs/integration/IT-XX-YYYYMMDD-HHMMSS.log`
 
-**Configuration**: `detector_config.yaml` (loaded by IntegrationRunner)
+## Test Scenarios
 
-**Execution**: `dotnet run --project IntegrationRunner -- --scenario IT-XX`
+### IT-01: Single Frame, Minimum Tier
 
----
+**Purpose**: Verify basic end-to-end pipeline with minimum configuration
+**Tier**: Minimum (1024x1024, 14-bit, 15fps)
 
-## Integration Scenarios (IT-01 to IT-10)
-
-### IT-01: Single Frame Capture (Minimum Tier)
-
-**Objective**: Validate complete data path for one frame at minimum resolution
-
-| Parameter | Value |
-|-----------|-------|
-| Resolution | 1024 x 1024 |
-| Bit Depth | 14-bit |
-| FPS | 15 |
-| Frames | 1 |
-
-**Steps**:
-1. PanelSimulator generates 1 frame (counter pattern, no noise)
-2. FpgaSimulator processes frame through line buffer and CSI-2 TX
-3. McuSimulator receives CSI-2 packets, generates UDP packets
-4. HostSimulator receives UDP packets, reassembles frame
+**Procedure**:
+1. Start FpgaSimulator with Minimum tier config
+2. Start McuSimulator, verify SPI DEVICE_ID read (0xD7E00001)
+3. Start HostSimulator, connect to UDP port 8000
+4. Send single-shot scan command via port 8001
+5. Verify frame received within 5 seconds
 
 **Pass Criteria**:
-- Output frame matches input frame (bit-exact comparison)
-- Zero pixel errors
-- Total latency < 100 ms (simulated)
-- All CSI-2 CRC checks pass
+- DEVICE_ID read correctly: 0xD7E00001
+- Frame received with correct dimensions: 1024x1024
+- Pixel bit depth: 14-bit (zero-padded to 16-bit in TIFF)
+- FrameHeader magic: 0xD7E01234
+- CSI-2 data type: 0x2E (RAW16)
+- No error flags set after acquisition
 
 ---
 
-### IT-02: Multi-Frame Streaming (Minimum Tier)
+### IT-02: 1000-Frame Continuous, Intermediate-A Tier
 
-**Objective**: Validate sustained streaming for 100 frames
+**Purpose**: Verify sustained continuous acquisition
+**Tier**: Intermediate-A (2048x2048, 16-bit, 15fps)
 
-| Parameter | Value |
-|-----------|-------|
-| Resolution | 1024 x 1024 |
-| Bit Depth | 14-bit |
-| FPS | 15 |
-| Frames | 100 |
-
-**Steps**:
-1. PanelSimulator generates 100 sequential frames
-2. FpgaSimulator streams through CSI-2 TX continuously
-3. McuSimulator streams via simulated Ethernet
-4. HostSimulator reassembles all 100 frames
+**Procedure**:
+1. Configure for Intermediate-A tier
+2. Start continuous scan for 1000 frames
+3. Monitor frame counter, drop counter, error flags
 
 **Pass Criteria**:
-- All 100 frames bit-exact match
-- Frame sequence numbers sequential (0-99)
-- Zero dropped frames
-- Frame interval within 5% of target (66.7 ms at 15 fps)
+- 1000 frames received
+- Frame drop rate < 0.01% (max 0.1 drops per 1000 frames)
+- Frame counter increments monotonically
+- Error flag register 0x80 = 0x00 throughout
 
 ---
 
-### IT-03: Target Tier Full Pipeline
+### IT-03: Out-of-Order UDP Packet Handling
 
-**Objective**: Validate target resolution data path
+**Purpose**: Verify Host SDK frame reassembly with packet reordering
+**Tier**: Intermediate-A (2048x2048, 16-bit, 15fps)
 
-| Parameter | Value |
-|-----------|-------|
-| Resolution | 2048 x 2048 |
-| Bit Depth | 16-bit |
-| FPS | 15 |
-| Frames | 10 |
-
-**Steps**:
-1. PanelSimulator generates 10 frames at target resolution
-2. Full pipeline processes frames
-3. HostSimulator saves frames to TIFF
+**Procedure**:
+1. Configure HostSimulator to simulate 5% packet reordering
+2. Acquire 100 frames
+3. Verify reassembly correctness
 
 **Pass Criteria**:
-- All 10 frames bit-exact match
-- TIFF files valid and readable
-- Frame size = 8,388,608 bytes each
-- CSI-2 bandwidth utilization logged
+- All 100 frames correctly reassembled (bit-accurate)
+- Reordering tolerance up to 8 packets within a frame
+- Frame delivery latency increase < 2x compared to IT-02
 
 ---
 
-### IT-04: Maximum Tier Bandwidth Stress
+### IT-04: Error Injection and Recovery
 
-**Objective**: Validate maximum resolution data path (stress test)
+**Purpose**: Verify error detection and recovery pipeline
+**Error Types**: TIMEOUT (bit 0), CRC_ERROR (bit 2), OVERFLOW (bit 1)
 
-| Parameter | Value |
-|-----------|-------|
-| Resolution | 3072 x 3072 |
-| Bit Depth | 16-bit |
-| FPS | 15 |
-| Frames | 5 |
-
-**Steps**:
-1. PanelSimulator generates 5 frames at maximum resolution
-2. FpgaSimulator processes (verify CSI-2 bandwidth capacity)
-3. McuSimulator streams via 10 GbE
-4. HostSimulator reassembles and validates
+**Sub-test A - TIMEOUT Error**:
+1. Inject TIMEOUT error in FpgaSimulator
+2. Verify McuSimulator detects via STATUS polling (0x20)
+3. Verify Sequence Engine transitions to ERROR state
+4. Verify 3 retry attempts
+5. Verify Host receives error code 0x01
 
 **Pass Criteria**:
-- All 5 frames bit-exact match
-- CSI-2 bandwidth < 4.5 Gbps (within D-PHY limit)
-- 10 GbE bandwidth < 9.5 Gbps
-- No buffer overflows reported
+- Error detected within 200ms of injection
+- Exactly 3 retry attempts before escalation
+- Host receives structured error: `{type: "TIMEOUT", code: 0x01}`
+- FPGA safe state: gate_on = 0
 
----
-
-### IT-05: Noise and Defect Simulation
-
-**Objective**: Validate realistic panel data with noise and defects
-
-| Parameter | Value |
-|-----------|-------|
-| Resolution | 2048 x 2048 |
-| Noise Model | Gaussian (stddev=100) |
-| Defect Rate | 0.1% |
-| Frames | 10 |
-
-**Steps**:
-1. PanelSimulator generates noisy frames with dead/hot pixels
-2. Full pipeline processes frames
-3. HostSimulator receives and stores
+**Sub-test B - OVERFLOW Error**:
+1. Inject OVERFLOW error (line buffer collision)
+2. Verify McuSimulator clears flag (write 0x80 to ERROR_FLAGS register 0x80)
+3. Verify scan resumes after recovery
 
 **Pass Criteria**:
-- Output frames match PanelSimulator output (data integrity through pipeline)
-- Noise statistics preserved (mean, stddev within 1% tolerance)
-- Defect pixel positions preserved
-- No data corruption from noise values
+- OVERFLOW flag (bit 1 of 0x80) detected and cleared
+- Scan resumes within 500ms
+- Subsequent frames unaffected
 
 ---
 
-### IT-06: SPI Control Channel
+### IT-05: Runtime Configuration Change
 
-**Objective**: Validate bidirectional SPI control between McuSimulator and FpgaSimulator
+**Purpose**: Verify detector_config.yaml changes take effect without restart
+**Tier**: Change from Minimum to Intermediate-A during operation
 
-**Steps**:
-1. McuSimulator writes START_SCAN to FPGA CONTROL register (0x00)
-2. FpgaSimulator transitions to scanning state
-3. McuSimulator reads STATUS register (0x04) - verify BUSY
-4. FpgaSimulator completes one frame
-5. McuSimulator reads FRAME_COUNTER register (0x08) - verify = 1
-6. McuSimulator writes STOP_SCAN to CONTROL register
-7. McuSimulator reads STATUS - verify IDLE
+**Procedure**:
+1. Start with Minimum tier
+2. Acquire 10 frames (verify baseline)
+3. Send ConfigureAsync command with Intermediate-A parameters
+4. Acquire 10 more frames
 
 **Pass Criteria**:
-- All SPI register values correct
-- State transitions match expected sequence
-- SPI latency < 10 ms (simulated)
-- Frame counter increments correctly
+- Configuration accepted without error
+- Frame dimensions change to 2048x2048 after config
+- No frames lost during transition
+- All timing parameters update correctly
 
 ---
 
-### IT-07: Error Detection and Recovery
+### IT-06: Continuous to Single-Shot Mode Transition
 
-**Objective**: Validate error handling across module boundaries
+**Purpose**: Verify mode switching without system restart
 
-**Sub-scenarios**:
-
-| ID | Error Type | Trigger | Expected Recovery |
-|----|-----------|---------|-------------------|
-| IT-07a | SPI timeout | McuSimulator stops SPI for 200 ms | FpgaSimulator enters ERROR state |
-| IT-07b | Buffer overflow | FpgaSimulator receives data faster than CSI-2 TX | Overflow flag set, scan stops |
-| IT-07c | UDP packet loss | HostSimulator drops 1% of packets | Frame marked incomplete |
-| IT-07d | Frame drop | McuSimulator drops 1 frame | HostSimulator detects gap in sequence |
+**Procedure**:
+1. Start continuous scan (15fps)
+2. After 50 frames, switch to single-shot mode
+3. Trigger 10 individual single-shot captures
 
 **Pass Criteria**:
-- Error flags set correctly in FPGA registers
-- McuSimulator detects error via SPI polling
-- HostSimulator reports incomplete/dropped frames
-- System recoverable after error clearing
+- Continuous scan stops cleanly after mode switch
+- Single-shot mode responds to individual trigger commands
+- Each single-shot frame received within 200ms of trigger
+- No spurious frames during single-shot mode
 
 ---
 
-### IT-08: Configuration Changes at Runtime
+### IT-07: Packet Loss Handling (5%)
 
-**Objective**: Validate dynamic configuration changes
+**Purpose**: Verify Host SDK handles packet loss gracefully
+**Simulated Loss**: 5% of UDP packets dropped randomly
 
-**Steps**:
-1. Start pipeline at minimum tier (1024x1024, 14-bit, 15fps)
-2. Capture 5 frames (verify correct operation)
-3. Stop scan
-4. Reconfigure to target tier (2048x2048, 16-bit, 15fps)
-5. Start scan, capture 5 frames
-6. Verify both sets of frames correct
+**Procedure**:
+1. Configure network simulation with 5% packet loss
+2. Acquire 1000 frames in continuous mode
+3. Monitor incomplete frame count
 
 **Pass Criteria**:
-- Both resolution modes produce correct output
-- No data corruption during reconfiguration
-- SPI register updates propagate correctly
-- Frame size changes reflected in all layers
+- Frames with > 20% packet loss are discarded (not delivered corrupt)
+- Frame counter gap detection works correctly
+- Host SDK reports frame loss without crash
+- Recovery: next frame acquired normally
 
----
+#### IT-07e: Single-Retry Recovery Success
 
-### IT-09: Long Duration Stability
+**Purpose**: Verify error recovery succeeds on first retry
 
-**Objective**: Validate system stability over extended operation
-
-| Parameter | Value |
-|-----------|-------|
-| Resolution | 2048 x 2048 |
-| Bit Depth | 16-bit |
-| FPS | 15 |
-| Frames | 1000 |
-| Duration | ~67 seconds (simulated) |
-
-**Steps**:
-1. Run continuous pipeline for 1000 frames
-2. Monitor memory usage, buffer states, counters
-3. Validate every 100th frame (spot check)
-4. Full validation on first and last frames
+**Procedure**:
+1. Inject TIMEOUT error in FpgaSimulator
+2. FpgaSimulator auto-recovers after first clear attempt
 
 **Pass Criteria**:
-- Zero bit errors across all validated frames
-- Frame counter = 1000 at end
-- No memory leaks (stable memory footprint)
-- No buffer overflows or underflows
-- Frame drop rate < 0.01% (max 0 drops in 1000 frames)
+- McuSimulator detects error, sends error_clear command
+- FpgaSimulator recovers, scan resumes
+- Host receives 1 temporary error event, then normal frames
+- Total recovery time < 500ms
 
----
+#### IT-07f: Three-Retry Exhaustion
 
-### IT-10: Multi-Format Storage
+**Purpose**: Verify escalation after 3 failed recovery attempts (REQ-FW-032)
 
-**Objective**: Validate all storage formats
-
-**Steps**:
-1. Capture 1 frame at target tier
-2. Save as TIFF (uncompressed)
-3. Save as TIFF (LZW compressed)
-4. Save as RAW
-5. Reload each file and compare to original
+**Procedure**:
+1. Inject persistent OVERFLOW error that clears then immediately re-triggers
+2. McuSimulator attempts error_clear 3 times
 
 **Pass Criteria**:
-- TIFF (uncompressed): bit-exact match, valid TIFF header
-- TIFF (LZW): bit-exact match after decompression
-- RAW: bit-exact match, file size = rows * cols * 2 bytes
-- All formats readable by standard tools (ImageJ, Python PIL)
+- Exactly 3 retry attempts observed (no more, no less)
+- After 3rd failure, error reported to Host with code 0x02
+- FPGA enters safe state (gate_on = 0)
+- System enters IDLE state awaiting new StartScan command
+
+#### IT-07g: Post-Recovery Normal Operation
+
+**Purpose**: Verify normal operation resumes after error recovery
+
+**Procedure**:
+1. Trigger and recover from IT-07a (TIMEOUT error)
+2. After recovery, issue new StartAcquisitionAsync
+3. Acquire 100 frames normally
+
+**Pass Criteria**:
+- New acquisition starts successfully after recovery
+- 100 frames received with no errors
+- Frame counter continues from where it left off (no reset)
 
 ---
 
-## Test Execution Matrix
+### IT-08: Simultaneous Connection Requests
 
-| Scenario | Min Tier | Target Tier | Max Tier | Priority |
-|----------|---------|-------------|---------|----------|
-| IT-01 | Primary | - | - | P0 |
-| IT-02 | Primary | - | - | P0 |
-| IT-03 | - | Primary | - | P0 |
-| IT-04 | - | - | Primary | P1 |
-| IT-05 | - | Primary | - | P0 |
-| IT-06 | N/A | N/A | N/A | P0 |
-| IT-07 | Primary | - | - | P1 |
-| IT-08 | Both | Both | - | P1 |
-| IT-09 | - | Primary | - | P0 |
-| IT-10 | - | Primary | - | P1 |
+**Purpose**: Verify only one active connection at a time
 
-**P0**: Must pass for M3 milestone
-**P1**: Should pass, acceptable deferral to M4
+**Procedure**:
+1. Connect Host A to detector
+2. While Host A connected, attempt to connect Host B
+
+**Pass Criteria**:
+- Host B receives connection rejected error (ECONNREFUSED or equivalent)
+- Host A connection unaffected
+- After Host A disconnects, Host B can connect successfully
 
 ---
 
-## Dependencies
+### IT-09: 10,000-Frame Long-Duration Test
 
-- All unit tests (FV-01 to FV-11, SW-01 to SW-08) must pass before integration testing
-- `detector_config.yaml` schema validation must pass
-- IntegrationRunner CLI tool must be functional
-- All simulators must implement `ISimulator` interface
+**Purpose**: Verify system stability over extended operation
+**Tier**: Intermediate-A (2048x2048, 16-bit, 15fps)
+**Duration**: ~667 seconds (11 minutes)
+
+**Procedure**:
+1. Start continuous acquisition for 10,000 frames
+2. Monitor: frame drop rate, memory usage, error flags, CPU usage
+
+**Pass Criteria**:
+- Frame drop rate < 0.01% (max 1 drop per 10,000 frames)
+- Memory: process RSS growth < 50MB over entire test duration
+- Error flags: 0x80 register = 0x00 for >= 99.9% of duration
+- CPU usage: < 80% average on SoC
 
 ---
 
-## Revision History
+### IT-10: Bandwidth Limit Testing
+
+**Purpose**: Verify performance at each tier boundary
+
+**Sub-tests**:
+1. **IT-10A**: Minimum tier (1024x1024@15fps, ~0.22 Gbps) -- verify 400M operation
+2. **IT-10B**: Intermediate-A (2048x2048@15fps, ~1.01 Gbps) -- verify 400M ceiling
+3. **IT-10C**: Target tier (3072x3072@15fps, ~2.26 Gbps) -- verify 800M operation (if enabled)
+
+**Pass Criteria per Sub-test**:
+- Sustained throughput >= 95% of theoretical maximum
+- CSI-2 aggregate bandwidth: 2.0–3.2 Gbps (within D-PHY 800M maximum: 4 × 800 Mbps = 3.2 Gbps)
+- No frames dropped due to bandwidth saturation
+- FPS measured: within 5% of target FPS
+- If 800M debugging not yet complete: SKIP IT-10C, mark as CONDITIONAL PASS
+- Alternative path: IT-10B (Intermediate-A at 400M) must pass
+
+## Test Execution
+
+```bash
+# Run single test
+dotnet run --project tools/IntegrationRunner -- --scenario IT-01
+
+# Run all tests
+dotnet run --project tools/IntegrationRunner -- --scenario ALL
+
+# Run with custom config
+dotnet run --project tools/IntegrationRunner -- --scenario IT-02 --config custom.yaml
+
+# Run with verbose output
+dotnet run --project tools/IntegrationRunner -- --scenario IT-04 --verbose
+```
+
+## Test Decision Tree
+
+```
+New hardware setup?
+  -> Run IT-01 first
+  -> IT-01 fails? -> Check Troubleshooting Guide Section 6 (Frame Acquisition)
+  -> IT-01 passes? -> Run IT-03 (100 frames, verifies continuous operation)
+
+Network issues suspected?
+  -> Run IT-07 (packet loss) and IT-08 (connection)
+  -> Check: UDP buffers (sysctl net.core.rmem_max), MTU (ip link show eth1)
+
+Error recovery validation?
+  -> Run IT-04 (error injection)
+
+Long-term stability?
+  -> Run IT-09 (10,000 frames)
+```
+
+## Version
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial integration test plan |
-
----
+| 1.0.0 | 2026-02-17 | MoAI | Initial integration test plan |

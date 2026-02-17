@@ -65,12 +65,15 @@ public interface IDetectorClient : IAsyncDisposable
     Task ConnectAsync(string host, int port = 8000, CancellationToken ct = default);
     Task DisconnectAsync(CancellationToken ct = default);
 
-    // Scan Control
-    Task StartScanAsync(ScanMode mode, CancellationToken ct = default);
-    Task StopScanAsync(CancellationToken ct = default);
+    // Configuration
+    Task ConfigureAsync(DetectorConfig config, CancellationToken ct = default);
+
+    // Acquisition Control
+    Task StartAcquisitionAsync(ScanMode mode, CancellationToken ct = default);
+    Task StopAcquisitionAsync(CancellationToken ct = default);
 
     // Frame Acquisition
-    Task<Frame> GetFrameAsync(TimeSpan timeout, CancellationToken ct = default);
+    Task<Frame> CaptureFrameAsync(TimeSpan timeout, CancellationToken ct = default);
     IAsyncEnumerable<Frame> StreamFramesAsync(CancellationToken ct = default);
 
     // Frame Storage
@@ -118,7 +121,7 @@ public interface IDetectorClient : IAsyncDisposable
 
 ---
 
-**REQ-SDK-011**: **WHEN** `StartScanAsync(mode)` is called **THEN** the SDK shall send a START_SCAN command (0x0001) to the SoC and begin receiving frame packets.
+**REQ-SDK-011**: **WHEN** `StartAcquisitionAsync(mode)` is called **THEN** the SDK shall send a START_SCAN command (0x0001) to the SoC and begin receiving frame packets.
 
 **WHY**: Scan initiation triggers the FPGA to begin pixel acquisition via the SoC sequence engine.
 
@@ -126,15 +129,15 @@ public interface IDetectorClient : IAsyncDisposable
 
 ---
 
-**REQ-SDK-012**: **WHEN** `StopScanAsync()` is called **THEN** the SDK shall send a STOP_SCAN command (0x0002) to the SoC and stop frame processing.
+**REQ-SDK-012**: **WHEN** `StopAcquisitionAsync()` is called **THEN** the SDK shall send a STOP_SCAN command (0x0002) to the SoC and stop frame processing.
 
 **WHY**: Graceful scan termination prevents orphan frames and resource leaks.
 
-**IMPACT**: StopScanAsync waits for the current frame to complete (up to 1 frame period) before stopping the receive pipeline.
+**IMPACT**: StopAcquisitionAsync waits for the current frame to complete (up to 1 frame period) before stopping the receive pipeline.
 
 ---
 
-**REQ-SDK-013**: **WHEN** `GetFrameAsync(timeout)` is called **THEN** the SDK shall return the next complete frame within the specified timeout.
+**REQ-SDK-013**: **WHEN** `CaptureFrameAsync(timeout)` is called **THEN** the SDK shall return the next complete frame within the specified timeout.
 
 **WHY**: Synchronous frame access simplifies single-capture workflows.
 
@@ -326,7 +329,7 @@ public interface IDetectorClient : IAsyncDisposable
 |-----------|-------|-----------|
 | Frame Header Size | 32 bytes | docs/api/ethernet-protocol.md |
 | Max Payload | 8192 bytes | UDP datagram size |
-| Magic Number | 0xDEADBEEF | Frame data packets |
+| Magic Number | 0xD7E01234 | Frame data packets |
 | Command Magic | 0xBEEFCAFE | Control commands |
 | Response Magic | 0xCAFEBEEF | Command responses |
 | CRC Algorithm | CRC-16/CCITT | Polynomial 0x8408 |
@@ -358,7 +361,7 @@ public interface IDetectorClient : IAsyncDisposable
 ### AC-002: Single Frame Capture
 
 **GIVEN**: Connected DetectorClient
-**WHEN**: `StartScanAsync(ScanMode.Single)` is called, then `GetFrameAsync(5s)` is called
+**WHEN**: `StartAcquisitionAsync(ScanMode.Single)` is called, then `CaptureFrameAsync(5s)` is called
 **THEN**: A Frame object is returned with correct Width, Height, BitDepth
 **AND**: PixelData contains width*height ushort values
 **AND**: SequenceNumber is greater than 0
@@ -368,7 +371,7 @@ public interface IDetectorClient : IAsyncDisposable
 ### AC-003: Continuous Streaming
 
 **GIVEN**: Connected DetectorClient
-**WHEN**: `StartScanAsync(ScanMode.Continuous)` is called and 100 frames are consumed via `StreamFramesAsync`
+**WHEN**: `StartAcquisitionAsync(ScanMode.Continuous)` is called and 100 frames are consumed via `StreamFramesAsync`
 **THEN**: All 100 frames have sequential SequenceNumbers (no gaps)
 **AND**: Frame drop rate is < 1% (< 1 drop per 100 frames in test conditions)
 
@@ -438,6 +441,17 @@ public interface IDetectorClient : IAsyncDisposable
 **WHEN**: 10,000 frames are captured continuously
 **THEN**: DroppedFrames < 1 (0.01% rate)
 **AND**: All non-dropped frames have correct pixel data
+
+---
+
+### AC-SDK-010a: GC Pressure Stress Test
+
+**GIVEN**: ConnectedDetectorClient, Intermediate-A tier (2048x2048@15fps)
+**WHEN**: Continuous 10,000-frame capture with dotnet-trace GC event monitoring
+**THEN**: Gen2 GC occurrences < 5 (over 10,000 frames)
+**AND**: ArrayPool<ushort> return rate >= 99% (no leaks)
+**AND**: 99th percentile frame processing latency < 50ms (including GC pauses)
+**AND**: Maximum heap growth < 100MB (after initial 10 frames)
 
 ---
 

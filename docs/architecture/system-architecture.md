@@ -224,9 +224,9 @@ SoC Sequence Engine
    │ SPI transaction: write register, read response
    ▼
 FPGA SPI Slave (Register Map)
-   │ 0x00: Control (start/stop)
-   │ 0x04: Status (idle/busy/error)
-   │ 0x08: Frame counter
+   │ 0x21: Control (start/stop)
+   │ 0x20: Status (idle/busy/error)
+   │ 0x30/0x31: Frame counter (HI/LO)
    ▼
 Panel Scan FSM
    │ Execute scan sequence
@@ -245,7 +245,7 @@ Panel Scan FSM
 
 | Tier | Resolution | Bit Depth | FPS | Throughput | CSI-2 Lane Speed | Status |
 |------|-----------|-----------|-----|------------|-----------------|--------|
-| **Minimum** | 1024×1024 | 14-bit | 15 | 0.21 Gbps | 400M | ✅ Baseline (stable) |
+| **Minimum** | 1024×1024 | 14-bit | 15 | 0.22 Gbps | 400M | ✅ Baseline (stable) |
 | **Intermediate-A** | 2048×2048 | 16-bit | 15 | 1.01 Gbps | 400M | ✅ Development baseline (stable) |
 | **Intermediate-B** | 2048×2048 | 16-bit | 30 | 2.01 Gbps | 800M | ⚠️ Requires 800M debugging |
 | **Target (Final)** | **3072×3072** | **16-bit** | **15** | **2.26 Gbps** | **800M** | ⚠️ **Requires 800M debugging** |
@@ -276,7 +276,7 @@ Panel Scan FSM
 - Cable: 10 cm FPC (Flexible Printed Circuit)
 
 **Protocol Layer**: CSI-2 v1.3
-- Data Type: RAW16 (0x2C)
+- Data Type: RAW16 (0x2E)
 - Virtual Channel: VC0
 - Packet Structure:
   ```
@@ -295,11 +295,21 @@ Panel Scan FSM
 **Register Map** (preliminary):
 | Address | Name | Access | Description |
 |---------|------|--------|-------------|
-| 0x00 | CONTROL | W | bit[0]: start_scan, bit[1]: stop_scan, bit[2]: reset |
-| 0x04 | STATUS | R | bit[0]: idle, bit[1]: busy, bit[2]: error, bit[7:3]: error_code |
-| 0x08 | FRAME_COUNTER | R | 32-bit frame counter (wraps at 2^32) |
-| 0x0C | LINE_COUNTER | R | Current line being scanned (0~3071) |
-| 0x10 | ERROR_FLAGS | R | Timeout, overflow, CRC error flags |
+| 0x00 | DEVICE_ID | R | Fixed: 0xA735 (Artix-7 35T identification) |
+| 0x10 | ILA_CAPTURE_0 | R | ILA capture data word 0 |
+| 0x11 | ILA_CAPTURE_1 | R | ILA capture data word 1 |
+| 0x12 | ILA_CAPTURE_2 | R | ILA capture data word 2 |
+| 0x13 | ILA_CAPTURE_3 | R | ILA capture data word 3 |
+| 0x20 | STATUS | R | bit[0]: idle, bit[1]: busy, bit[2]: error, bit[7:3]: error_code |
+| 0x21 | CONTROL | W | bit[0]: start_scan, bit[1]: stop_scan, bit[2]: reset |
+| 0x30 | FRAME_COUNT_HI | R | Upper 16 bits of 32-bit frame counter |
+| 0x31 | FRAME_COUNT_LO | R | Lower 16 bits of 32-bit frame counter |
+| 0x40 | TIMING_ROW_PERIOD | R/W | Row period timing parameter |
+| 0x41 | TIMING_GATE_ON | R/W | Gate ON duration in microseconds |
+| 0x42 | TIMING_GATE_OFF | R/W | Gate OFF duration in microseconds |
+| 0x60 | CSI2_LANE_COUNT | R/W | Number of active CSI-2 data lanes (1/2/4) |
+| 0x61 | CSI2_LANE_SPEED | R/W | Lane speed: 0x64=1.0G, 0x6E=1.1G, 0x78=1.2G, 0x7D=1.25G |
+| 0x80 | ERROR_FLAGS | R | bit[0]: timeout, bit[1]: overflow, bit[2]: crc_error, bit[7:3]: reserved |
 
 ### 5.3 10 GbE (SoC → Host)
 
@@ -311,7 +321,7 @@ Panel Scan FSM
 - Frame Header (32 bytes):
   ```c
   struct FrameHeader {
-      uint32_t magic;           // 0xDEADBEEF (synchronization)
+      uint32_t magic;           // 0xD7E01234 (synchronization)
       uint32_t frame_seq;       // Frame sequence number
       uint64_t timestamp_us;    // Microsecond timestamp
       uint16_t width;           // Image width (pixels)
@@ -346,7 +356,7 @@ Panel Scan FSM
 
 | Tier | Throughput | 1 GbE (0.95 Gbps) | 10 GbE (9.5 Gbps) |
 |------|-----------|-------------------|-------------------|
-| Minimum | 0.21 Gbps | ✅ Supported | ✅ Supported |
+| Minimum | 0.22 Gbps | ✅ Supported | ✅ Supported |
 | Intermediate-A | 1.01 Gbps | ❌ Exceeds | ✅ Supported |
 | Target | 2.26 Gbps | ❌ Exceeds | ✅ Supported |
 

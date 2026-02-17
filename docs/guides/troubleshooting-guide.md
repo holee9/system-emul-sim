@@ -10,13 +10,16 @@
 2. [SoC System Health](#2-soc-system-health)
 3. [Hardware Connectivity](#3-hardware-connectivity)
 4. [CSI-2 Link Issues](#4-csi-2-link-issues)
+   - [800M D-PHY Debugging Procedures](#800m-d-phy-debugging-procedures)
 5. [SPI Communication Failures](#5-spi-communication-failures)
 6. [Frame Acquisition Issues](#6-frame-acquisition-issues)
 7. [Network and Throughput Issues](#7-network-and-throughput-issues)
 8. [Battery and Peripheral Devices](#8-battery-and-peripheral-devices)
 9. [WiFi (Sterling 60 / QCA6174A)](#9-wifi-sterling-60--qca6174a)
 10. [FPGA Error Codes Reference](#10-fpga-error-codes-reference)
+    - [Error Recovery State Machine](#error-recovery-state-machine)
 11. [Log Collection](#11-log-collection)
+    - [Log Analysis Guide](#log-analysis-guide)
 12. [Revision History](#12-revision-history)
 
 ---
@@ -255,6 +258,46 @@ Resolution:
    ```
 2. Check FPC cable length and quality. At 800 Mbps, the maximum reliable cable length is approximately 15 cm. For 400 Mbps, 30 cm is acceptable.
 3. Check for electromagnetic interference sources near the FPC cable.
+
+### 800M D-PHY Debugging Procedures
+
+**Note**: 800M operation is currently under validation. Use 400M for production.
+
+When experiencing instability at 800M lane speed (CSI2_LANE_SPEED=0x61, value=1):
+
+**Step 1: Verify Lane Speed Configuration**
+```bash
+detector_cli read-reg 0x61  # CSI2_LANE_SPEED: 0=400M, 1=800M
+```
+
+**Step 2: Check CSI-2 Link Status**
+```bash
+detector_cli read-reg 0x70  # CSI2_STATUS
+# Bit 0: phy_ready (1=ready)
+# Bit 1: tx_active (1=transmitting)
+# Bit 4: fifo_overflow (1=error)
+```
+
+**Step 3: Read ILA Capture Registers**
+```bash
+detector_cli read-reg 0x10  # ILA_CAPTURE_0: lane_sync status
+detector_cli read-reg 0x11  # ILA_CAPTURE_1: cdc_error flags
+detector_cli read-reg 0x12  # ILA_CAPTURE_2: timing margins
+detector_cli read-reg 0x13  # ILA_CAPTURE_3: error counters
+```
+
+**Step 4: Signal Integrity Check**
+- CRC errors at 800M may indicate signal integrity issues
+- FPC cable length: maximum 15cm for 800M (30cm for 400M)
+- Check FPC connector for bent pins, loose contact
+- If errors persist, downgrade to 400M: `detector_cli write-reg 0x61 0`
+- Then power cycle FPGA board
+
+**Thermal Considerations at 800M**
+- FPGA power consumption increases at 800M
+- Monitor FPGA board temperature (should not exceed ambient +15°C)
+- If spontaneous CRC errors occur during sustained 800M operation, suspect thermal marginality
+- Mitigation: Apply heatsink to FPGA BGA package
 
 ---
 
@@ -577,11 +620,86 @@ detector_cli write-reg 0x80 0x00FF  # Write 1 to all flag bits to clear them
 - Bit 6 (CONFIG_ERROR): Configuration error. Fix detector_config.yaml and redeploy.
 - Any flag causes STATUS bit[2] (error) to assert and FSM to enter ERROR state.
 
+### Error Recovery State Machine
+
+When errors occur, follow this escalation sequence:
+
+**Tier 1 - Transient Error Recovery** (CRC_ERROR, TIMEOUT)
+1. Read ERROR_FLAGS (0x80) to identify error type
+2. Write error_clear to register 0x80 (value 0x80 to clear all)
+3. Wait 100ms
+4. Retry scan — if succeeds, continue normally
+
+**Tier 2 - Persistent Error Recovery** (after 3 failed Tier 1 retries)
+1. Issue soft reset: Write CONTROL register (0x21), bit 2 = 1
+2. Wait 500ms for FPGA to reinitialize
+3. Verify DEVICE_ID (0x00 = upper bytes, 0x01 = lower bytes, total 0xD7E00001)
+4. Restart scan from beginning
+
+**Tier 3 - Unrecoverable State** (DEVICE_ID unreadable, all registers return 0xFF)
+1. Power cycle FPGA board (hardware power off/on)
+2. If DEVICE_ID still unreadable after power cycle → FPGA bitstream corrupted
+3. Re-program FPGA via Vivado/JTAG
+4. If SoC daemon won't restart → Re-flash SoC Yocto image
+
+**Error Priority when Multiple Flags Set**
+Priority order (high→low): WATCHDOG > OVERFLOW > CRC_ERROR > TIMEOUT
+Handle in priority order, clearing each flag after recovery.
+
+**WATCHDOG Error (bit 7) Specific Recovery**
+WATCHDOG fires when SoC loses SPI communication for >100ms:
+1. Verify SPI cable connections (all 4 signals: SCLK, MOSI, MISO, CS_N)
+2. Check SoC kernel: `dmesg | grep spi` for driver errors
+3. If SPI driver reports errors: reboot SoC (`sudo reboot`)
+4. If WATCHDOG repeats after 2 reboot cycles: power cycle FPGA
+
 ---
 
 ## 11. Log Collection
 
 When reporting issues or escalating to the development team, collect the following:
+
+### Log Analysis Guide
+
+**Log Collection**
+```bash
+# SoC daemon logs (primary)
+journalctl -u detector-daemon -n 100 --no-pager
+
+# Kernel messages (driver issues)
+dmesg | grep -E "mipi|csi|spi|v4l2"
+
+# All recent errors
+journalctl -p err -n 50 --no-pager
+```
+
+**Normal Startup Log Pattern**
+```
+detector[PID]: INFO: Loading config from /etc/detector/detector_config.yaml
+detector[PID]: INFO: SPI device opened: /dev/spidev0.0 (16-bit, 50MHz)
+detector[PID]: INFO: FPGA DEVICE_ID: 0xD7E00001 - OK
+detector[PID]: INFO: CSI-2 V4L2 device: /dev/video0
+detector[PID]: INFO: UDP data socket bound to port 8000
+detector[PID]: INFO: UDP command socket bound to port 8001
+detector[PID]: INFO: Daemon ready
+```
+
+**Error Pattern Search**
+```bash
+# Find all FPGA errors
+journalctl -u detector-daemon | grep "FPGA_ERR"
+
+# Find frame drops
+journalctl -u detector-daemon | grep "drop\|DROP"
+
+# Find CSI-2 issues
+dmesg | grep -i "csi\|mipi\|v4l2" | grep -i "err\|warn\|fail"
+```
+
+**Timestamp Note**: All journalctl timestamps are in local timezone unless overridden.
+For UTC: `journalctl --utc -u detector-daemon`
+
+---
 
 ### 11.1 SoC Logs
 
@@ -686,6 +804,7 @@ Attachments:
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete troubleshooting guide with diagnostic commands, issue categories, and log collection procedures |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix register addresses throughout: STATUS=0x20, CONTROL=0x21, FRAME_COUNT_LO=0x30, TIMING_GATE_ON=0x50, TIMING_GATE_OFF=0x51, CSI2_LANE_SPEED=0x60, CSI2_STATUS=0x70, ERROR_FLAGS=0x80. Corrected ERROR_FLAGS bit definitions to match spi-register-map.md. |
+| 1.1.0 | 2026-02-17 | manager-docs | Add 800M D-PHY Debugging Procedures section, Error Recovery State Machine, and Log Analysis Guide. |
 
 ---
 

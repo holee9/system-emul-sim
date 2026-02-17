@@ -162,7 +162,7 @@ This document defines the overall verification approach, mapping the verificatio
 | Milestone | Week | Required Verification |
 |-----------|------|-----------------------|
 | M0 | W1 | SPEC documents approved |
-| M0.5 | W6 | CSI-2 PoC pass (SPEC-POC-001) |
+| M0.5 | W26 | CSI-2 PoC pass (SPEC-POC-001) |
 | M1 | W3 | Architecture review, schema validated |
 | M2 | W9 | All unit tests pass (FV-01~11, SW-01~08) |
 | M3 | W14 | IT-01~IT-06 pass (P0 scenarios) |

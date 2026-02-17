@@ -189,12 +189,12 @@ csi2_detector_top
 
 | Parameter | Register | Range | Default | Unit |
 |-----------|----------|-------|---------|------|
-| gate_on_us | 0x20 | 1-65535 | 1000 | microseconds |
-| gate_off_us | 0x24 | 1-65535 | 100 | microseconds |
-| roic_settle_us | 0x28 | 1-255 | 10 | microseconds |
-| adc_conv_us | 0x2C | 1-255 | 5 | microseconds |
-| line_time_us | 0x30 | 1-65535 | 16 | microseconds |
-| frame_blanking_us | 0x34 | 1-65535 | 500 | microseconds |
+| timing_row_period | 0x40 | 1-65535 | 16 | microseconds |
+| gate_on_us | 0x41 | 1-65535 | 1000 | microseconds |
+| gate_off_us | 0x42 | 1-65535 | 100 | microseconds |
+| roic_settle_us | 0x43 | 1-255 | 10 | microseconds |
+| adc_conv_us | 0x44 | 1-255 | 5 | microseconds |
+| frame_blanking_us | 0x45 | 1-65535 | 500 | microseconds |
 
 ### 3.4 Operating Modes
 
@@ -310,7 +310,7 @@ clk_roic domain:                 clk_csi2_byte domain:
 |-----------|---------|-----------|
 | Number of Lanes | 4 data + 1 clock | Maximum bandwidth configuration |
 | Lane Speed | 1.0 Gbps/lane (configurable to 1.25) | Conservative initial, sweepable |
-| Data Type | RAW16 (0x2C) | 16-bit pixel format |
+| Data Type | RAW16 (0x2E) | 16-bit pixel format |
 | Virtual Channel | VC0 | Single sensor, no multiplexing |
 | Input Interface | AXI4-Stream | Standard streaming protocol |
 | Line Blanking | 100 pixel clocks | Inter-line gap |
@@ -345,7 +345,7 @@ Signals:
 |-------|------|---------|
 | **Frame Start (FS)** | 4 bytes | DataID=0x00, WC=0x0000, ECC |
 | **Line Start (LS)** | 4 bytes | DataID=0x02, WC=0x0000, ECC |
-| **Pixel Data** | 2 x width bytes | RAW16 pixels, MSB first |
+| **Pixel Data** | 2 x width bytes | RAW16 pixels, little-endian (LSB first) |
 | **CRC-16** | 2 bytes | CRC over pixel payload |
 | **Line End (LE)** | 4 bytes | DataID=0x03, WC=0x0000, ECC |
 | **Frame End (FE)** | 4 bytes | DataID=0x01, WC=0x0000, ECC |
@@ -391,7 +391,7 @@ Signals:
 |-----------|-------|
 | Mode | SPI Mode 0 (CPOL=0, CPHA=0) |
 | Clock | Up to 50 MHz (from SoC master) |
-| Data Width | 8-bit (byte-oriented) |
+| Data Width | 16-bit (word-oriented) |
 | Transaction | 32-bit: 8-bit address + 8-bit R/W + 16-bit data |
 | Chip Select | Active low (directly from SoC GPIO) |
 
@@ -411,61 +411,70 @@ Signals:
 
 ### 6.3 Detailed Register Map
 
-#### Control Registers (0x00 - 0x0F)
+#### Identification and Debug Registers (0x00 - 0x1F)
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0x00 | CONTROL | W | [0] start_scan | Write 1 to begin scan sequence |
-| | | | [1] stop_scan | Write 1 to abort scan |
-| | | | [2] reset | Write 1 for soft reset |
-| | | | [3:2] scan_mode | 00=single, 01=continuous, 10=calibration |
-| | | | [4] error_clear | Write 1 to clear error flags |
-| | | | [15:5] reserved | Must be 0 |
-| 0x04 | STATUS | R | [0] idle | 1 = FSM in IDLE state |
+| 0x00 | DEVICE_ID | R | [15:0] id | Fixed: 0xA735 (Artix-7 35T) |
+| 0x10 | ILA_CAPTURE_0 | R | [15:0] data | ILA capture data word 0 |
+| 0x11 | ILA_CAPTURE_1 | R | [15:0] data | ILA capture data word 1 |
+| 0x12 | ILA_CAPTURE_2 | R | [15:0] data | ILA capture data word 2 |
+| 0x13 | ILA_CAPTURE_3 | R | [15:0] data | ILA capture data word 3 |
+
+#### Status and Control Registers (0x20 - 0x2F)
+
+| Address | Name | Access | Bits | Description |
+|---------|------|--------|------|-------------|
+| 0x20 | STATUS | R | [0] idle | 1 = FSM in IDLE state |
 | | | | [1] busy | 1 = Scan in progress |
 | | | | [2] error | 1 = Error condition active |
 | | | | [7:3] error_code | See error code table |
 | | | | [10:8] fsm_state | Current FSM state encoding |
 | | | | [11] buffer_bank | Current active write bank (0=A, 1=B) |
 | | | | [15:12] reserved | Read as 0 |
-| 0x08 | FRAME_COUNTER | R | [15:0] frame_count | Lower 16 bits of frame counter |
-| 0x0A | FRAME_COUNTER_H | R | [15:0] frame_count_h | Upper 16 bits of frame counter |
-| 0x0C | LINE_COUNTER | R | [11:0] line_count | Current line being processed (0-3071) |
-| | | | [15:12] reserved | Read as 0 |
+| 0x21 | CONTROL | W | [0] start_scan | Write 1 to begin scan sequence |
+| | | | [1] stop_scan | Write 1 to abort scan |
+| | | | [2] reset | Write 1 for soft reset |
+| | | | [3:2] scan_mode | 00=single, 01=continuous, 10=calibration |
+| | | | [4] error_clear | Write 1 to clear error flags |
+| | | | [15:5] reserved | Must be 0 |
 
-#### Timing Configuration Registers (0x20 - 0x3F)
-
-| Address | Name | Access | Bits | Description |
-|---------|------|--------|------|-------------|
-| 0x20 | GATE_ON_US | R/W | [15:0] gate_on | Gate ON duration in microseconds |
-| 0x24 | GATE_OFF_US | R/W | [15:0] gate_off | Gate OFF duration in microseconds |
-| 0x28 | ROIC_SETTLE_US | R/W | [7:0] settle | ROIC settling time in microseconds |
-| 0x2C | ADC_CONV_US | R/W | [7:0] conv | ADC conversion time in microseconds |
-| 0x30 | LINE_TIME_US | R/W | [15:0] line_time | Total line period in microseconds |
-| 0x34 | FRAME_BLANK_US | R/W | [15:0] blank | Inter-frame blanking in microseconds |
-
-#### Panel Configuration Registers (0x40 - 0x5F)
+#### Frame Counter Registers (0x30 - 0x3F)
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0x40 | PANEL_ROWS | R/W | [11:0] rows | Number of panel rows (max 3072) |
-| 0x44 | PANEL_COLS | R/W | [11:0] cols | Number of panel columns (max 3072) |
-| 0x48 | BIT_DEPTH | R/W | [4:0] depth | Pixel bit depth (14 or 16) |
-| 0x4C | PIXEL_FORMAT | R/W | [7:0] format | CSI-2 data type (0x2C = RAW16) |
+| 0x30 | FRAME_COUNT_HI | R | [15:0] frame_count_h | Upper 16 bits of 32-bit frame counter |
+| 0x31 | FRAME_COUNT_LO | R | [15:0] frame_count | Lower 16 bits of 32-bit frame counter |
 
-#### CSI-2 Configuration Registers (0x80 - 0x8F)
+#### Timing Configuration Registers (0x40 - 0x5F)
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0x80 | CSI2_CONTROL | R/W | [1:0] lane_count | 00=1-lane, 01=2-lane, 10=4-lane |
+| 0x40 | TIMING_ROW_PERIOD | R/W | [15:0] row_period | Total row period in microseconds |
+| 0x41 | TIMING_GATE_ON | R/W | [15:0] gate_on | Gate ON duration in microseconds |
+| 0x42 | TIMING_GATE_OFF | R/W | [15:0] gate_off | Gate OFF duration in microseconds |
+| 0x43 | ROIC_SETTLE_US | R/W | [7:0] settle | ROIC settling time in microseconds |
+| 0x44 | ADC_CONV_US | R/W | [7:0] conv | ADC conversion time in microseconds |
+| 0x45 | FRAME_BLANK_US | R/W | [15:0] blank | Inter-frame blanking in microseconds |
+
+#### Panel Configuration Registers (0x50 - 0x5F)
+
+| Address | Name | Access | Bits | Description |
+|---------|------|--------|------|-------------|
+| 0x50 | PANEL_ROWS | R/W | [11:0] rows | Number of panel rows (max 3072) |
+| 0x51 | PANEL_COLS | R/W | [11:0] cols | Number of panel columns (max 3072) |
+| 0x52 | BIT_DEPTH | R/W | [4:0] depth | Pixel bit depth (14 or 16) |
+| 0x53 | PIXEL_FORMAT | R/W | [7:0] format | CSI-2 data type (0x2E = RAW16) |
+
+#### CSI-2 Configuration Registers (0x60 - 0x7F)
+
+| Address | Name | Access | Bits | Description |
+|---------|------|--------|------|-------------|
+| 0x60 | CSI2_LANE_COUNT | R/W | [1:0] lane_count | 00=1-lane, 01=2-lane, 10=4-lane |
 | | | | [2] tx_enable | 1 = Enable CSI-2 TX |
 | | | | [3] continuous_clk | 1 = Continuous HS clock |
 | | | | [7:4] reserved | Must be 0 |
-| 0x84 | CSI2_STATUS | R | [0] phy_ready | D-PHY initialization complete |
-| | | | [1] tx_active | Packet transmission in progress |
-| | | | [2] fifo_overflow | TX FIFO overflow detected |
-| | | | [15:3] reserved | Read as 0 |
-| 0x88 | CSI2_LANE_SPEED | R/W | [7:0] speed_code | Lane speed: 0x64=1.0G, 0x6E=1.1G, 0x78=1.2G, 0x7D=1.25G |
+| 0x61 | CSI2_LANE_SPEED | R/W | [7:0] speed_code | Lane speed: 0x64=1.0G, 0x6E=1.1G, 0x78=1.2G, 0x7D=1.25G |
 
 #### Data Interface Status Registers (0x90 - 0x9F)
 
@@ -477,11 +486,11 @@ Signals:
 | 0x94 | TX_FRAME_COUNT | R | [15:0] tx_frames | CSI-2 transmitted frame count |
 | 0x98 | TX_ERROR_COUNT | R | [15:0] tx_errors | CSI-2 TX error count |
 
-#### Error Flag Registers (0xA0 - 0xAF)
+#### Error Flag Registers (0x80 - 0x8F)
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0xA0 | ERROR_FLAGS | R | [0] timeout | Readout timeout exceeded |
+| 0x80 | ERROR_FLAGS | R | [0] timeout | Readout timeout exceeded |
 | | | | [1] overflow | Line buffer overflow |
 | | | | [2] crc_error | CSI-2 CRC mismatch (self-check) |
 | | | | [3] overexposure | Pixel saturation detected |
@@ -490,11 +499,10 @@ Signals:
 | | | | [6] config_error | Invalid configuration detected |
 | | | | [7] watchdog | System watchdog timeout |
 
-#### Identification Registers (0xF0 - 0xFF)
+#### Version Registers (0xF0 - 0xFF)
 
 | Address | Name | Access | Bits | Description |
 |---------|------|--------|------|-------------|
-| 0xF0 | DEVICE_ID | R | [15:0] id | Fixed: 0xA735 (Artix-7 35T) |
 | 0xF4 | VERSION | R | [7:0] minor | Firmware minor version |
 | | | | [15:8] major | Firmware major version |
 | 0xF8 | BUILD_DATE | R | [15:0] date | Build date (BCD: MMDD) |
@@ -924,7 +932,7 @@ FpgaSimulator (C#)                  FPGA RTL (SystemVerilog)
 
 - **Testable (5/5)**: Section 13 defines 11 RTL verification test cases (FV-01 through FV-11) covering all modules. Coverage targets specified: Line >=95%, Branch >=90%, FSM 100%, Toggle >=80% - matching project RTL coverage requirements. Cross-verification with FpgaSimulator (bit-accurate comparison) is documented. Tools identified (Vivado xsim / Questa).
 - **Readable (5/5)**: Hierarchical module tree (Section 2.2) clearly shows csi2_detector_top decomposition. State machine diagrams with ASCII art and state encoding tables (Section 3). BRAM ping-pong protocol illustrated with timing diagram. Pin assignment tables (Section 11) and Tcl timing constraints (Section 12) complete.
-- **Unified (5/5)**: Device exactly matches ground truth (XC7A35T-FGG484, 20,800 LUTs, 50 BRAMs, 90 DSPs). CSI-2 interface matches system-architecture.md (4-lane, 400M/800M, RAW16 0x2C). SPI Mode 0, 50 MHz matches system spec. Register map at 0x00-0xFF is consistent with system-architecture.md Section 5.2. LUT budget table (34-46% estimated) within <60% constraint.
+- **Unified (5/5)**: Device exactly matches ground truth (XC7A35T-FGG484, 20,800 LUTs, 50 BRAMs, 90 DSPs). CSI-2 interface matches system-architecture.md (4-lane, 400M/800M, RAW16 0x2E). SPI Mode 0, 50 MHz matches system spec. Register map addresses updated to canonical spi-register-map.md values (DEVICE_ID=0x00, STATUS=0x20, CONTROL=0x21, FRAME_COUNT_HI=0x30, FRAME_COUNT_LO=0x31, ERROR_FLAGS=0x80, CSI2_LANE_COUNT=0x60, CSI2_LANE_SPEED=0x61, ILA_CAPTURE_0-3=0x10-0x13). LUT budget table (34-46% estimated) within <60% constraint.
 - **Secured (5/5)**: Section 8 documents all 8 error codes with trigger conditions, error codes, and actions. Safe state definition (Section 8.3) specifies gate outputs held LOW during ERROR state - critical for medical safety. Watchdog timeout (100ms), buffer overflow detection, and D-PHY link failure recovery are all documented. Upgrade path (XC7A50T/75T/100T pin-compatible) documented for resource exhaustion scenario.
 - **Trackable (5/5)**: Document metadata complete. Section 14 contains 7 design decisions with rationale and dates. Rejected alternatives documented with reasons. Section 15 provides bidirectional traceability (implements, references, feeds into). Revision history present.
 

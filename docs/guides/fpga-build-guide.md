@@ -339,9 +339,13 @@ Configure ILA capture depth and trigger in Vivado Hardware Manager after program
 After programming the FPGA, verify basic operation:
 
 ```bash
-# From SoC: read DEVICE_ID register (should return 0xA735)
-ssh root@192.168.1.100 "detector_cli read-reg 0xF0"
-# Expected: 0xA735
+# From SoC: read DEVICE_ID registers via SPI to confirm FPGA is correctly programmed
+ssh root@192.168.1.100 "detector_cli read-reg 0x00"
+# Expected: 0xD7E0 (upper 16-bit of DEVICE_ID)
+
+ssh root@192.168.1.100 "detector_cli read-reg 0x01"
+# Expected: 0x0001 (lower 16-bit of DEVICE_ID)
+# Combined DEVICE_ID = 0xD7E00001 confirms FPGA is correctly programmed
 
 # Check heartbeat LED is toggling on the board
 # Verify SPI communication

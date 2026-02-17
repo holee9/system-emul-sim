@@ -23,14 +23,22 @@ This document defines unit test scenarios for all system modules. Tests are orga
 
 **Module Under Test**: `panel_scan_fsm.sv`
 
+**FSM State Definitions** (per SPEC-FPGA-001 REQ-FPGA-010):
+- IDLE: Waiting for start_scan command
+- INTEGRATE: Gate signal active, sensor integrating
+- READOUT: Pixel data being read from ROIC
+- LINE_DONE: One line complete, preparing next
+- FRAME_DONE: All lines complete
+- ERROR: Fault condition detected
+
 | Test ID | Description | Stimulus | Expected Result |
 |---------|-------------|----------|----------------|
 | FV-01-001 | Reset state | Assert `rst_n` low for 10 cycles | FSM in IDLE state, all outputs deasserted |
-| FV-01-002 | Start scan | Set `start_scan` high for 1 cycle | Transition IDLE -> GATE_ON, gate output asserted |
-| FV-01-003 | Gate timing | Wait for `gate_on_us` duration | Transition GATE_ON -> ROIC_SETTLE |
-| FV-01-004 | ROIC settle | Wait for `roic_settle_us` duration | Transition ROIC_SETTLE -> ADC_CONVERT |
-| FV-01-005 | ADC conversion | Wait for `adc_conv_us` duration | Transition ADC_CONVERT -> LINE_READOUT |
-| FV-01-006 | Line completion | All pixels read from line buffer | Transition LINE_READOUT -> GATE_ON (next line) |
+| FV-01-002 | Start scan | Set `start_scan` high for 1 cycle | Transition IDLE -> INTEGRATE, gate output asserted |
+| FV-01-003 | Gate timing | Wait for `gate_on_us` duration | Transition INTEGRATE -> READOUT |
+| FV-01-004 | ROIC settle | Wait for `roic_settle_us` duration | Transition READOUT -> LINE_DONE |
+| FV-01-005 | ADC conversion | Wait for `adc_conv_us` duration | Transition LINE_DONE -> FRAME_DONE |
+| FV-01-006 | Line completion | All pixels read from line buffer | Transition LINE_DONE -> INTEGRATE (next line) |
 | FV-01-007 | Frame completion | All rows scanned | Transition to FRAME_DONE, frame_done pulse |
 | FV-01-008 | Stop scan | Set `stop_scan` during active scan | Transition to IDLE within 1 line time |
 | FV-01-009 | Error timeout | No SPI activity for `timeout_ms` | Transition to ERROR state, error flag set |
@@ -112,6 +120,10 @@ This document defines unit test scenarios for all system modules. Tests are orga
 | FV-05-004 | CRC error | CSI-2 CRC mismatch detected | CRC error flag set |
 | FV-05-005 | Error clearing | Write to error clear register | All error flags cleared |
 | FV-05-006 | Multiple simultaneous errors | Timeout + overflow at same cycle | Both flags set independently |
+| FV-05-007 | ROIC Fault Error (0x10) | Assert `roic_fault` signal | ERROR_FLAGS bit[4] = 1, FSM -> ERROR state within 10 clock cycles; gate output goes LOW immediately |
+| FV-05-008 | D-PHY Error (0x20) | Assert `dphy_error` signal | ERROR_FLAGS bit[5] = 1, FSM -> ERROR state within 10 clock cycles; CSI-2 transmission halted |
+| FV-05-009 | Configuration Error (0x40) | Write invalid panel dimensions (rows=0) | ERROR_FLAGS bit[6] = 1, scan prevented from starting; control register SCAN_ENABLE bit cannot be set |
+| FV-05-010 | Fatal Error Gate Safety | Trigger ROIC fault (0x10) during INTEGRATE state | gate_on output LOW within 1 clock cycle of fault detection; per REQ-FPGA-052, fatal errors force gate to safe state |
 
 **Coverage Requirement**: Line >= 95%, Branch >= 90%
 

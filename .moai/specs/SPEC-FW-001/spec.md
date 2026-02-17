@@ -83,9 +83,9 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
-**REQ-FW-004**: Firmware unit test coverage **shall** achieve 80%+ per module.
+**REQ-FW-004**: Firmware unit test coverage **shall** achieve 85%+ per module.
 
-**WHY**: Quality KPI for safety-critical embedded software.
+**WHY**: Quality KPI for safety-critical embedded software. Per quality.yaml hybrid_settings.min_coverage_legacy = 85%.
 
 **IMPACT**: Unit tests via CMocka or Unity framework. Coverage measured by gcov.
 
@@ -346,6 +346,17 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 
 ---
 
+### AC-FW-001a: SPI Polling Real-time Performance
+
+**GIVEN**: spi_control thread SCHED_FIFO policy, 10,000 polling cycles during active scan
+**WHEN**: Polling interval measured with high-resolution timer
+**THEN**: Average polling interval = 100μs ± 10μs
+**AND**: 99th percentile polling interval < 500μs
+**AND**: Intervals exceeding 1ms < 10 occurrences per 10,000
+**AND**: With SCHED_FIFO disabled, over-1ms rate increases 5x (validates SCHED_FIFO effect)
+
+---
+
 ### AC-FW-002: CSI-2 Frame Capture
 
 **GIVEN**: FPGA transmitting counter pattern at 1024x1024, 15 fps
@@ -384,6 +395,18 @@ The SoC Controller (NXP i.MX8M Plus via Variscite VAR-SOM-MX8M-PLUS) bridges the
 **AND**: Error cleared via SPI (error_clear)
 **AND**: Scan retried (up to 3 attempts)
 **AND**: If recovery fails, error reported to Host
+
+---
+
+### AC-FW-005a: V4L2 Streaming Restart Recovery
+
+**GIVEN**: Active CSI-2 streaming, V4L2 driver returns EAGAIN or EIO error
+**WHEN**: firmware error handler detects error
+**THEN**: V4L2 device closed and reinitialized (VIDIOC_REQBUFS, VIDIOC_STREAMON)
+**AND**: Normal frame capture resumes within 5 seconds after restart
+**AND**: Error event logged at WARNING level in syslog
+**AND**: Error reported to Host, then continuous scan auto-resumed
+**AND**: Frame drop counter increments accurately during restart
 
 ---
 

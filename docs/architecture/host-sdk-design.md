@@ -111,7 +111,7 @@ namespace XrayDetector.Sdk;
 /// <summary>
 /// Primary API for controlling an X-ray detector device.
 /// </summary>
-public interface IDetectorClient : IDisposable
+public interface IDetectorClient : IAsyncDisposable
 {
     // Connection Management
     Task ConnectAsync(string host, int port = 8000, CancellationToken ct = default);
@@ -119,17 +119,17 @@ public interface IDetectorClient : IDisposable
     bool IsConnected { get; }
     DetectorInfo DeviceInfo { get; }
 
-    // Scan Control
-    Task StartScanAsync(ScanMode mode, CancellationToken ct = default);
-    Task StopScanAsync();
+    // Acquisition Control
+    Task StartAcquisitionAsync(ScanMode mode, CancellationToken ct = default);
+    Task StopAcquisitionAsync();
     ScanStatus CurrentStatus { get; }
 
     // Frame Access
-    Task<Frame> GetFrameAsync(TimeSpan timeout, CancellationToken ct = default);
+    Task<Frame> CaptureFrameAsync(TimeSpan timeout, CancellationToken ct = default);
     IAsyncEnumerable<Frame> StreamFramesAsync(CancellationToken ct = default);
 
     // Configuration
-    Task SetConfigAsync(DetectorConfig config);
+    Task ConfigureAsync(DetectorConfig config);
     Task<DetectorConfig> GetConfigAsync();
 
     // Storage
@@ -218,21 +218,21 @@ public record DetectorConfig(
 
 ```csharp
 // Basic single frame capture
-using var client = new DetectorClient();
+await using var client = new DetectorClient();
 await client.ConnectAsync("192.168.1.100");
-await client.StartScanAsync(ScanMode.Single);
-var frame = await client.GetFrameAsync(TimeSpan.FromSeconds(5));
+await client.StartAcquisitionAsync(ScanMode.Single);
+var frame = await client.CaptureFrameAsync(TimeSpan.FromSeconds(5));
 await client.SaveFrameAsync(frame, "capture_001.tiff", ImageFormat.Tiff);
 
 // Continuous streaming with event handler
-using var client = new DetectorClient();
+await using var client = new DetectorClient();
 await client.ConnectAsync("192.168.1.100");
 client.FrameReceived += (sender, e) => {
     Console.WriteLine($"Frame {e.Frame.SequenceNumber}: {e.Frame.Width}x{e.Frame.Height}");
 };
-await client.StartScanAsync(ScanMode.Continuous);
+await client.StartAcquisitionAsync(ScanMode.Continuous);
 // ... scan runs until stopped
-await client.StopScanAsync();
+await client.StopAcquisitionAsync();
 
 // Async enumerable streaming
 await foreach (var frame in client.StreamFramesAsync(cts.Token))

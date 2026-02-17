@@ -289,7 +289,7 @@ int send_frame(int sock_fd, struct sockaddr_in *dst,
     for (uint16_t i = 0; i < total_packets; i++) {
         // Build packet: header + payload
         struct FrameHeader hdr = {
-            .magic = 0xDEADBEEF,
+            .magic = 0xD7E01234,  // Synchronized with ethernet-protocol.md
             .frame_seq = frame_seq,
             .timestamp_us = timestamp_us,
             .width = width,
@@ -471,7 +471,7 @@ If consumer (TX) falls behind producer (RX):
 ```c
 // 32 bytes, packed, little-endian
 struct __attribute__((packed)) FrameHeader {
-    uint32_t magic;           // 0xDEADBEEF (synchronization marker)
+    uint32_t magic;           // 0xD7E01234 (synchronization marker, synchronized with ethernet-protocol.md)
     uint32_t frame_seq;       // Frame sequence number (0-based, monotonic)
     uint64_t timestamp_us;    // Microsecond timestamp (SoC system clock)
     uint16_t width;           // Image width in pixels
@@ -538,6 +538,26 @@ struct __attribute__((packed)) ResponsePacket {
     uint8_t  payload[256];    // Response data
     uint16_t crc16;
 };
+```
+
+#### Security: UDP Command Channel Authentication
+
+The UDP command port (8001) MUST implement HMAC-SHA256 message authentication:
+
+```c
+// Command packet authentication
+typedef struct {
+    uint32_t magic;         // 0xD7E01234
+    uint32_t sequence;      // Anti-replay sequence number
+    uint8_t  hmac[32];      // HMAC-SHA256(secret_key, payload)
+    uint8_t  payload[];     // Command payload
+} AuthCommandPacket;
+
+// Authentication flow:
+// 1. Shared key exchanged via TLS during initial handshake (future implementation)
+// 2. Sequence number prevents replay attacks
+// 3. HMAC-SHA256 validates message integrity and authenticity
+// NOTE: Phase 1 uses pre-shared key; production should use TLS mutual auth
 ```
 
 ---
@@ -723,6 +743,30 @@ User=root
 
 [Install]
 WantedBy=multi-user.target
+```
+
+#### Security: Minimal Privilege Execution
+
+The detector_daemon MUST NOT run as root. Use systemd capabilities:
+
+```ini
+[Service]
+User=detector
+Group=detector
+# Required capabilities only
+AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_SYS_NICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_SYS_NICE
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/detector /var/log/detector
+```
+
+Create service account before deployment:
+```bash
+useradd -r -s /bin/false -d /var/lib/detector detector
+mkdir -p /var/lib/detector /var/log/detector
+chown detector:detector /var/lib/detector /var/log/detector
 ```
 
 ---

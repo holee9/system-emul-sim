@@ -645,6 +645,48 @@ scp root@192.168.1.100:/tmp/soc_app_backup.tar.gz \
 
 Apply these measures before production deployment:
 
+## Security Configuration
+
+### Non-Root Service Account Setup
+
+Before deploying detector_daemon, create a dedicated service account:
+
+```bash
+# Create service account (no login shell)
+sudo useradd -r -s /bin/false -d /var/lib/detector -m detector
+sudo mkdir -p /var/log/detector
+sudo chown detector:detector /var/lib/detector /var/log/detector
+
+# Set correct permissions on config files
+sudo chmod 640 /etc/detector/detector_config.yaml
+sudo chown root:detector /etc/detector/detector_config.yaml
+```
+
+### UDP Command Channel Security
+
+The detector uses HMAC-SHA256 authentication on the command port (8001).
+Configure the shared key during deployment:
+
+```bash
+# Generate a random 256-bit key
+openssl rand -hex 32 > /etc/detector/command_auth_key
+sudo chmod 600 /etc/detector/command_auth_key
+sudo chown root:detector /etc/detector/command_auth_key
+```
+
+**IMPORTANT**: Never use default or empty keys in production. Rotate keys periodically.
+
+### Firewall Configuration
+
+```bash
+# Allow only necessary ports
+sudo ufw allow from <host_ip>/32 to any port 8000 proto udp  # Data stream
+sudo ufw allow from <host_ip>/32 to any port 8001 proto udp  # Command channel
+sudo ufw allow from 224.0.0.0/4 to any port 8002 proto udp  # Discovery (multicast)
+sudo ufw deny in on eth1  # Block other inbound on data interface
+sudo ufw enable
+```
+
 ### 14.1 SoC Access Control
 
 ```bash

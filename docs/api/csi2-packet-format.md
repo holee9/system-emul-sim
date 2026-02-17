@@ -112,7 +112,7 @@ Timing parameters differ between the 400 Mbps/lane and 800 Mbps/lane operating p
 |-----------|-------|
 | CSI-2 version | v1.3 |
 | Virtual channel | VC0 (value 0b00) |
-| Primary data type | RAW16 (0x2C) for 16-bit pixels |
+| Primary data type | RAW16 (0x2E) for 16-bit pixels |
 | Secondary data type | RAW14 (0x2D) for 14-bit pixels |
 | Short packet ECC | 8-bit Hamming SEC-DED per packet |
 | Long packet CRC | CRC-16 per payload (polynomial 0x1021 reflected as 0x8408) |
@@ -131,7 +131,7 @@ Timing parameters differ between the 400 Mbps/lane and 800 Mbps/lane operating p
 | 0x01 | Frame End | N/A | Short packet, frame delimiter (end) |
 | 0x02 | Line Start | N/A | Short packet, line delimiter (start) |
 | 0x03 | Line End | N/A | Short packet, line delimiter (end) |
-| 0x2C | RAW16 | 16 bits/pixel | Long packet, pixel data (primary format) |
+| 0x2E | RAW16 | 16 bits/pixel | Long packet, pixel data (primary format) |
 | 0x2D | RAW14 | 14 bits/pixel | Long packet, pixel data (Minimum tier) |
 
 **Note on RAW14 (0x2D)**: The 14-bit data type is used in the Minimum tier (1024x1024@14-bit@15fps). In hardware, the FPGA zero-pads the upper 2 bits when converting 14-bit ADC output to the 16-bit CSI-2 RAW14 container. The Word Count in the RAW14 packet header still counts bytes (2 bytes per pixel), so WC = width x 2 for both RAW14 and RAW16.
@@ -242,7 +242,7 @@ Byte 3 (ECC):
 | Field | Position | Value | Description |
 |-------|----------|-------|-------------|
 | VC[1:0] | Byte 0 bits [7:6] | 0b00 | Virtual Channel 0 |
-| DT[5:0] | Byte 0 bits [5:0] | 0x2C (RAW16) or 0x2D (RAW14) | Data type |
+| DT[5:0] | Byte 0 bits [5:0] | 0x2E (RAW16) or 0x2D (RAW14) | Data type |
 | WC[15:0] | Bytes 1-2 | width x 2 | Word count: payload size in bytes |
 | ECC[7:0] | Byte 3 | calculated | ECC over bytes 0-2 |
 
@@ -321,8 +321,8 @@ For the Frame Start packet (VC=0, DT=0x00, Data=0x0000):
 - Input bits: 0x00, 0x00, 0x00
 - ECC = 0x00
 
-For the RAW16 long packet header with 2048-pixel line (VC=0, DT=0x2C, WC=0x1000):
-- Byte 0 = 0x2C, Byte 1 = 0x10, Byte 2 = 0x00
+For the RAW16 long packet header with 2048-pixel line (VC=0, DT=0x2E, WC=0x1000):
+- Byte 0 = 0x2E, Byte 1 = 0x10, Byte 2 = 0x00
 - ECC = recalculated per algorithm above
 
 In practice, the AMD CSI-2 TX IP computes ECC automatically. Reference values are needed only for simulator and testbench verification.
@@ -399,7 +399,7 @@ The following shows the complete D-PHY/CSI-2 transmission sequence for one frame
 For each line L from 0 to (height - 1):
   [HS Entry]
     Line Start short packet: VC=0, DT=0x02, Data=L, ECC
-    Long packet header: VC=0, DT=0x2C (or 0x2D), WC=width*2, ECC
+    Long packet header: VC=0, DT=0x2E (or 0x2D), WC=width*2, ECC
     Pixel data: pixels[L][0] through pixels[L][width-1], each 2 bytes little-endian
     CRC-16: 2 bytes little-endian, over pixel data
     Line End short packet: VC=0, DT=0x03, Data=L, ECC
@@ -417,12 +417,14 @@ For each line L from 0 to (height - 1):
 
 The required CSI-2 bandwidth is derived from the raw pixel data rate plus protocol overhead.
 
-| Tier | Resolution | Bit Depth | FPS | Raw Data Rate | CSI-2 Overhead (~3%) | Required Bandwidth | 4-Lane Available | Feasible |
-|------|-----------|-----------|-----|--------------|---------------------|-------------------|-----------------|----------|
-| Minimum | 1024x1024 | 14 | 15 | 0.210 Gbps | 0.006 Gbps | 0.216 Gbps | 1.6 Gbps | Yes |
-| Intermediate-A | 2048x2048 | 16 | 15 | 1.006 Gbps | 0.030 Gbps | 1.036 Gbps | 1.6 Gbps | Yes |
-| Intermediate-B | 2048x2048 | 16 | 30 | 2.013 Gbps | 0.060 Gbps | 2.073 Gbps | 3.2 Gbps | Yes (800M needed) |
-| Target | 3072x3072 | 16 | 15 | 2.264 Gbps | 0.068 Gbps | 2.332 Gbps | 3.2 Gbps | Yes (800M needed, 29% margin) |
+CSI-2 overhead is approximately 11-15% (including HS entry/exit + short packets + line blanking). Effective link efficiency = 85%. Formula: `CSI2_BW_GBPS = RAW_BW_GBPS / 0.85`. See `conversion-mapping.md` bandwidth formula section for details.
+
+| Tier | Resolution | Bit Depth | FPS | Raw Data Rate | CSI-2 Required (÷0.85) | 4-Lane Available | Feasible |
+|------|-----------|-----------|-----|--------------|------------------------|-----------------|----------|
+| Minimum | 1024x1024 | 14 | 15 | 0.210 Gbps | 0.247 Gbps | 1.6 Gbps | Yes |
+| Intermediate-A | 2048x2048 | 16 | 15 | 1.006 Gbps | 1.184 Gbps | 1.6 Gbps | Yes |
+| Intermediate-B | 2048x2048 | 16 | 30 | 2.013 Gbps | 2.368 Gbps | 3.2 Gbps | Yes (800M needed) |
+| Target | 3072x3072 | 16 | 15 | 2.264 Gbps | 2.664 Gbps | 3.2 Gbps | Yes (800M needed, 16.7% CSI-2 margin / 29% raw margin) |
 
 **Note**: The 400 Mbps/lane configuration (1.6 Gbps aggregate) supports Minimum and Intermediate-A tiers. The 800 Mbps/lane configuration (3.2 Gbps aggregate) is required for Intermediate-B and Target tiers.
 
@@ -457,8 +459,8 @@ Transmitted bytes in order:
 
 ### 8.2 Line 0 Long Packet Header
 
-RAW16 (DT=0x2C), WC = 1024 x 2 = 2048 = 0x0800:
-- 0x2C (Byte 0: VC=0b00, DT=0x2C)
+RAW16 (DT=0x2E), WC = 1024 x 2 = 2048 = 0x0800:
+- 0x2E (Byte 0: VC=0b00, DT=0x2E)
 - 0x08 (Byte 1: WC[15:8] = 0x08)
 - 0x00 (Byte 2: WC[7:0] = 0x00)
 - ECC  (Byte 3: calculated over bytes 0-2)
@@ -551,6 +553,7 @@ Upon receiving each packet, the SoC CSI-2 RX hardware and V4L2 driver perform:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.0.1 | 2026-02-17 | MoAI Agent (manager-docs) | Fix RAW16 data type code (0x2C → 0x2E per MIPI CSI-2 v1.3); clarify CSI-2 overhead 11-15% with 85% efficiency factor |
 | 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Initial specification with D-PHY timing, ECC algorithm, CRC-16 polynomial, complete packet examples |
 
 ---

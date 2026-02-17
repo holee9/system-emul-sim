@@ -32,14 +32,14 @@ The CSI-2 Proof of Concept validates five critical assumptions:
 
 1. **FPGA D-PHY TX Capability**: Artix-7 OSERDES can achieve 1.0-1.25 Gbps/lane serialization
 2. **SoC CSI-2 RX Compatibility**: i.MX8M Plus CSI-2 receiver can capture FPGA D-PHY output
-3. **End-to-End Throughput**: Measured aggregate bandwidth reaches ≥70% of Target tier requirement (2.01 Gbps × 0.7 = 1.41 Gbps minimum)
+3. **End-to-End Throughput**: Measured aggregate bandwidth reaches ≥1.58 Gbps (3072×3072@15fps = 2.264 Gbps × 0.70 = 1.585 Gbps, rounded to 1.58 Gbps)
 4. **Signal Integrity**: D-PHY electrical characteristics meet MIPI D-PHY v1.2 specification
 5. **Packet Integrity**: CSI-2 packet framing, CRC, and data payload are validated
 
 ### GO/NO-GO Decision
 
 **GO Criteria**:
-- Measured throughput ≥1.41 Gbps (70% of Target tier)
+- Measured throughput ≥1.58 Gbps (70% of Final Target tier: 3072×3072@15fps = 2.264 Gbps × 0.70 = 1.585 Gbps, rounded to 1.58 Gbps)
 - Signal integrity validated (eye diagram meets D-PHY spec)
 - Zero data corruption over 1000+ frames
 - SoC CSI-2 receiver successfully decodes FPGA packets
@@ -117,7 +117,7 @@ The CSI-2 Proof of Concept validates five critical assumptions:
 
 **WHY**: OSERDES speed limit characterization determines Target tier achievability and Maximum tier feasibility.
 
-**IMPACT**: Measured maximum throughput defines performance tier roadmap. If <1.41 Gbps, Target tier requires frame rate reduction or resolution compromise.
+**IMPACT**: Measured maximum throughput defines performance tier roadmap. If <1.58 Gbps, Target tier requires frame rate reduction or resolution compromise.
 
 ---
 
@@ -421,7 +421,7 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 
 ---
 
-### AC-008A: 400 Mbps Lane Speed Sustained Integrity (10,000 Frames)
+### AC-009: 400 Mbps Lane Speed Sustained Integrity (10,000 Frames)
 
 **GIVEN**: FPGA transmitting counter pattern at 2048x2048 resolution, 15 fps, lane speed = 400 Mbps/lane (1.6 Gbps aggregate, verified stable)
 
@@ -434,7 +434,7 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 
 ---
 
-### AC-008B: 800 Mbps Lane Speed Error Rate (Debugging Benchmark)
+### AC-010: 800 Mbps Lane Speed Error Rate (Debugging Benchmark)
 
 **GIVEN**: FPGA transmitting counter pattern at 2048x2048 resolution, 30 fps, lane speed = 800 Mbps/lane (3.2 Gbps aggregate)
 
@@ -448,7 +448,7 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 
 ---
 
-### AC-008C: End-to-End Latency (Panel Trigger to Host Frame Available)
+### AC-011: End-to-End Latency (Panel Trigger to Host Frame Available)
 
 **GIVEN**: Full pipeline connected: FPGA (400 Mbps/lane) -> SoC -> Host (UDP)
 
@@ -460,7 +460,7 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 
 ---
 
-### AC-008D: SPI Command Round-Trip Latency
+### AC-012: SPI Command Round-Trip Latency
 
 **GIVEN**: SoC firmware sending SPI write command to FPGA register 0x00 (CONTROL), then reading STATUS register 0x04
 
@@ -472,22 +472,22 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 
 ---
 
-### AC-008: GO/NO-GO Decision Documentation
+### AC-013: GO/NO-GO Decision Documentation
 
-**GIVEN**: All PoC tests (AC-001 through AC-007) are completed
+**GIVEN**: All PoC tests (AC-001 through AC-012) are completed
 
 **WHEN**: Test results are compiled into PoC report
 
 **THEN**:
 - GO criteria met:
-  - Measured throughput ≥1.41 Gbps (70% of Target tier)
+  - Measured throughput ≥1.58 Gbps (70% of Final Target tier 2.264 Gbps)
   - Zero data corruption (bit errors) in 1000 frames
   - Signal integrity validated (eye diagram or functional test)
   - SoC CSI-2 receiver successfully decodes packets
 
 **OR**:
 - NO-GO criteria met:
-  - Measured throughput <1.41 Gbps
+  - Measured throughput <1.58 Gbps
   - Data corruption detected (>0 bit errors)
   - Signal integrity failure (eye diagram not meeting spec)
   - SoC CSI-2 receiver unable to decode packets

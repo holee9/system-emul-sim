@@ -176,7 +176,7 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 
 **WHY**: CSI-2 packet format is the FPGA output interface. McuSimulator consumes these packets.
 
-**IMPACT**: Generates Frame Start, Line Data (with CRC-16), and Frame End packets. RAW16 data type (0x2C). Virtual Channel 0.
+**IMPACT**: Generates Frame Start, Line Data (with CRC-16), and Frame End packets. RAW16 data type (0x2E, per MIPI CSI-2 v1.3). Virtual Channel 0.
 
 ---
 
@@ -438,7 +438,7 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 **WHEN**: CSI-2 output is captured
 **THEN**: Output contains 1 Frame Start packet, 1024 Line Data packets, 1 Frame End packet
 **AND**: Each Line Data packet has correct CRC-16
-**AND**: Data type = 0x2C (RAW16)
+**AND**: Data type = 0x2E (RAW16, per MIPI CSI-2 v1.3)
 
 ---
 
@@ -476,6 +476,19 @@ All simulators are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per `qua
 **WHEN**: One frame at minimum tier (1024x1024, 14-bit) is processed through full pipeline
 **THEN**: Host output frame is bit-exact match to Panel input frame
 **AND**: Zero data corruption across all interfaces
+
+---
+
+### AC-SIM-009a: Bit-Accurate RTL vs Simulator Comparison
+
+**GIVEN**: Vivado xsim RTL simulation output (FPGA packet dump)
+**AND**: Same input/config with FpgaSimulator C# output
+**WHEN**: rtl_vs_sim_checker compares both outputs
+**THEN**: CSI-2 packet headers (Data Type, VC, Word Count) match bit-accurately
+**AND**: All pixel payload bytes match bit-accurately (tolerance = 0)
+**AND**: CRC-16 values match bit-accurately
+**AND**: FSM state transition sequences are identical (log comparison)
+**AND**: On comparison failure, report first mismatch location and value
 
 ---
 

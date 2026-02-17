@@ -207,7 +207,7 @@ docker run --rm -it -v $(pwd):/workdir crops/poky:ubuntu-22.04 \
 
 ```bash
 # Clone the Yocto BSP repository
-git clone http://100.126.59.10:7001/drake.lee/yocto_mickledore.git
+git clone http://100.126.59.10:7001/drake.lee/yocto_scarthgap.git
 
 # Clone the simulator and SDK repository
 git clone https://github.com/holee9/system-emul-sim.git

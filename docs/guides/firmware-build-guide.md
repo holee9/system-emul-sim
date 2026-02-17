@@ -23,7 +23,7 @@
 
 | Component | Version |
 |-----------|---------|
-| GCC ARM cross-compiler | 13.x (`arm-linux-gnueabihf-gcc`) |
+| GCC ARM cross-compiler | 13.x (`aarch64-poky-linux-gcc` via Yocto SDK) |
 | Yocto SDK | Scarthgap 5.0.2 |
 | CMake | 3.20+ |
 | GDB multiarch | Latest |
@@ -75,8 +75,19 @@ Create `fw/cmake/arm-toolchain.cmake`:
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
-set(CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
-set(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
+# Use compiler from Yocto SDK environment (source environment-setup-* first)
+if(DEFINED ENV{CC})
+    set(CMAKE_C_COMPILER $ENV{CC})
+else()
+    # Fallback: Yocto Scarthgap SDK aarch64 cross-compiler
+    set(CMAKE_C_COMPILER aarch64-poky-linux-gcc)
+endif()
+
+if(DEFINED ENV{CXX})
+    set(CMAKE_CXX_COMPILER $ENV{CXX})
+else()
+    set(CMAKE_CXX_COMPILER aarch64-poky-linux-g++)
+endif()
 
 # Point to Yocto SDK sysroot
 set(CMAKE_SYSROOT $ENV{SDKTARGETSYSROOT})
@@ -238,7 +249,7 @@ gdbserver :2345 ./xray-detector-fw
 On the host development machine, connect GDB:
 
 ```bash
-arm-linux-gnueabihf-gdb -x gdb/remote.gdb
+aarch64-poky-linux-gdb -x gdb/remote.gdb
 ```
 
 Where `gdb/remote.gdb` contains:

@@ -202,11 +202,11 @@ All requirements trace to `docs/architecture/fpga-design.md` v1.0.0. Register ma
 
 ---
 
-**REQ-FPGA-031**: The CSI-2 TX **shall** transmit pixel data in RAW16 format (data type 0x2C) on Virtual Channel 0.
+**REQ-FPGA-031**: The CSI-2 TX **shall** transmit pixel data in RAW16 format (data type 0x2E, per MIPI CSI-2 v1.3 Table 10) on Virtual Channel 0.
 
 **WHY**: RAW16 matches 16-bit pixel depth. VC0 for single-sensor configuration.
 
-**IMPACT**: Data type and VC configured in IP parameters. McuSimulator and SoC driver must expect RAW16/VC0.
+**IMPACT**: Data type and VC configured in IP parameters. McuSimulator and SoC driver must expect RAW16 (0x2E)/VC0.
 
 ---
 
@@ -466,7 +466,7 @@ All requirements trace to `docs/architecture/fpga-design.md` v1.0.0. Register ma
 
 **GIVEN**: One frame of known data transmitted through CSI-2 TX
 **WHEN**: Output packets are captured and parsed
-**THEN**: Frame Start packet present with correct data type (0x2C) and VC (0)
+**THEN**: Frame Start packet present with correct data type (0x2E, RAW16 per MIPI CSI-2 v1.3 Table 10) and VC (0)
 **AND**: Line Data packets contain correct pixel values with valid CRC-16
 **AND**: Frame End packet present after last line
 **AND**: Total packet count = 2 + N_rows (FS + N lines + FE)
@@ -511,6 +511,16 @@ All requirements trace to `docs/architecture/fpga-design.md` v1.0.0. Register ma
 **WHEN**: Vivado CDC report is generated
 **THEN**: Zero CDC violations reported
 **AND**: All synchronizer chains meet minimum path delay requirements
+
+---
+
+### AC-FPGA-008a: CDC Runtime Verification
+
+**GIVEN**: Line Buffer ping-pong operation, clk_roic=80MHz, clk_csi2_byte=125MHz
+**WHEN**: 10,000 bank switches occur during simulation
+**THEN**: Bank select signal captured outside metastability window via 2-FF synchronization
+**AND**: Data integrity verified — read pixel values 100% match written values
+**AND**: Overflow flag propagates safely across clock domain (no missed edges)
 
 ---
 
