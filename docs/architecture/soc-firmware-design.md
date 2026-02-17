@@ -881,7 +881,7 @@ Per project `quality.yaml` (Hybrid mode):
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial SoC firmware architecture design document |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial SoC firmware architecture design document |
 
 ---
 

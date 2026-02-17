@@ -377,7 +377,7 @@ cd config
 
 ## 기여
 
-본 프로젝트는 MoAI-ADK 개발 방법론을 따릅니다:
+본 프로젝트는 ABYZ-Lab-ADK 개발 방법론을 따릅니다:
 - 코드 리뷰 필수
 - TRUST 5 품질 프레임워크 준수
 - TDD/DDD Hybrid 개발 방법론
@@ -394,7 +394,7 @@ cd config
 
 ---
 
-*생성: MoAI Agent Teams (researcher + analyst + architect)*
+*생성: ABYZ-Lab Agent Teams (researcher + analyst + architect)*
 *기반 문서: X-ray_Detector_Dev_Plan_Final_v2.md + deep-research-report.md*
 *FPGA 제약: Xilinx Artix-7 XC7A35T-FGG484*
 *SoC: Variscite VAR-SOM-MX8M-PLUS | Yocto Scarthgap (5.0 LTS) | Linux 6.6.52*

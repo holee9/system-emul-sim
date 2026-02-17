@@ -3,7 +3,7 @@
 **Document Version**: 1.0.0
 **Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
-**Author**: MoAI Documentation Agent
+**Author**: ABYZ-Lab Documentation Agent
 
 ---
 
@@ -350,7 +350,7 @@ All commits must follow the Conventional Commits specification:
 
 <body>
 
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 **Types**: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`
@@ -378,7 +378,7 @@ ECC is computed per the D-PHY 2.5 specification Annex B.
 Supports 1, 2, and 4 lane configurations.
 
 Closes #15
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 ```
@@ -389,7 +389,7 @@ was not aligned to 4096-byte boundaries. Added __attribute__((aligned(4096)))
 to DMA buffer declarations.
 
 Closes #23
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 #### Issue Tracking
@@ -750,5 +750,5 @@ None required. Coverage targets, methodology descriptions, LSP thresholds, and c
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Documentation Agent | Initial document creation |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. Added Review Notes and Revision History. |

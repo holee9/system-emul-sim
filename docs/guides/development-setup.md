@@ -399,7 +399,7 @@ export XILINXD_LICENSE_FILE=/path/to/Xilinx.lic
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent | Complete developer setup guide |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent | Complete developer setup guide |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
 
 ---

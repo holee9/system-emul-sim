@@ -671,7 +671,7 @@ IntegrationRunner.exe --all \
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete tool usage guide with GUI walkthrough and CLI reference |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Docs Agent | Complete tool usage guide with GUI walkthrough and CLI reference |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix fpga_registers.h: corrected register addresses to match spi-register-map.md (DEVICE_ID=0x00, STATUS=0x20, CONTROL=0x21, FRAME_COUNT=0x30, TIMING_GATE_ON=0x50, TIMING_GATE_OFF=0x51, ERROR_FLAGS=0x80). Removed duplicate address conflicts. |
 | 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Fix fpga_registers.h generated code: CTRL_SOFT_RESET corrected from (1u<<2) to (1u<<7); STATUS bits corrected from IDLE/SCANNING/ERROR/FRAME_DONE to BUSY/ERROR/FRAME_READY per canonical register map. |
 

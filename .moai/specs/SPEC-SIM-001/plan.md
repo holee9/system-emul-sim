@@ -631,7 +631,7 @@ This implementation plan aligns with:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (spec-sim) | Initial implementation plan for SPEC-SIM-001 |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (spec-sim) | Initial implementation plan for SPEC-SIM-001 |
 
 ---
 

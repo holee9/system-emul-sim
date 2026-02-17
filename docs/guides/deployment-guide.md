@@ -730,7 +730,7 @@ EOF
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete deployment guide with environment management, rollback, and security hardening |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Docs Agent | Complete deployment guide with environment management, rollback, and security hardening |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix health_check.sh: ERROR_FLAGS address corrected from 0x04 to 0x80. Update Key Registers table: STATUS=0x20 (not 0x02), ERROR_FLAGS=0x80 (not 0x04), FRAME_COUNT_LO=0x30 (not 0x10). |
 | 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Fix control port protocol: 8001 is TCP not UDP (section heading, ufw rule, iptables rule). |
 

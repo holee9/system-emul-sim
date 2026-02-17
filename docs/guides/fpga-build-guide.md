@@ -400,7 +400,7 @@ ssh root@192.168.1.100 "detector_cli status"
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent | Complete FPGA build and synthesis guide |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent | Complete FPGA build and synthesis guide |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
 
 ---

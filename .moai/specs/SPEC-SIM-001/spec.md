@@ -6,7 +6,7 @@ version: 1.0.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
-author: MoAI Agent (analyst)
+author: ABYZ-Lab Agent (analyst)
 priority: high
 milestone: M2
 gate_week: W9
@@ -16,7 +16,7 @@ gate_week: W9
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for simulator suite |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for simulator suite |
 
 ---
 
@@ -629,7 +629,7 @@ The FpgaSimulator models the following ERROR_FLAGS bits. Each bit is sticky (rem
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for simulator suite |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for simulator suite |
 
 ---
 

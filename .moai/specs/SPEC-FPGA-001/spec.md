@@ -6,7 +6,7 @@ version: 1.0.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
-author: MoAI Agent (analyst)
+author: ABYZ-Lab Agent (analyst)
 priority: critical
 milestone: M2-M3
 gate_week: W14
@@ -16,7 +16,7 @@ gate_week: W14
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for FPGA RTL |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for FPGA RTL |
 
 ---
 
@@ -605,7 +605,7 @@ All requirements trace to `docs/architecture/fpga-design.md` v1.0.0. Register ma
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for FPGA RTL |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for FPGA RTL |
 
 ---
 

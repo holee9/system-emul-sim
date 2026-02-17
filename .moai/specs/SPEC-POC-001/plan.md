@@ -685,8 +685,8 @@ def calculate_throughput(width, height, fps, num_frames, duration_sec):
 **Plan Version**: 1.0.1
 **Created**: 2026-02-17
 **Updated**: 2026-02-17
-**Author**: MoAI Agent (manager-spec)
+**Author**: ABYZ-Lab Agent (manager-spec)
 **Reviewer**: spec-fpga (doc-approval-sprint)
 **Changes**: Timeline W3-W6→W23-W26, status planned→approved, RAW16 0x2C→0x2E, GO threshold aligned to 1.58 Gbps, Linux/Yocto references corrected, Next Steps updated for post-implementation context
 
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>

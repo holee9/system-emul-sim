@@ -3,7 +3,7 @@
 **Document Version**: 1.0.0
 **Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
-**Author**: MoAI Documentation Agent
+**Author**: ABYZ-Lab Documentation Agent
 **Project**: X-ray Detector Panel System
 
 ---
@@ -239,7 +239,7 @@ Structured natural language format for writing software requirements. Five patte
 The project's development methodology combining TDD (for new code) and DDD (for legacy code). Configured in `quality.yaml: development_mode: hybrid`. New files use TDD; existing files with <50% coverage use DDD.
 
 **LSP (Language Server Protocol)**
-Standard protocol for communication between code editors and language servers providing diagnostics (errors, warnings, type errors). MoAI-ADK uses LSP diagnostics as objective quality gates: zero errors required for run phase; max 10 warnings for sync phase.
+Standard protocol for communication between code editors and language servers providing diagnostics (errors, warnings, type errors). ABYZ-Lab-ADK uses LSP diagnostics as objective quality gates: zero errors required for run phase; max 10 warnings for sync phase.
 
 **Mutation Testing**
 Testing technique that introduces small code changes (mutants) to verify test suite effectiveness. A surviving mutant (not caught by any test) indicates a coverage gap. Target mutation score ≥75% for critical modules. Enabled selectively via `quality.yaml: mutation_testing_enabled`.
@@ -349,5 +349,5 @@ Flat-panel image detector that converts X-ray photons to electrical charge and r
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Documentation Agent | Initial document creation |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Corrected Intermediate-A Host Link from 1 GbE to 10 GbE. Added Review Notes and Revision History. |

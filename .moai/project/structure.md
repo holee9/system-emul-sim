@@ -879,9 +879,9 @@ Step 4: POST status to Gitea API (success/failure)
 - **Pros**: Parallel development, independent release cycles, clear ownership
 - **Cons**: Cross-repo synchronization overhead, version compatibility tracking
 
-**Recommendation for This Project**: **Multi-Repo** (independent repositories with coordination via MoAI workflows)
+**Recommendation for This Project**: **Multi-Repo** (independent repositories with coordination via ABYZ-Lab workflows)
 - Rationale: 6 repositories with distinct technologies (SystemVerilog, C, C#), different build systems, and independent release cycles
-- MoAI workflows (`/moai project`, `/moai run`) can coordinate across repositories without git submodule complexity
+- ABYZ-Lab workflows (`/moai project`, `/moai run`) can coordinate across repositories without git submodule complexity
 
 ---
 

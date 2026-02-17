@@ -308,6 +308,6 @@ W1  W2  W3  W4  W5  W6  W7  W8  W9  W10 W11 W12 W13 W14 W15 W16 W17 W18 W19 W20 
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial project roadmap |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial project roadmap |
 
 ---

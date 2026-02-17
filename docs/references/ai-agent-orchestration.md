@@ -3,14 +3,14 @@
 **Document Version**: 1.0.0
 **Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
-**Author**: MoAI Documentation Agent
+**Author**: ABYZ-Lab Documentation Agent
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [MoAI Orchestrator Role](#moai-orchestrator-role)
+2. [ABYZ-Lab Orchestrator Role](#moai-orchestrator-role)
 3. [Agent Catalog](#agent-catalog)
 4. [Agent Selection Decision Tree](#agent-selection-decision-tree)
 5. [Parallel Execution Patterns](#parallel-execution-patterns)
@@ -18,7 +18,7 @@
 7. [SPEC Workflow](#spec-workflow)
 8. [Team Mode vs Sub-Agent Mode](#team-mode-vs-sub-agent-mode)
 9. [Progressive Disclosure](#progressive-disclosure)
-10. [MoAI Commands Reference](#moai-commands-reference)
+10. [ABYZ-Lab Commands Reference](#moai-commands-reference)
 11. [Error Recovery Patterns](#error-recovery-patterns)
 12. [Context Management](#context-management)
 13. [Practical Examples](#practical-examples)
@@ -27,13 +27,13 @@
 
 ## Overview
 
-MoAI is the strategic orchestrator for Claude Code. It delegates all implementation tasks to specialized agents rather than executing them directly. This document explains how MoAI orchestrates the 16-agent system, manages token budgets, and coordinates multi-phase development workflows for the X-ray Detector Panel System.
+ABYZ-Lab is the strategic orchestrator for Claude Code. It delegates all implementation tasks to specialized agents rather than executing them directly. This document explains how ABYZ-Lab orchestrates the 16-agent system, manages token budgets, and coordinates multi-phase development workflows for the X-ray Detector Panel System.
 
-**Core Principle**: MoAI never implements directly. It plans, delegates, monitors, and synthesizes results. This ensures each task is handled by the most specialized agent with optimal context allocation.
+**Core Principle**: ABYZ-Lab never implements directly. It plans, delegates, monitors, and synthesizes results. This ensures each task is handled by the most specialized agent with optimal context allocation.
 
 ---
 
-## MoAI Orchestrator Role
+## ABYZ-Lab Orchestrator Role
 
 ### Responsibilities
 
@@ -43,7 +43,7 @@ MoAI is the strategic orchestrator for Claude Code. It delegates all implementat
 | Token budget allocation | Manage 200K token context window across phases |
 | Parallel execution | Launch independent agents simultaneously |
 | Result synthesis | Combine agent outputs into coherent responses |
-| User interaction | Only MoAI uses AskUserQuestion; agents cannot |
+| User interaction | Only ABYZ-Lab uses AskUserQuestion; agents cannot |
 | Quality gate enforcement | Validate TRUST 5 compliance across all outputs |
 
 ### Execution Flow
@@ -76,7 +76,7 @@ User Request
   - Include sources if web search used
 ```
 
-### Hard Rules for MoAI
+### Hard Rules for ABYZ-Lab
 
 1. **Language**: All user-facing responses in Korean (conversation_language: ko)
 2. **No XML in responses**: XML is for agent-to-agent data only
@@ -88,7 +88,7 @@ User Request
 
 ## Agent Catalog
 
-MoAI-ADK includes 16 specialized agents organized into four tiers.
+ABYZ-Lab-ADK includes 16 specialized agents organized into four tiers.
 
 ### Manager Agents (8 agents)
 
@@ -122,7 +122,7 @@ Expert agents implement specific technical domains.
 
 ### Builder Agents (3 agents)
 
-Builder agents create MoAI-ADK components.
+Builder agents create ABYZ-Lab-ADK components.
 
 | Agent | Purpose |
 |-------|---------|
@@ -149,7 +149,7 @@ Team agents work in parallel within a TeamCreate/TeamDelete lifecycle.
 
 ## Agent Selection Decision Tree
 
-When processing a user request, MoAI follows this decision logic:
+When processing a user request, ABYZ-Lab follows this decision logic:
 
 ```
 User Request
@@ -212,7 +212,7 @@ Tasks are independent when they:
 **Example: Parallel documentation sprint**
 
 ```
-MoAI launches simultaneously:
+ABYZ-Lab launches simultaneously:
   Task(expert-backend, "Generate API docs for sdk/include/")
   Task(expert-backend, "Generate API docs for fw/include/")
   Task(manager-docs, "Create architecture diagrams from docs/architecture/")
@@ -236,7 +236,7 @@ Step 3: Task(manager-ddd, "Implement SPEC-SIM-001")
 
 ### File Write Conflict Prevention
 
-Before parallel agent launch, MoAI analyzes file ownership:
+Before parallel agent launch, ABYZ-Lab analyzes file ownership:
 
 ```
 Parallel safe:
@@ -439,7 +439,7 @@ Claude decides when to access Level 3 based on task complexity.
 
 ---
 
-## MoAI Commands Reference
+## ABYZ-Lab Commands Reference
 
 ### `/moai plan "description"`
 
@@ -510,7 +510,7 @@ Runs a continuous improvement loop until quality gates pass.
 
 ### `/moai feedback`
 
-Submits a GitHub issue for MoAI-ADK improvements.
+Submits a GitHub issue for ABYZ-Lab-ADK improvements.
 
 ```bash
 /moai feedback
@@ -607,7 +607,7 @@ The following information is preserved across `/clear` because it exists in file
 - In-flight agent results
 - Debug context from current session
 
-**Best Practice**: Before executing `/clear`, note the current task state in a brief summary. MoAI can resume from this summary.
+**Best Practice**: Before executing `/clear`, note the current task state in a brief summary. ABYZ-Lab can resume from this summary.
 
 ---
 
@@ -619,7 +619,7 @@ The following information is preserved across `/clear` because it exists in file
 
 ```
 Step 1 (Parallel analysis):
-  MoAI launches simultaneously:
+  ABYZ-Lab launches simultaneously:
     Task(Explore, "List all public classes in tools/ParameterExtractor/")
     Task(Explore, "List all public classes in tools/CodeGenerator/")
     Task(Explore, "List all public classes in tools/FpgaSimulator/")
@@ -628,13 +628,13 @@ Step 2 (Token check):
   If context > 100K → /clear, reload SPEC documents only
 
 Step 3 (Parallel documentation):
-  MoAI launches simultaneously:
+  ABYZ-Lab launches simultaneously:
     Task(manager-docs, "Generate API docs for ParameterExtractor")
     Task(manager-docs, "Generate API docs for CodeGenerator")
     Task(manager-docs, "Generate API docs for FpgaSimulator")
 
 Step 4 (Synthesis):
-  MoAI merges results into docs/api/tools.md
+  ABYZ-Lab merges results into docs/api/tools.md
 ```
 
 **Total time**: ~3-5 minutes (vs ~15 minutes sequential)
@@ -690,7 +690,7 @@ Step 1 (Multi-angle investigation using team mode):
     team-architect: "Evaluate IDELAY calibration approach for Artix-7 at 800M"
 
 Step 2 (Synthesis):
-  MoAI receives findings from all three teammates
+  ABYZ-Lab receives findings from all three teammates
   Synthesizes into debugging action plan
 
 Step 3 (Fix implementation):
@@ -740,5 +740,5 @@ None required. All token budgets, agent counts, workflow phases, and command exa
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Documentation Agent | Initial document creation |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. Added Review Notes and Revision History. |

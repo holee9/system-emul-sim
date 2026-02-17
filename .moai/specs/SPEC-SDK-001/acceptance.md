@@ -723,7 +723,7 @@ And the SDK shall remain in a valid state for subsequent operations
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (spec-sdk) | Initial acceptance criteria for SPEC-SDK-001 |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (spec-sdk) | Initial acceptance criteria for SPEC-SDK-001 |
 
 ---
 
