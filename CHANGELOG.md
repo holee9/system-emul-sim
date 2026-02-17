@@ -10,13 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- SoC Firmware documentation (fw/README.md, fw/ARCHITECTURE.md)
+- Comprehensive firmware architecture documentation with module breakdown
+- Firmware development methodology guidelines (TDD for new code, DDD for HAL integration)
+- Yocto build system instructions and deployment guide
+
+### Changed
+- SPEC-FW-001 status updated from "approved" to "implemented"
+- Documentation synchronized with firmware implementation progress
+
+### Added (Previous)
 - 5 simulators implementation complete (Common.Dto, PanelSimulator, FpgaSimulator, McuSimulator, HostSimulator)
 - 261 tests passing across all simulators
 - 85%+ code coverage achieved for all simulator modules
 - Comprehensive integration test framework with IT-01~IT-10 scenarios
 - tools/Common/, tools/PanelSimulator/, tools/FpgaSimulator/, tools/McuSimulator/, tools/HostSimulator/ directories
 
-### Changed
+### Changed (Previous)
 - Performance target updated from 3072x3072@30fps to 3072x3072@15fps (CSI-2 bandwidth constraint)
 - M2-Impl milestone: All simulators with unit tests passing
 

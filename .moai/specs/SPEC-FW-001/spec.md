@@ -2,10 +2,10 @@
 
 ---
 id: SPEC-FW-001
-version: 1.2.0
-status: approved
+version: 1.3.0
+status: implemented
 created: 2026-02-17
-updated: 2026-02-17
+updated: 2026-02-18
 author: ABYZ-Lab Agent (analyst)
 priority: high
 milestone: M3
@@ -759,6 +759,7 @@ int gpio_get_status_input(uint8_t pin, bool *state);
 | 1.1.0 | 2026-02-17 | spec-fw agent | Added Security (REQ-FW-100-102), Diagnostics (REQ-FW-110-112), Daemon Lifecycle (REQ-FW-120-121), Configuration Validation (REQ-FW-130-131) sections. Fixed AC-FW-003 magic number to 0xD7E01234. Created acceptance.md and plan.md. Status: approved |
 | 1.2.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-003: Added Command Protocol section (REQ-FW-025–028) covering magic values 0xBEEFCAFE/0xCAFEBEEF, frame format, sequence replay protection. Renumbered subsequent sections (4→6 through 14→16) to accommodate new section 4. |
 | 1.3.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-008: Added BMI160 IMU HAL section (REQ-FW-140~142, AC-FW-009) - IN SCOPE Phase 3 (W23-W28). MAJOR-009: Added PCA9534 GPIO HAL section (REQ-FW-150~152, AC-FW-010) - IN SCOPE Phase 2 (W9-W22). Updated Scope table, Definitions, Development Methodology, Dependencies, Risks (R-FW-004~005). |
+| 1.3.1 | 2026-02-18 | manager-docs | Documentation synchronization: Added fw/README.md and fw/ARCHITECTURE.md. Updated CHANGELOG.md. Status changed to "implemented". |
 
 ---
 
