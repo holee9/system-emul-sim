@@ -417,6 +417,8 @@ Offset | Size | Field | Description
 
 ## Security Architecture
 
+The firmware implements defense-in-depth security with multiple layers of protection, ensuring system integrity and preventing unauthorized access.
+
 ### Authentication (REQ-FW-100)
 
 **Phase 1**: Pre-shared HMAC-SHA256 key
@@ -424,29 +426,79 @@ Offset | Size | Field | Description
 - Commands without valid HMAC silently discarded
 - Auth failure counter exposed via GET_STATUS
 
+**HMAC-SHA256 Implementation**:
+- Computed over command header (bytes 0-11) + payload
+- 32-byte HMAC appended to command frame (offset 44)
+- Verified before command execution
+- Silent discard on authentication failure to prevent timing attacks
+
+**Replay Protection** (REQ-FW-028):
+- Monotonic sequence numbers in command header
+- Discard packets with sequence <= last accepted sequence
+- Prevents command replay attacks
+
 **Phase 2 (Production)**: TLS mutual authentication
 - X.509 certificates for Host and SoC
 - Encrypted command channel
+- Certificate revocation checking
 
 ### Least Privilege (REQ-FW-102)
 
 **Service Account**: `detector`
-- Non-root user
-- Minimal Linux capabilities:
-  - `CAP_NET_BIND_SERVICE`: Bind to ports 8000/8001
-  - `CAP_SYS_NICE`: Set SCHED_FIFO for real-time threads
+- Non-root user with minimal privileges
+- Dedicated service account for daemon execution
+- No shell access for security
+
+**Minimal Linux Capabilities**:
+- `CAP_NET_BIND_SERVICE`: Bind to privileged ports 8000/8001
+- `CAP_SYS_NICE`: Set SCHED_FIFO for real-time threads
+- All other capabilities dropped
+
+**Privilege Drop Mechanism**:
+1. Daemon starts as root (required for device initialization)
+2. Opens V4L2 device, SPI device, network sockets
+3. Drops privileges to `detector` user
+4. Retains only essential capabilities
+5. Executes as non-root for operational lifetime
 
 **Systemd Hardening**:
-```
+```ini
 User=detector
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=yes
 ReadWritePaths=/var/log/detector
 AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_SYS_NICE
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+RestrictRealtime=yes
 ```
 
-**Device Permissions**: udev rules configure `/dev/video0`, `/dev/spidev0.0` ownership
+**Device Permissions**: udev rules configure `/dev/video0`, `/dev/spidev0.0` ownership to `detector:detector`
+
+### Defense in Depth
+
+**Layer 1 - Network Authentication**:
+- HMAC-SHA256 message authentication
+- Replay protection via sequence numbers
+
+**Layer 2 - Process Isolation**:
+- Non-root service account
+- Minimal capabilities
+- Systemd security hardening
+
+**Layer 3 - File System Protection**:
+- Read-only system directories
+- Restricted write paths
+- Secure key storage (0400 permissions)
+
+**Layer 4 - Kernel Protection**:
+- Kernel module signing enforcement
+- SELinux/AppMAC confinement (future)
+- Seccomp filtering (future)
+
+For comprehensive security implementation details, see [SECURITY_IMPROVEMENTS.md](SECURITY_IMPROVEMENTS.md).
 
 ## Performance Characteristics
 

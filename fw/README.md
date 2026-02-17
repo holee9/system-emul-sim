@@ -40,6 +40,7 @@ The firmware is the critical middle layer in the three-tier architecture:
 - **FPGA SPI Control**: 32-bit register read/write with write verification
 - **High-Speed Streaming**: 10 GbE UDP frame fragmentation and transmission
 - **Command Protocol**: HMAC-SHA256 authenticated Host commands on port 8001
+- **Security Architecture**: HMAC-SHA256 message authentication + privilege drop defense-in-depth
 - **Sequence Engine**: State machine (IDLE -> CONFIGURE -> ARM -> SCANNING -> STREAMING -> COMPLETE)
 - **Frame Management**: 4-buffer DDR4 ring (ping-pong + double-buffering)
 - **Error Recovery**: Automatic V4L2 pipeline restart and FPGA error recovery
@@ -194,6 +195,27 @@ Cold parameters (require scan stop):
 | Health Monitor | `health_monitor.c` | Watchdog, error tracking |
 | Main Daemon | `main.c` | Initialization, thread management |
 
+### Security Architecture
+
+The firmware implements defense-in-depth security with multiple layers:
+
+**Message Authentication (HMAC-SHA256)**:
+- Pre-shared key authentication for Host commands
+- HMAC-SHA256 over command header + payload
+- Silent discard on authentication failure
+- Replay protection via monotonic sequence numbers
+
+**Privilege Separation**:
+- Non-root service account (`detector`)
+- Minimal Linux capabilities (CAP_NET_BIND_SERVICE, CAP_SYS_NICE)
+- Systemd hardening (NoNewPrivileges, ProtectSystem, ProtectHome)
+
+**Secure Key Storage**:
+- HMAC key in `/etc/detector/hmac_key` (root:detector 0400)
+- udev rules for device permission management
+
+For detailed security architecture, see [SECURITY_IMPROVEMENTS.md](SECURITY_IMPROVEMENTS.md).
+
 For detailed architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Data Flow
@@ -228,6 +250,7 @@ Coverage target: 85%+ per module.
 ### Design Documents
 
 - [../docs/architecture/soc-firmware-design.md](../docs/architecture/soc-firmware-design.md): Detailed architecture design
+- [SECURITY_IMPROVEMENTS.md](SECURITY_IMPROVEMENTS.md): Security architecture and implementation details
 
 ### Test Documentation
 

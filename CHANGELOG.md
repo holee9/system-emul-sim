@@ -14,10 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive firmware architecture documentation with module breakdown
 - Firmware development methodology guidelines (TDD for new code, DDD for HAL integration)
 - Yocto build system instructions and deployment guide
+- Security architecture documentation (fw/SECURITY_IMPROVEMENTS.md)
 
 ### Changed
 - SPEC-FW-001 status updated from "approved" to "implemented"
 - Documentation synchronized with firmware implementation progress
+- Firmware README.md updated with security architecture section
+- Firmware ARCHITECTURE.md enhanced with defense-in-depth security layers
+
+### Security Improvements
+- HMAC-SHA256 message authentication for Host commands
+- Privilege drop mechanism (root → detector user)
+- Systemd hardening with minimal capabilities
+- Replay protection via monotonic sequence numbers
+- Secure key storage (root:detector 0400 permissions)
 
 ### Added (Previous)
 - 5 simulators implementation complete (Common.Dto, PanelSimulator, FpgaSimulator, McuSimulator, HostSimulator)
