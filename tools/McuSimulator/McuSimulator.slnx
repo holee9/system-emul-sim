@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/McuSimulator.Core/McuSimulator.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/McuSimulator.Tests/McuSimulator.Tests.csproj" />
+  </Folder>
+  <Project Path="../Common/src/Common.Dto/Common.Dto.csproj" />
+  <Project Path="../FpgaSimulator/src/FpgaSimulator.Core/FpgaSimulator.Core.csproj" />
+</Solution>
