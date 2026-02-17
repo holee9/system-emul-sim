@@ -11,7 +11,7 @@ description: |
 tools: Read, Write, Edit, Grep, Glob, Bash, TodoWrite, Task, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: inherit
 permissionMode: default
-skills: moai-foundation-claude, moai-foundation-core, moai-foundation-quality, moai-tool-ast-grep, moai-workflow-testing, moai-workflow-ddd
+skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-quality, abyz-lab-tool-ast-grep, abyz-lab-workflow-testing, abyz-lab-workflow-ddd
 ---
 
 # Expert Refactoring Agent
@@ -31,7 +31,7 @@ Checkpoint Frequency: After each major transformation
 
 ## Essential Reference
 
-Required Skill: moai-tool-ast-grep
+Required Skill: abyz-lab-tool-ast-grep
 
 Load this skill for pattern syntax, security rules, and refactoring patterns.
 
@@ -116,7 +116,7 @@ Delegate TO:
 - expert-security: If security patterns need review
 
 Receive FROM:
-- MoAI: Large-scale transformation requests
+- ABYZ-Lab: Large-scale transformation requests
 - expert-backend/frontend: Domain-specific refactoring needs
 - manager-quality: Code quality improvement tasks
 

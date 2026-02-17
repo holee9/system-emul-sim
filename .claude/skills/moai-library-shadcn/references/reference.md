@@ -36,14 +36,14 @@
 
 ## Works Well With
 
-- `moai-domain-frontend` (Frontend development patterns)
-- `moai-baas-foundation` (Enterprise UI architecture)
-- `moai-security-api` (UI security implementation)
-- `moai-essentials-perf` (Performance optimization)
-- `moai-foundation-trust` (Accessibility and compliance)
-- `moai-domain-backend` (Backend integration)
-- `moai-baas-vercel-ext` (Frontend deployment)
-- `moai-domain-testing` (Component testing strategies)
+- `abyz-lab-domain-frontend` (Frontend development patterns)
+- `abyz-lab-baas-foundation` (Enterprise UI architecture)
+- `abyz-lab-security-api` (UI security implementation)
+- `abyz-lab-essentials-perf` (Performance optimization)
+- `abyz-lab-foundation-trust` (Accessibility and compliance)
+- `abyz-lab-domain-backend` (Backend integration)
+- `abyz-lab-baas-vercel-ext` (Frontend deployment)
+- `abyz-lab-domain-testing` (Component testing strategies)
 
 ## Changelog
 

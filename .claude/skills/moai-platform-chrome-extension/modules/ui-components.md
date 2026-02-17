@@ -1,7 +1,7 @@
 ---
 name: ui-components
 description: Popup, side panel, options page, DevTools panel, and content script UI patterns
-parent-skill: moai-platform-chrome-extension
+parent-skill: abyz-lab-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

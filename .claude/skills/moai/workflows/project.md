@@ -1,8 +1,8 @@
 ---
-name: moai-workflow-project
+name: abyz-lab-workflow-project
 description: >
   Generates project documentation from codebase analysis or user input.
-  Creates product.md, structure.md, and tech.md in .moai/project/ directory.
+  Creates product.md, structure.md, and tech.md in .abyz-lab/project/ directory.
   Supports new and existing project types with LSP server detection.
   Use when initializing projects or generating project documentation.
 license: Apache-2.0
@@ -15,13 +15,13 @@ metadata:
   updated: "2026-02-07"
   tags: "project, documentation, initialization, codebase-analysis, setup"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["project", "init", "documentation", "setup", "initialize"]
   agents: ["manager-project", "manager-docs", "Explore", "expert-devops"]
@@ -30,7 +30,7 @@ triggers:
 
 # Workflow: project - Project Documentation Generation
 
-Purpose: Generate project documentation through smart questions and codebase analysis. Creates product.md, structure.md, and tech.md in .moai/project/ directory.
+Purpose: Generate project documentation through smart questions and codebase analysis. Creates product.md, structure.md, and tech.md in .abyz-lab/project/ directory.
 
 This workflow is also triggered automatically when project documentation does not exist and the user requests other workflows (plan, run, sync, etc.). See SKILL.md Step 2.5 for the auto-detection mechanism.
 
@@ -52,12 +52,12 @@ Question: Project type detected. Please confirm (in user's conversation_language
 Options (first option is auto-detected recommendation):
 
 If source code found:
-- Existing Project (Recommended): Your codebase will be automatically analyzed to generate accurate documentation. MoAI scans your files, architecture, and dependencies to create product.md, structure.md, and tech.md.
+- Existing Project (Recommended): Your codebase will be automatically analyzed to generate accurate documentation. ABYZ-Lab scans your files, architecture, and dependencies to create product.md, structure.md, and tech.md.
 - New Project: Choose this if you want to start fresh and define the project from scratch through a guided interview, ignoring existing code.
 
 If no source code found:
-- New Project (Recommended): MoAI will guide you through a short interview to understand your project goals, technology choices, and key features. This creates the foundation documents for all future development.
-- Existing Project: Choose this if your code exists elsewhere and you want to point MoAI to analyze it.
+- New Project (Recommended): ABYZ-Lab will guide you through a short interview to understand your project goals, technology choices, and key features. This creates the foundation documents for all future development.
+- Existing Project: Choose this if your code exists elsewhere and you want to point ABYZ-Lab to analyze it.
 
 Routing:
 
@@ -157,7 +157,7 @@ Expected Output from Explore agent:
 
 Execution Modes:
 
-- Fresh Documentation: When .moai/project/ is empty, generate all three files
+- Fresh Documentation: When .abyz-lab/project/ is empty, generate all three files
 - Update Documentation: When docs exist, read existing, analyze for changes, ask user which files to regenerate
 
 ---
@@ -175,7 +175,7 @@ Display in user's conversation_language:
 
 Options:
 
-- Proceed with documentation generation (Recommended): MoAI will generate product.md, structure.md, and tech.md based on the analysis above. You can review and edit the documents afterwards.
+- Proceed with documentation generation (Recommended): ABYZ-Lab will generate product.md, structure.md, and tech.md based on the analysis above. You can review and edit the documents afterwards.
 - Review specific analysis details first: See a detailed breakdown of each detected component before generating documents. Useful if you want to correct any misdetected frameworks or features.
 - Cancel and adjust project configuration: Stop the process and make changes to your project setup. Choose this if the analysis looks significantly incorrect.
 
@@ -193,7 +193,7 @@ Pass to manager-docs:
 
 - Analysis Results from Phase 1 (or user input from Phase 0.5)
 - User Confirmation from Phase 2
-- Output Directory: .moai/project/
+- Output Directory: .abyz-lab/project/
 - Language: conversation_language from config
 
 Output Files:
@@ -237,7 +237,7 @@ If LSP server is NOT installed, present AskUserQuestion:
 
 ## Phase 3.7: Development Methodology Auto-Configuration
 
-Goal: Automatically set the `development_mode` in `.moai/config/sections/quality.yaml` based on the project analysis results from Phase 0 and Phase 1.
+Goal: Automatically set the `development_mode` in `.abyz-lab/config/sections/quality.yaml` based on the project analysis results from Phase 0 and Phase 1.
 
 [HARD] This phase runs automatically without user interaction. No AskUserQuestion is needed.
 
@@ -256,7 +256,7 @@ For Existing Projects (Phase 0 classified as "Existing Project"):
   - Good test files (>= 50% ratio): Set `development_mode: "hybrid"` (sufficient base, hybrid approach)
 
 Implementation:
-- Read current `.moai/config/sections/quality.yaml`
+- Read current `.abyz-lab/config/sections/quality.yaml`
 - Update only the `constitution.development_mode` field
 - Preserve all other settings in quality.yaml unchanged
 - Use the Bash tool with a targeted YAML update (read, modify, write back)
@@ -277,12 +277,12 @@ Methodology-to-Mode Mapping Reference:
 Display completion message in user's conversation_language:
 
 - Files created: List generated files
-- Location: .moai/project/
+- Location: .abyz-lab/project/
 - Status: Success or partial completion
 
 Next Steps (AskUserQuestion):
 
-- Write SPEC (Recommended): Execute /moai plan to define your first feature specification. This is the natural next step after project setup - it creates a detailed plan for what you want to build.
+- Write SPEC (Recommended): Execute /abyz-lab plan to define your first feature specification. This is the natural next step after project setup - it creates a detailed plan for what you want to build.
 - Review Documentation: Open the generated product.md, structure.md, and tech.md files for review and manual editing. Choose this if you want to verify or customize the generated content.
 - Start New Session: Clear the current context and start fresh. Choose this if you want to work on something completely different.
 
@@ -290,11 +290,11 @@ Next Steps (AskUserQuestion):
 
 ## Agent Chain Summary
 
-- Phase 0-2: MoAI orchestrator (AskUserQuestion for all user interaction)
+- Phase 0-2: ABYZ-Lab orchestrator (AskUserQuestion for all user interaction)
 - Phase 1: Explore subagent (codebase analysis)
 - Phase 3: manager-docs subagent (documentation generation)
 - Phase 3.5: expert-devops subagent (optional LSP installation)
-- Phase 3.7: MoAI orchestrator (automatic development_mode configuration, no user interaction)
+- Phase 3.7: ABYZ-Lab orchestrator (automatic development_mode configuration, no user interaction)
 
 ---
 

@@ -8,17 +8,17 @@ Flow: TeamCreate -> Parallel Research -> Synthesis -> SPEC Document -> Shutdown
 
 - workflow.team.enabled: true
 - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-- Triggered by: /moai plan --team OR auto-detected complexity >= threshold
+- Triggered by: /abyz-lab plan --team OR auto-detected complexity >= threshold
 
 ## Phase 0: Team Setup
 
 1. Read configuration:
-   - .moai/config/sections/workflow.yaml for team settings
-   - .moai/config/sections/quality.yaml for development mode
+   - .abyz-lab/config/sections/workflow.yaml for team settings
+   - .abyz-lab/config/sections/quality.yaml for development mode
 
 2. Create team:
    ```
-   TeamCreate(team_name: "moai-plan-{feature-slug}")
+   TeamCreate(team_name: "abyz-lab-plan-{feature-slug}")
    ```
 
 3. Create shared task list:
@@ -36,10 +36,10 @@ Spawn 3 teammates from the plan_research pattern. All spawns MUST use Task() wit
 ```
 Task(
   subagent_type: "team-researcher",
-  team_name: "moai-plan-{feature-slug}",
+  team_name: "abyz-lab-plan-{feature-slug}",
   name: "researcher",
   mode: "plan",
-  prompt: "You are a codebase researcher on team moai-plan-{feature-slug}.
+  prompt: "You are a codebase researcher on team abyz-lab-plan-{feature-slug}.
     Explore the codebase for {feature_description}.
     Map architecture, find relevant files, identify dependencies and patterns.
     When done, mark your task as completed via TaskUpdate and send findings to the team lead via SendMessage."
@@ -47,10 +47,10 @@ Task(
 
 Task(
   subagent_type: "team-analyst",
-  team_name: "moai-plan-{feature-slug}",
+  team_name: "abyz-lab-plan-{feature-slug}",
   name: "analyst",
   mode: "plan",
-  prompt: "You are a requirements analyst on team moai-plan-{feature-slug}.
+  prompt: "You are a requirements analyst on team abyz-lab-plan-{feature-slug}.
     Analyze requirements for {feature_description}.
     Identify user stories, acceptance criteria, edge cases, risks, and constraints.
     When done, mark your task as completed via TaskUpdate and send findings to the team lead via SendMessage."
@@ -58,10 +58,10 @@ Task(
 
 Task(
   subagent_type: "team-architect",
-  team_name: "moai-plan-{feature-slug}",
+  team_name: "abyz-lab-plan-{feature-slug}",
   name: "architect",
   mode: "plan",
-  prompt: "You are a technical architect on team moai-plan-{feature-slug}.
+  prompt: "You are a technical architect on team abyz-lab-plan-{feature-slug}.
     Design the technical approach for {feature_description}.
     Evaluate implementation alternatives, assess trade-offs, propose architecture.
     Consider existing patterns found by the researcher.
@@ -69,7 +69,7 @@ Task(
 )
 ```
 
-All three teammates run in parallel. Messages from teammates are delivered automatically to MoAI.
+All three teammates run in parallel. Messages from teammates are delivered automatically to ABYZ-Lab.
 
 ## Phase 2: Parallel Research
 
@@ -78,7 +78,7 @@ Teammates work independently:
 - analyst defines requirements (medium)
 - architect designs solution (waits for researcher findings)
 
-MoAI monitors:
+ABYZ-Lab monitors:
 - Receive progress messages automatically
 - Forward researcher findings to architect when available
 - Resolve any questions from teammates
@@ -90,7 +90,7 @@ After all research tasks complete:
 2. Delegate SPEC creation to manager-spec subagent (NOT a teammate) with all findings
 3. Include: codebase analysis, requirements, technical design, edge cases
 
-SPEC output at: .moai/specs/SPEC-XXX/spec.md
+SPEC output at: .abyz-lab/specs/SPEC-XXX/spec.md
 
 ## Phase 4: User Approval
 

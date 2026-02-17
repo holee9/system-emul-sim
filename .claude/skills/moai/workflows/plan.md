@@ -1,5 +1,5 @@
 ---
-name: moai-workflow-plan
+name: abyz-lab-workflow-plan
 description: >
   Creates comprehensive SPEC documents using EARS format as the first step
   of the Plan-Run-Sync workflow. Handles project exploration, SPEC file
@@ -15,13 +15,13 @@ metadata:
   updated: "2026-02-03"
   tags: "plan, spec, ears, requirements, specification, design"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["plan", "spec", "design", "architect", "requirements", "feature request"]
   agents: ["manager-spec", "Explore", "manager-git"]
@@ -36,8 +36,8 @@ Create comprehensive SPEC documents using EARS format as the first step of the P
 
 ## Scope
 
-- Implements Steps 1-2 of MoAI's 4-step workflow (Intent Understanding, Plan Creation)
-- Steps 3-4 are handled by /moai run and /moai sync respectively
+- Implements Steps 1-2 of ABYZ-Lab's 4-step workflow (Intent Understanding, Plan Creation)
+- Steps 3-4 are handled by /abyz-lab run and /abyz-lab sync respectively
 
 ## Input
 
@@ -60,15 +60,15 @@ Flag priority: --worktree takes precedence over --branch, which takes precedence
 
 Before execution, load these essential files:
 
-- .moai/config/config.yaml (git strategy, language settings)
-- .moai/config/sections/git-strategy.yaml (auto_branch, branch creation policy)
-- .moai/config/sections/language.yaml (git_commit_messages setting)
-- .moai/project/product.md (product context)
-- .moai/project/structure.md (architecture context)
-- .moai/project/tech.md (technology context)
-- .moai/specs/ directory listing (existing SPECs for deduplication)
+- .abyz-lab/config/config.yaml (git strategy, language settings)
+- .abyz-lab/config/sections/git-strategy.yaml (auto_branch, branch creation policy)
+- .abyz-lab/config/sections/language.yaml (git_commit_messages setting)
+- .abyz-lab/project/product.md (product context)
+- .abyz-lab/project/structure.md (architecture context)
+- .abyz-lab/project/tech.md (technology context)
+- .abyz-lab/specs/ directory listing (existing SPECs for deduplication)
 
-Pre-execution commands: git status, git branch, git log, git diff, find .moai/specs.
+Pre-execution commands: git status, git branch, git log, git diff, find .abyz-lab/specs.
 
 ---
 
@@ -92,7 +92,7 @@ When to skip:
 Tasks for the Explore subagent:
 
 - Find relevant files by keywords from user request
-- Locate existing SPEC documents in .moai/specs/
+- Locate existing SPEC documents in .abyz-lab/specs/
 - Identify implementation patterns and dependencies
 - Discover project configuration files
 - Report comprehensive results for Phase 1B context
@@ -107,7 +107,7 @@ Tasks for manager-spec:
 
 - Analyze project documents (product.md, structure.md, tech.md)
 - Propose 1-3 SPEC candidates with proper naming
-- Check for duplicate SPECs in .moai/specs/
+- Check for duplicate SPECs in .abyz-lab/specs/
 - Design EARS structure for each candidate
 - Create implementation plan with technical constraints
 - Identify library versions (production stable only, no beta/alpha)
@@ -137,14 +137,14 @@ Purpose: Prevent common SPEC creation errors before file generation.
 Step 1 - Document Type Classification:
 
 - Detect keywords to classify as SPEC, Report, or Documentation
-- Reports route to .moai/reports/, Documentation to .moai/docs/
+- Reports route to .abyz-lab/reports/, Documentation to .abyz-lab/docs/
 - Only SPEC-type content proceeds to Phase 2
 
 Step 2 - SPEC ID Validation (all checks must pass):
 
 - ID Format: Must match SPEC-{DOMAIN}-{NUMBER} pattern (e.g., SPEC-AUTH-001)
 - Domain Name: Must be from the approved domain list (AUTH, API, UI, DB, REFACTOR, FIX, UPDATE, PERF, TEST, DOCS, INFRA, DEVOPS, SECURITY, and others)
-- ID Uniqueness: Search .moai/specs/ to confirm no duplicates exist
+- ID Uniqueness: Search .abyz-lab/specs/ to confirm no duplicates exist
 - Directory Structure: Must create directory, never flat files
 
 Composite domain rules: Maximum 2 domains recommended (e.g., UPDATE-REFACTOR-001), maximum 3 allowed.
@@ -157,18 +157,18 @@ Input: Approved plan from Phase 1B, validated SPEC ID from Phase 1.5.
 
 File generation (all three files created simultaneously):
 
-- .moai/specs/SPEC-{ID}/spec.md
+- .abyz-lab/specs/SPEC-{ID}/spec.md
   - YAML frontmatter with 7 required fields (id, version, status, created, updated, author, priority)
   - HISTORY section immediately after frontmatter
   - Complete EARS structure with all 5 requirement types
   - Content written in conversation_language
 
-- .moai/specs/SPEC-{ID}/plan.md
+- .abyz-lab/specs/SPEC-{ID}/plan.md
   - Implementation plan with task decomposition
   - Technology stack specifications and dependencies
   - Risk analysis and mitigation strategies
 
-- .moai/specs/SPEC-{ID}/acceptance.md
+- .abyz-lab/specs/SPEC-{ID}/acceptance.md
   - Minimum 2 Given/When/Then test scenarios
   - Edge case testing scenarios
   - Performance and quality gate criteria
@@ -193,7 +193,7 @@ Skipped when: develop_direct workflow, no flags and user chooses "Use current br
 
 Prerequisite: SPEC files MUST be committed before worktree creation.
 
-- Stage SPEC files: git add .moai/specs/SPEC-{ID}/
+- Stage SPEC files: git add .abyz-lab/specs/SPEC-{ID}/
 - Create commit: feat(spec): Add SPEC-{ID} - {title}
 - Create worktree via WorktreeManager with branch feature/SPEC-{ID}
 - Display worktree path and navigation instructions
@@ -228,7 +228,7 @@ Tool: AskUserQuestion (after SPEC creation completes)
 
 Options:
 
-- Start Implementation (execute /moai run SPEC-{ID})
+- Start Implementation (execute /abyz-lab run SPEC-{ID})
 - Modify Plan
 - Add New Feature (create additional SPEC)
 
@@ -255,7 +255,7 @@ All of the following must be verified:
 - Phase 1: manager-spec analyzed project and proposed SPEC candidates
 - User approval obtained via AskUserQuestion before SPEC creation
 - Phase 2: All 3 SPEC files created (spec.md, plan.md, acceptance.md)
-- Directory naming follows .moai/specs/SPEC-{ID}/ format
+- Directory naming follows .abyz-lab/specs/SPEC-{ID}/ format
 - YAML frontmatter contains all 7 required fields
 - EARS structure is complete
 - Phase 3: Appropriate git action taken based on flags and user choice
@@ -266,4 +266,4 @@ All of the following must be verified:
 
 Version: 2.0.0
 Updated: 2026-02-07
-Source: Extracted from .claude/commands/moai/1-plan.md v5.1.0. Added team mode support and --team flag.
+Source: Extracted from .claude/commands/abyz-lab/1-plan.md v5.1.0. Added team mode support and --team flag.

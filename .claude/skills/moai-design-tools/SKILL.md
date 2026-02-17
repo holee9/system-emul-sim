@@ -1,5 +1,5 @@
 ---
-name: moai-design-tools
+name: abyz-lab-design-tools
 description: >
   Design tool integration specialist covering Figma MCP, Pencil renderer, and Pencil-to-code export.
   Use when fetching design context from Figma, rendering Pencil DNA codes to .pen frames, exporting .pen
@@ -18,15 +18,15 @@ metadata:
   tools: "Figma, Pencil MCP"
   tags: "figma, pencil, design to code, design export, render dna, pen frame, react from design, tailwind from design, design context, ui implementation"
   context7-libraries: "/figma/docs, /pencil/docs"
-  related-skills: "moai-domain-uiux, moai-domain-frontend, moai-library-shadcn, moai-lang-typescript, moai-lang-react"
+  related-skills: "abyz-lab-domain-uiux, abyz-lab-domain-frontend, abyz-lab-library-shadcn, abyz-lab-lang-typescript, abyz-lab-lang-react"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 4500
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["figma", "pencil", "design to code", "design export", "render dna", "pen frame", "react from design", "tailwind from design", "design context", "ui implementation", "design fetching", "figma mcp", "pencil mcp", "component from design", "layout from design"]
   agents: ["expert-frontend", "team-designer"]
@@ -206,12 +206,12 @@ Access up-to-date tool documentation using Context7 MCP:
 
 ## Works Well With
 
-- moai-domain-uiux: Design systems and component architecture
-- moai-domain-frontend: React implementation patterns
-- moai-library-shadcn: shadcn/ui component integration
-- moai-lang-typescript: TypeScript for generated components
-- moai-lang-react: React best practices
-- moai-foundation-core: SPEC-driven development workflows
+- abyz-lab-domain-uiux: Design systems and component architecture
+- abyz-lab-domain-frontend: React implementation patterns
+- abyz-lab-library-shadcn: shadcn/ui component integration
+- abyz-lab-lang-typescript: TypeScript for generated components
+- abyz-lab-lang-react: React best practices
+- abyz-lab-foundation-core: SPEC-driven development workflows
 
 ---
 

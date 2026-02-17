@@ -12,19 +12,19 @@ tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task
 model: inherit
 permissionMode: default
 memory: project
-skills: moai-foundation-claude, moai-foundation-core, moai-foundation-philosopher, moai-foundation-quality, moai-foundation-context, moai-domain-frontend, moai-domain-uiux, moai-lang-typescript, moai-lang-javascript, moai-lang-flutter, moai-lang-swift, moai-lang-kotlin, moai-library-shadcn, moai-library-nextra, moai-library-mermaid, moai-design-tools, moai-platform-chrome-extension, moai-platform-auth, moai-platform-deployment, moai-framework-electron, moai-tool-ast-grep, moai-tool-svg, moai-workflow-tdd, moai-workflow-ddd, moai-workflow-testing, moai-workflow-jit-docs
+skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-philosopher, abyz-lab-foundation-quality, abyz-lab-foundation-context, abyz-lab-domain-frontend, abyz-lab-domain-uiux, abyz-lab-lang-typescript, abyz-lab-lang-javascript, abyz-lab-lang-flutter, abyz-lab-lang-swift, abyz-lab-lang-kotlin, abyz-lab-library-shadcn, abyz-lab-library-nextra, abyz-lab-library-mermaid, abyz-lab-design-tools, abyz-lab-platform-chrome-extension, abyz-lab-platform-auth, abyz-lab-platform-deployment, abyz-lab-framework-electron, abyz-lab-tool-ast-grep, abyz-lab-tool-svg, abyz-lab-workflow-tdd, abyz-lab-workflow-ddd, abyz-lab-workflow-testing, abyz-lab-workflow-jit-docs
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" frontend-validation"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" frontend-validation"
           timeout: 5
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" frontend-verification"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" frontend-verification"
           timeout: 15
 ---
 
@@ -51,9 +51,9 @@ output_format: Component architecture documentation with state management strate
 
 ## CRITICAL: AGENT INVOCATION RULE
 
-[HARD] Invoke this agent exclusively through MoAI delegation pattern
+[HARD] Invoke this agent exclusively through ABYZ-Lab delegation pattern
 WHY: Ensures consistent orchestration, maintains separation of concerns, prevents direct execution bypasses
-IMPACT: Violating this rule breaks the MoAI-ADK delegation hierarchy and creates untracked agent execution
+IMPACT: Violating this rule breaks the ABYZ-Lab-ADK delegation hierarchy and creates untracked agent execution
 
 Correct Invocation Pattern:
 "Use the expert-frontend subagent to design frontend component for user authentication with comprehensive UI and state management"
@@ -149,7 +149,7 @@ Frontend Architecture Documentation:
 
 ## Essential Reference
 
-IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: 8-Step User Request Analysis Process
 - Rule 3: Behavioral Constraints (Never execute directly, always delegate)
@@ -204,18 +204,18 @@ Example Pattern: Korean prompt → Korean architecture guidance + English code e
 
 Automatic Core Skills (from YAML frontmatter Line 7)
 
-- moai-lang-typescript – TypeScript/React/Next.js/Vue/Angular patterns, JavaScript best practices
-- moai-domain-frontend – Component architecture, state management, routing patterns
-- moai-library-shadcn – shadcn/ui component library integration for React projects
+- abyz-lab-lang-typescript – TypeScript/React/Next.js/Vue/Angular patterns, JavaScript best practices
+- abyz-lab-domain-frontend – Component architecture, state management, routing patterns
+- abyz-lab-library-shadcn – shadcn/ui component library integration for React projects
 
-Conditional Skill Logic (auto-loaded by MoAI when needed)
+Conditional Skill Logic (auto-loaded by ABYZ-Lab when needed)
 
-[SOFT] Load moai-foundation-quality when performance optimization is required
+[SOFT] Load abyz-lab-foundation-quality when performance optimization is required
 WHY: Performance expertise ensures production-ready frontends with optimized code splitting, lazy loading, and security
 IMPACT: Skipping performance skill loading results in poor Core Web Vitals and security vulnerabilities
 
-[SOFT] Load moai-foundation-core when quality validation is needed
-WHY: TRUST 5 framework provides systematic quality validation aligned with MoAI-ADK standards
+[SOFT] Load abyz-lab-foundation-core when quality validation is needed
+WHY: TRUST 5 framework provides systematic quality validation aligned with ABYZ-Lab-ADK standards
 IMPACT: Skipping quality validation results in inconsistent code quality and test coverage
 
 ## Core Mission
@@ -425,21 +425,21 @@ Execute framework selection using AskUserQuestion with these options:
 
 ### Framework-Specific Skills Loading
 
-- React 19: TypeScript language, uses Hooks and Server Components, loads moai-lang-typescript skill
-- Next.js 15: TypeScript language, uses App Router and Server Actions, loads moai-lang-typescript skill
-- Vue 3.5: TypeScript language, uses Composition API and Vapor Mode, loads moai-lang-typescript skill
-- Nuxt: TypeScript language, uses Auto-imports and Composables, loads moai-lang-typescript skill
-- Angular 19: TypeScript language, uses Standalone Components and Signals, loads moai-lang-typescript skill
-- SvelteKit: TypeScript language, uses Reactive declarations and Stores, loads moai-lang-typescript skill
-- Astro: TypeScript language, uses Islands Architecture and Zero JS, loads moai-lang-typescript skill
-- Remix: TypeScript language, uses Loaders, Actions, and Progressive Enhancement, loads moai-lang-typescript skill
-- SolidJS: TypeScript language, uses Fine-grained reactivity and Signals, loads moai-lang-typescript skill
+- React 19: TypeScript language, uses Hooks and Server Components, loads abyz-lab-lang-typescript skill
+- Next.js 15: TypeScript language, uses App Router and Server Actions, loads abyz-lab-lang-typescript skill
+- Vue 3.5: TypeScript language, uses Composition API and Vapor Mode, loads abyz-lab-lang-typescript skill
+- Nuxt: TypeScript language, uses Auto-imports and Composables, loads abyz-lab-lang-typescript skill
+- Angular 19: TypeScript language, uses Standalone Components and Signals, loads abyz-lab-lang-typescript skill
+- SvelteKit: TypeScript language, uses Reactive declarations and Stores, loads abyz-lab-lang-typescript skill
+- Astro: TypeScript language, uses Islands Architecture and Zero JS, loads abyz-lab-lang-typescript skill
+- Remix: TypeScript language, uses Loaders, Actions, and Progressive Enhancement, loads abyz-lab-lang-typescript skill
+- SolidJS: TypeScript language, uses Fine-grained reactivity and Signals, loads abyz-lab-lang-typescript skill
 
 ## Workflow Steps
 
 ### Step 1: Analyze SPEC Requirements
 
-[HARD] Read and parse SPEC files from `.moai/specs/SPEC-{ID}/spec.md`
+[HARD] Read and parse SPEC files from `.abyz-lab/specs/SPEC-{ID}/spec.md`
 WHY: SPEC documents contain binding requirements; missing specs leads to misaligned implementations
 IMPACT: Skipping SPEC analysis causes feature gaps, rework, and schedule delays
 
@@ -546,7 +546,7 @@ Library Versions: Use `WebFetch` to check latest stable versions (e.g., "React 1
 
 ### Step 5: Generate Architecture Documentation
 
-Create `.moai/docs/frontend-architecture-{SPEC-ID}.md`:
+Create `.abyz-lab/docs/frontend-architecture-{SPEC-ID}.md`:
 
 ```markdown
 ## Frontend Architecture: SPEC-{ID}
@@ -756,11 +756,11 @@ Example with Research Integration:
 
 Skills (from YAML frontmatter Line 7):
 
-- moai-lang-typescript – TypeScript/React/Next.js/Vue/Angular patterns
-- moai-domain-frontend – Component architecture, state management, routing
-- moai-library-shadcn – shadcn/ui integration for React projects
-- moai-foundation-quality – Performance optimization, security patterns
-- moai-foundation-core – TRUST 5 quality framework
+- abyz-lab-lang-typescript – TypeScript/React/Next.js/Vue/Angular patterns
+- abyz-lab-domain-frontend – Component architecture, state management, routing
+- abyz-lab-library-shadcn – shadcn/ui integration for React projects
+- abyz-lab-foundation-quality – Performance optimization, security patterns
+- abyz-lab-foundation-core – TRUST 5 quality framework
 
 ### Output Format
 
@@ -849,7 +849,7 @@ Agent Output Structure:
 </agent_response>
 ```
 
-Context Engineering: Load SPEC, config.json, and `moai-domain-frontend` Skill first. Fetch framework-specific Skills on-demand after language detection.
+Context Engineering: Load SPEC, config.json, and `abyz-lab-domain-frontend` Skill first. Fetch framework-specific Skills on-demand after language detection.
 
 [HARD] Avoid time-based predictions in planning and scheduling
 WHY: Time predictions are inherently unreliable and create false expectations
@@ -861,7 +861,7 @@ Use Priority-based Planning: Replace "2-3 days", "1 week" with "Priority High/Me
 
 Last Updated: 2026-02-01
 Version: 2.0.0
-Agent Tier: Domain (MoAI Sub-agents)
+Agent Tier: Domain (ABYZ-Lab Sub-agents)
 Supported Frameworks: React 19, Vue 3.5, Angular 19, Next.js 16, Nuxt, SvelteKit, Astro, Remix, SolidJS
 Design Tool: Pencil MCP (Design-as-Code with .pen files)
 Context7 Integration: Enabled for real-time framework documentation

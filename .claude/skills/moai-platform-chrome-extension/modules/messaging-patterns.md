@@ -1,7 +1,7 @@
 ---
 name: messaging-patterns
 description: One-time messages, long-lived connections, cross-extension and web page messaging
-parent-skill: moai-platform-chrome-extension
+parent-skill: abyz-lab-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

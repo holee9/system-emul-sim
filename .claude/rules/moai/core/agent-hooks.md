@@ -26,18 +26,18 @@ hooks:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" {action}"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" {action}"
           timeout: 5
   PostToolUse:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" {action}"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" {action}"
           timeout: 10
   SubagentStop:
     hooks:
       - type: command
-        command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" {action}"
+        command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" {action}"
         timeout: 10
 ```
 
@@ -64,11 +64,11 @@ Actions follow the naming pattern `{agent}-{phase}`:
 
 ## Hook Command Interface
 
-Agent hooks are executed via `moai hook agent <action>`:
+Agent hooks are executed via `abyz-lab hook agent <action>`:
 
 ```bash
-moai hook agent ddd-pre-transformation
-moai hook agent backend-validation
+abyz-lab hook agent ddd-pre-transformation
+abyz-lab hook agent backend-validation
 ```
 
 stdin JSON structure:

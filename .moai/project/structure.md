@@ -9,7 +9,7 @@
 
 **Current Directory Status**:
 - 📄 Documentation: README.md, project plans, guides
-- ⚙️ Configuration: .moai/ configuration files
+- ⚙️ Configuration: .abyz-lab/ configuration files
 - ❌ Source Code: None (pre-implementation phase)
 
 **Update Triggers**:
@@ -793,7 +793,7 @@ ls -la
 #   docs/
 #   README.md
 #   X-ray_Detector_Optimal_Project_Plan.md
-#   .moai/
+#   .abyz-lab/
 ```
 
 ---
@@ -802,7 +802,7 @@ ls -la
 
 ```bash
 # Regenerate documentation from actual code
-/moai project --refresh
+/abyz-lab project --refresh
 
 # Compare actual vs. planned structure
 # Manual review: Check for deviations from this document
@@ -841,8 +841,8 @@ git commit -m "Add 6 repositories as submodules"
 
 **Option B: Multi-Repo Workflow (Independent)**
 - Keep repositories separate (already cloned above)
-- Configure `.moai/config/sections/workflow.yaml` for multi-repo support
-- Use `/moai project` to coordinate across repositories
+- Configure `.abyz-lab/config/sections/workflow.yaml` for multi-repo support
+- Use `/abyz-lab project` to coordinate across repositories
 
 ---
 
@@ -879,9 +879,9 @@ Step 4: POST status to Gitea API (success/failure)
 - **Pros**: Parallel development, independent release cycles, clear ownership
 - **Cons**: Cross-repo synchronization overhead, version compatibility tracking
 
-**Recommendation for This Project**: **Multi-Repo** (independent repositories with coordination via MoAI workflows)
+**Recommendation for This Project**: **Multi-Repo** (independent repositories with coordination via ABYZ-Lab workflows)
 - Rationale: 6 repositories with distinct technologies (SystemVerilog, C, C#), different build systems, and independent release cycles
-- MoAI workflows (`/moai project`, `/moai run`) can coordinate across repositories without git submodule complexity
+- ABYZ-Lab workflows (`/abyz-lab project`, `/abyz-lab run`) can coordinate across repositories without git submodule complexity
 
 ---
 
@@ -899,10 +899,10 @@ This document outlines the **planned** project structure for the X-ray Detector 
 **Next Steps**:
 - Wait for repository creation and procurement (M0 milestone, Week 1)
 - Clone repositories when available
-- Run `/moai project --refresh` to update documentation from actual code
+- Run `/abyz-lab project --refresh` to update documentation from actual code
 
 ---
 
 **Document End**
 
-*This is a pre-implementation planning document. Run `/moai project --refresh` after code repositories are cloned to regenerate from actual implementation.*
+*This is a pre-implementation planning document. Run `/abyz-lab project --refresh` after code repositories are cloned to regenerate from actual implementation.*

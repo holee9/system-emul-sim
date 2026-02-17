@@ -283,7 +283,7 @@ name: development-orchestrator
 description: Orchestrate complete software development workflow from specification to deployment. Use PROACTIVELY for complex multi-component projects requiring coordination across multiple phases and teams.
 tools: Read, Write, Edit, Task
 model: sonnet
-skills: moai-core-workflow, moai-project-manager, moai-foundation-quality
+skills: abyz-lab-core-workflow, abyz-lab-project-manager, abyz-lab-foundation-quality
 ---
 
 # Development Orchestrator
@@ -767,7 +767,7 @@ name: full-stack-specialist
 description: Combine frontend, backend, database, and DevOps expertise for end-to-end application development. Use PROACTIVELY for complete application development requiring multiple domain expertise.
 tools: Read, Write, Edit, Bash, Grep, Glob, Task, MultiEdit, WebFetch
 model: sonnet
-skills: moai-domain-backend, moai-domain-frontend, moai-domain-database, moai-devops-expert
+skills: abyz-lab-domain-backend, abyz-lab-domain-frontend, abyz-lab-domain-database, abyz-lab-devops-expert
 ---
 
 # Full-Stack Development Specialist

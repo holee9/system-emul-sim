@@ -33,7 +33,7 @@ Context7-Enhanced Analysis:
 ### Key Components
 
 ```python
-from moai_workflow_testing.automated_code_review import (
+from abyz-lab_workflow_testing.automated_code_review import (
     AutomatedCodeReviewer,
     CodeReviewReport,
     TrustCategory,

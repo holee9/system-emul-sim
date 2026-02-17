@@ -1,11 +1,11 @@
 ---
-name: moai-workflow-ddd
+name: abyz-lab-workflow-ddd
 description: >
   Domain-Driven Development workflow specialist using ANALYZE-PRESERVE-IMPROVE
   cycle for behavior-preserving code transformation.
   Use when refactoring legacy code, improving code structure without functional changes,
   reducing technical debt, or performing API migration with behavior preservation.
-  Do NOT use for writing new tests (use moai-workflow-testing instead)
+  Do NOT use for writing new tests (use abyz-lab-workflow-testing instead)
   or creating new features from scratch (use expert-backend or expert-frontend instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
@@ -18,17 +18,17 @@ metadata:
   updated: "2026-01-16"
   modularized: "true"
   tags: "workflow, refactoring, ddd, domain-driven, behavior-preservation, ast-grep, characterization-tests"
-  author: "MoAI-ADK Team"
+  author: "ABYZ-Lab-ADK Team"
   context: "fork"
   agent: "manager-ddd"
-  related-skills: "moai-tool-ast-grep, moai-workflow-testing, moai-foundation-quality"
+  related-skills: "abyz-lab-tool-ast-grep, abyz-lab-workflow-testing, abyz-lab-foundation-quality"
 ---
 
 # Domain-Driven Development (DDD) Workflow
 
 ## Development Mode Configuration (CRITICAL)
 
-[NOTE] This workflow is selected based on `.moai/config/sections/quality.yaml`:
+[NOTE] This workflow is selected based on `.abyz-lab/config/sections/quality.yaml`:
 
 ```yaml
 constitution:
@@ -41,7 +41,7 @@ constitution:
 **When to use this workflow**:
 - `development_mode: ddd` → Always use DDD
 - `development_mode: hybrid` + refactoring existing code → Use DDD
-- `development_mode: hybrid` + new package/module → Use TDD instead (moai-workflow-tdd)
+- `development_mode: hybrid` + new package/module → Use TDD instead (abyz-lab-workflow-tdd)
 
 **Key distinction**:
 - **New file/package** (doesn't exist yet) → TDD (RED-GREEN-REFACTOR)
@@ -251,7 +251,7 @@ After each transformation:
 
 ### Standard DDD Session
 
-When executing DDD through moai:2-run in DDD mode:
+When executing DDD through abyz-lab:2-run in DDD mode:
 
 Step 1 - Initial Assessment:
 
@@ -339,7 +339,7 @@ DDD relies heavily on AST-grep for:
 - Safe code transformations
 - Multi-file refactoring
 
-Load moai-tool-ast-grep for detailed pattern syntax and rule creation.
+Load abyz-lab-tool-ast-grep for detailed pattern syntax and rule creation.
 
 ### With Testing Workflow
 

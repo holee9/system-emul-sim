@@ -1,11 +1,11 @@
 ---
-name: moai-library-shadcn
+name: abyz-lab-library-shadcn
 description: >
   Provides shadcn/ui component library expertise for React applications with Tailwind CSS.
   Use when implementing UI components, design systems, or component composition with
   shadcn/ui, Radix primitives, or Tailwind-based component libraries.
   Do NOT use for non-React frameworks or custom CSS-only styling
-  (use moai-domain-frontend instead).
+  (use abyz-lab-domain-frontend instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -17,9 +17,9 @@ metadata:
   status: "active"
   updated: "2026-01-11"
   tags: "library, shadcn, enterprise, development, ui"
-  aliases: "moai-library-shadcn"
+  aliases: "abyz-lab-library-shadcn"
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["shadcn", "component library", "design system", "radix", "tailwind", "ui components"]
 ---
@@ -148,8 +148,8 @@ The Zod and React Hook Form integration pattern involves importing useForm from 
 
 - shadcn-components.md module for advanced component patterns and implementation
 - shadcn-theming.md module for theme system and customization strategies
-- moai-domain-uiux for design system architecture and principles
-- moai-lang-typescript for TypeScript best practices
+- abyz-lab-domain-uiux for design system architecture and principles
+- abyz-lab-lang-typescript for TypeScript best practices
 - code-frontend for frontend development patterns
 
 ---

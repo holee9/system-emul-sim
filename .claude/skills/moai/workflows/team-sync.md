@@ -22,7 +22,7 @@ Future consideration for team mode if:
 
 ## Current Behavior
 
-When /moai sync is invoked with --team flag:
+When /abyz-lab sync is invoked with --team flag:
 - Log informational message: "Sync phase uses sub-agent mode for optimal coherence"
 - Execute standard sync workflow via manager-docs subagent
 - --team flag is acknowledged but not applied for this phase

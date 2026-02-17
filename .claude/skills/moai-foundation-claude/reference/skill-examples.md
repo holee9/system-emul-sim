@@ -23,7 +23,7 @@ Examples Cover: Documentation skills, language-specific patterns, domain experti
 
 ```yaml
 ---
-name: moai-docs-api-generator
+name: abyz-lab-docs-api-generator
 description: Generate comprehensive API documentation from OpenAPI specifications and code comments. Use when you need to create, update, or analyze API documentation for REST/GraphQL services.
 allowed-tools: Read, Write, Edit, Grep, Glob, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 version: 1.2.0
@@ -103,9 +103,9 @@ xargs python extract_docs.py --output ./docs/api/
 
 ## Works Well With
 
-- [`moai-docs-toolkit`](../moai-docs-toolkit/SKILL.md) - General documentation patterns
-- [`moai-domain-backend`](../moai-domain-backend/SKILL.md) - Backend API expertise
-- [`moai-context7-integration`](../moai-context7-integration/SKILL.md) - Latest framework docs
+- [`abyz-lab-docs-toolkit`](../abyz-lab-docs-toolkit/SKILL.md) - General documentation patterns
+- [`abyz-lab-domain-backend`](../abyz-lab-domain-backend/SKILL.md) - Backend API expertise
+- [`abyz-lab-context7-integration`](../abyz-lab-context7-integration/SKILL.md) - Latest framework docs
 
 ## Advanced Features
 
@@ -154,7 +154,7 @@ users = response.json()
 
 ```yaml
 ---
-name: moai-code-comment-analyzer
+name: abyz-lab-code-comment-analyzer
 description: Extract and analyze code comments, documentation, and annotations from source code across multiple programming languages. Use when you need to audit code documentation quality or generate documentation from code.
 allowed-tools: Read, Grep, Glob, Write, Edit
 version: 1.0.0
@@ -234,9 +234,9 @@ def calculate_coverage(docstrings, total_elements):
 
 ## Works Well With
 
-- [`moai-lang-python`](../moai-lang-python/SKILL.md) - Python-specific patterns
-- [`moai-code-quality`](../moai-code-quality/SKILL.md) - General code quality assessment
-- [`moai-cc-claude-md`](../moai-cc-claude-md/SKILL.md) - Documentation generation
+- [`abyz-lab-lang-python`](../abyz-lab-lang-python/SKILL.md) - Python-specific patterns
+- [`abyz-lab-code-quality`](../abyz-lab-code-quality/SKILL.md) - General code quality assessment
+- [`abyz-lab-cc-claude-md`](../abyz-lab-cc-claude-md/SKILL.md) - Documentation generation
 
 ## Advanced Features
 
@@ -296,7 +296,7 @@ function standardizeJSDoc(comment) {
 
 ```yaml
 ---
-name: moai-python-testing-expert
+name: abyz-lab-python-testing-expert
 description: Comprehensive Python testing expertise covering pytest, unittest, mocking, and test-driven development patterns. Use when writing tests, setting up test infrastructure, or improving test coverage and quality.
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 version: 1.1.0
@@ -424,9 +424,9 @@ pytest --cov=src --cov-report=html # With coverage report
 
 ## Works Well With
 
-- [`moai-lang-python`](../moai-lang-python/SKILL.md) - Python language patterns
-- [`moai-workflow-ddd`](../moai-workflow-ddd/SKILL.md) - DDD methodology
-- [`moai-quality-gate`](../moai-quality-gate/SKILL.md) - Quality validation
+- [`abyz-lab-lang-python`](../abyz-lab-lang-python/SKILL.md) - Python language patterns
+- [`abyz-lab-workflow-ddd`](../abyz-lab-workflow-ddd/SKILL.md) - DDD methodology
+- [`abyz-lab-quality-gate`](../abyz-lab-quality-gate/SKILL.md) - Quality validation
 
 ## Advanced Features
 
@@ -509,7 +509,7 @@ class TestUserCreationTransaction:
 
 ```yaml
 ---
-name: moai-modern-javascript-patterns
+name: abyz-lab-modern-javascript-patterns
 description: Modern JavaScript and TypeScript patterns including ES2023+, async programming, functional programming, and type-safe development. Use when implementing modern web applications or libraries.
 allowed-tools: Read, Write, Edit, Grep, Glob, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 version: 1.3.0
@@ -700,9 +700,9 @@ const sum = doubled.reduce((acc, n) => acc + n, 0); // 24
 
 ## Works Well With
 
-- [`moai-domain-frontend`](../moai-domain-frontend/SKILL.md) - Frontend development patterns
-- [`moai-context7-integration`](../moai-context7-integration/SKILL.md) - Latest framework docs
-- [`moai-web-performance`](../moai-web-performance/SKILL.md) - Performance optimization
+- [`abyz-lab-domain-frontend`](../abyz-lab-domain-frontend/SKILL.md) - Frontend development patterns
+- [`abyz-lab-context7-integration`](../abyz-lab-context7-integration/SKILL.md) - Latest framework docs
+- [`abyz-lab-web-performance`](../abyz-lab-web-performance/SKILL.md) - Performance optimization
 
 ## Advanced Features
 
@@ -845,7 +845,7 @@ class RateLimitedApi {
 
 ```yaml
 ---
-name: moai-security-analysis-expert
+name: abyz-lab-security-analysis-expert
 description: Comprehensive security analysis expertise covering OWASP Top 10, vulnerability assessment, secure coding practices, and compliance validation. Use when conducting security audits, implementing security controls, or validating security measures.
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 version: 1.2.0
@@ -1056,9 +1056,9 @@ def get_user_by_id(user_id: int) -> Optional[User]:
 
 ## Works Well With
 
-- [`moai-cc-security`](../moai-cc-security/SKILL.md) - General security patterns
-- [`moai-quality-gate`](../moai-quality-gate/SKILL.md) - Quality validation
-- [`moai-domain-backend`](../moai-domain-backend/SKILL.md) - Backend security
+- [`abyz-lab-cc-security`](../abyz-lab-cc-security/SKILL.md) - General security patterns
+- [`abyz-lab-quality-gate`](../abyz-lab-quality-gate/SKILL.md) - Quality validation
+- [`abyz-lab-domain-backend`](../abyz-lab-domain-backend/SKILL.md) - Backend security
 
 ## Advanced Features
 
@@ -1153,7 +1153,7 @@ class SecurityMonitor:
 
 ```yaml
 ---
-name: moai-workflow-automation-expert
+name: abyz-lab-workflow-automation-expert
 description: Workflow automation expertise covering CI/CD pipelines, DevOps automation, infrastructure as code, and deployment strategies. Use when setting up automated workflows, CI/CD pipelines, or infrastructure management.
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 version: 1.1.0
@@ -1454,9 +1454,9 @@ resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
 
 ## Works Well With
 
-- [`moai-devops-expert`](../moai-devops-expert/SKILL.md) - DevOps best practices
-- [`moai-monitoring-expert`](../moai-monitoring-expert/SKILL.md) - Monitoring strategies
-- [`moai-security-expert`](../moai-security-expert/SKILL.md) - Security automation
+- [`abyz-lab-devops-expert`](../abyz-lab-devops-expert/SKILL.md) - DevOps best practices
+- [`abyz-lab-monitoring-expert`](../abyz-lab-monitoring-expert/SKILL.md) - Monitoring strategies
+- [`abyz-lab-security-expert`](../abyz-lab-security-expert/SKILL.md) - Security automation
 
 ## Advanced Features
 

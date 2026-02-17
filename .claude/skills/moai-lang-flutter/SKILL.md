@@ -1,5 +1,5 @@
 ---
-name: moai-lang-flutter
+name: abyz-lab-lang-flutter
 description: >
   Flutter 3.24+ / Dart 3.5+ development specialist covering Riverpod,
   go_router, and cross-platform patterns. Use when building cross-platform
@@ -15,15 +15,15 @@ metadata:
   modularized: "false"
   tags: "flutter, dart, riverpod, cross-platform, mobile, desktop"
   context7-libraries: "/flutter/flutter, /rrousselgit/riverpod, /flutter/packages"
-  related-skills: "moai-lang-swift, moai-lang-kotlin"
+  related-skills: "abyz-lab-lang-swift, abyz-lab-lang-kotlin"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["Flutter", "Dart", "Riverpod", "go_router", "widget", ".dart", "pubspec.yaml", "cross-platform", "mobile", "adaptive", "responsive", "animation", "hero", "staggered", "physics"]
   languages: ["dart", "flutter"]
@@ -117,8 +117,8 @@ Navigation and Storage:
 
 ## Works Well With
 
-- `moai-lang-swift` - iOS native integration for platform channels
-- `moai-lang-kotlin` - Android native integration for platform channels
-- `moai-domain-backend` - API integration and backend communication
-- `moai-quality-security` - Mobile security best practices
-- `moai-essentials-debug` - Flutter debugging and DevTools
+- `abyz-lab-lang-swift` - iOS native integration for platform channels
+- `abyz-lab-lang-kotlin` - Android native integration for platform channels
+- `abyz-lab-domain-backend` - API integration and backend communication
+- `abyz-lab-quality-security` - Mobile security best practices
+- `abyz-lab-essentials-debug` - Flutter debugging and DevTools

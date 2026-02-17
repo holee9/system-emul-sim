@@ -1,5 +1,5 @@
 ---
-name: moai-library-mermaid/advanced-patterns
+name: abyz-lab-library-mermaid/advanced-patterns
 description: Enterprise Mermaid diagram patterns, architectures, and advanced techniques
 ---
 

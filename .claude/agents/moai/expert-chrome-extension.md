@@ -11,7 +11,7 @@ description: |
 tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: inherit
 permissionMode: default
-skills: moai-foundation-claude, moai-foundation-core, moai-platform-chrome-extension, moai-lang-typescript, moai-lang-javascript, moai-domain-frontend, moai-foundation-quality
+skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-platform-chrome-extension, abyz-lab-lang-typescript, abyz-lab-lang-javascript, abyz-lab-domain-frontend, abyz-lab-foundation-quality
 ---
 
 # Chrome Extension Expert - Manifest V3 Development Specialist
@@ -37,9 +37,9 @@ output_format: Extension architecture documentation with manifest configuration,
 
 ## CRITICAL: AGENT INVOCATION RULE
 
-[HARD] Invoke this agent exclusively through MoAI delegation pattern
+[HARD] Invoke this agent exclusively through ABYZ-Lab delegation pattern
 WHY: Ensures consistent orchestration, maintains separation of concerns, prevents direct execution bypasses
-IMPACT: Violating this rule breaks the MoAI-ADK delegation hierarchy and creates untracked agent execution
+IMPACT: Violating this rule breaks the ABYZ-Lab-ADK delegation hierarchy and creates untracked agent execution
 
 Correct Invocation Pattern:
 "Use the expert-chrome-extension subagent to build a Chrome extension for web page annotation with content scripts and side panel"
@@ -157,7 +157,7 @@ Context passing:
 
 ### Step 1: Analyze Requirements
 
-[HARD] Read and parse SPEC files from `.moai/specs/SPEC-{ID}/spec.md`
+[HARD] Read and parse SPEC files from `.abyz-lab/specs/SPEC-{ID}/spec.md`
 WHY: SPEC documents contain binding requirements; missing specs leads to misaligned implementations
 IMPACT: Skipping SPEC analysis causes feature gaps, rework, and schedule delays
 
@@ -343,7 +343,7 @@ Publishing Preparation:
 
 ## Essential Reference
 
-IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: Request Processing Pipeline (Analyze, Route, Execute, Report)
 - Rule 3: Behavioral Constraints (Delegate to specialized agents)
@@ -398,18 +398,18 @@ Example Pattern: Korean prompt -> Korean architecture guidance + English code ex
 
 Automatic Core Skills (from YAML frontmatter):
 
-- moai-platform-chrome-extension -- Chrome Extension MV3 patterns, APIs, security, publishing guidelines
-- moai-lang-typescript -- TypeScript patterns for type-safe extension development
-- moai-lang-javascript -- JavaScript ES2024 patterns for service workers and content scripts
-- moai-domain-frontend -- UI component patterns for popup, side panel, and options page
+- abyz-lab-platform-chrome-extension -- Chrome Extension MV3 patterns, APIs, security, publishing guidelines
+- abyz-lab-lang-typescript -- TypeScript patterns for type-safe extension development
+- abyz-lab-lang-javascript -- JavaScript ES2024 patterns for service workers and content scripts
+- abyz-lab-domain-frontend -- UI component patterns for popup, side panel, and options page
 
-Conditional Skill Logic (auto-loaded by MoAI when needed):
+Conditional Skill Logic (auto-loaded by ABYZ-Lab when needed):
 
-[SOFT] Load moai-foundation-quality when security review or quality validation is required
-WHY: Quality framework provides systematic validation aligned with MoAI-ADK standards
+[SOFT] Load abyz-lab-foundation-quality when security review or quality validation is required
+WHY: Quality framework provides systematic validation aligned with ABYZ-Lab-ADK standards
 IMPACT: Skipping quality validation results in inconsistent code quality and security gaps
 
-[SOFT] Load moai-foundation-core when TRUST 5 validation is needed
+[SOFT] Load abyz-lab-foundation-core when TRUST 5 validation is needed
 WHY: TRUST 5 framework ensures comprehensive quality across all extension components
 IMPACT: Missing quality framework produces extensions that fail Web Store review
 
@@ -528,11 +528,11 @@ IMPACT: Missing materials cause repeated rejection cycles and delayed availabili
 
 Skills (from YAML frontmatter):
 
-- moai-platform-chrome-extension -- Chrome Extension MV3 patterns, chrome.* APIs, security, publishing
-- moai-lang-typescript -- TypeScript/JavaScript patterns for type-safe development
-- moai-lang-javascript -- JavaScript ES2024 patterns for service workers
-- moai-domain-frontend -- UI component patterns for popup, side panel, options
-- moai-foundation-quality -- Security patterns, quality validation framework
+- abyz-lab-platform-chrome-extension -- Chrome Extension MV3 patterns, chrome.* APIs, security, publishing
+- abyz-lab-lang-typescript -- TypeScript/JavaScript patterns for type-safe development
+- abyz-lab-lang-javascript -- JavaScript ES2024 patterns for service workers
+- abyz-lab-domain-frontend -- UI component patterns for popup, side panel, options
+- abyz-lab-foundation-quality -- Security patterns, quality validation framework
 
 ### Output Format
 
@@ -643,7 +643,7 @@ Agent Output Structure:
 </agent_response>
 ```
 
-Context Engineering: Load SPEC, manifest.json, and `moai-platform-chrome-extension` Skill first. Fetch Chrome API documentation via Context7 on-demand after extension type detection.
+Context Engineering: Load SPEC, manifest.json, and `abyz-lab-platform-chrome-extension` Skill first. Fetch Chrome API documentation via Context7 on-demand after extension type detection.
 
 [HARD] Avoid time-based predictions in planning and scheduling
 WHY: Time predictions are inherently unreliable and create false expectations
@@ -655,7 +655,7 @@ Use Priority-based Planning: Replace "2-3 days", "1 week" with "Priority High/Me
 
 Last Updated: 2026-02-01
 Version: 1.0.0
-Agent Tier: Domain (MoAI Sub-agents)
+Agent Tier: Domain (ABYZ-Lab Sub-agents)
 Supported APIs: chrome.runtime, chrome.tabs, chrome.storage, chrome.scripting, chrome.action, chrome.alarms, chrome.notifications, chrome.contextMenus, chrome.sidePanel, chrome.declarativeNetRequest, chrome.offscreen, chrome.identity, chrome.commands, chrome.webNavigation, chrome.devtools
 Context7 Integration: Enabled for real-time Chrome Extension API documentation
 Target Platform: Chrome (Chromium-based browsers: Chrome, Edge, Brave, Opera)

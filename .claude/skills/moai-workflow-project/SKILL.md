@@ -1,5 +1,5 @@
 ---
-name: moai-workflow-project
+name: abyz-lab-workflow-project
 description: >
   Integrated project management system with documentation, language
   initialization, and template optimization modules. Use when setting up
@@ -16,22 +16,22 @@ metadata:
   updated: "2026-01-08"
   modularized: "true"
   tags: "workflow, project, documentation, initialization, templates"
-  aliases: "moai-workflow-project"
+  aliases: "abyz-lab-workflow-project"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["project setup", "initialization", "project initialization", "project configuration", "project documentation", "multilingual", "language initialization"]
   phases: ["plan", "run"]
   agents: ["manager-project", "manager-docs"]
 ---
 
-# MoAI Workflow Project - Integrated Project Management System
+# ABYZ-Lab Workflow Project - Integrated Project Management System
 
 Purpose: Comprehensive project management system that integrates documentation generation, multilingual support, and template optimization into unified architecture with intelligent automation and Claude Code integration.
 
@@ -291,8 +291,8 @@ File Size Impact:
 
 ## Works Well With
 
-- moai-foundation-core: Core execution patterns and SPEC-driven development workflows
-- moai-foundation-claude: Claude Code integration and configuration
-- moai-workflow-docs: Unified documentation management
-- moai-workflow-templates: Template optimization strategies
-- moai-library-nextra: Advanced documentation architecture
+- abyz-lab-foundation-core: Core execution patterns and SPEC-driven development workflows
+- abyz-lab-foundation-claude: Claude Code integration and configuration
+- abyz-lab-workflow-docs: Unified documentation management
+- abyz-lab-workflow-templates: Template optimization strategies
+- abyz-lab-library-nextra: Advanced documentation architecture

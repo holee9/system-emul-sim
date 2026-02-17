@@ -527,7 +527,7 @@ uint16_t crc16_calculate(const uint8_t *data, size_t length) {
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Initial specification with UDP frame protocol, control protocol, discovery protocol, CRC-16, Wireshark filters |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-docs) | Initial specification with UDP frame protocol, control protocol, discovery protocol, CRC-16, Wireshark filters |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed: Section 7 heading numbering (6.x -> 7.x), invalid magic value in Section 8.1 (0xDEADBEEF -> 0xD7E01234), Discovery Protocol port (8001 -> 8002) |
 | 1.0.2 | 2026-02-17 | manager-quality | Fixed CRIT-007: Added CRC-16 field to FrameHeader at offset 28; shifted bit_depth to offset 30, flags to offset 31; removed reserved1[2]; added Section 7.2 (frame header CRC scope and pseudocode); updated Wireshark flags filter offset (29 -> 31) |
 

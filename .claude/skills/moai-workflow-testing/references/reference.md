@@ -1,4 +1,4 @@
-# moai-workflow-testing Reference
+# abyz-lab-workflow-testing Reference
 
 Progressive Disclosure Level 2: Extended documentation for testing, debugging, and quality workflows.
 
@@ -152,7 +152,7 @@ quality_gates:
 
 ```python
 # Complete CI/CD integration with quality gates
-from moai_workflow_testing import DevelopmentWorkflow, WorkflowConfig
+from abyz-lab_workflow_testing import DevelopmentWorkflow, WorkflowConfig
 
 async def ci_pipeline(commit_hash: str, project_path: str):
     """Run full CI pipeline with all quality gates."""
@@ -193,7 +193,7 @@ async def ci_pipeline(commit_hash: str, project_path: str):
 
 ```python
 # Enhanced TDD with Context7 best practices
-from moai_workflow_testing import TDDManager, TestSpecification, TestType
+from abyz-lab_workflow_testing import TDDManager, TestSpecification, TestType
 
 async def implement_feature_tdd(feature_spec: dict, context7_client):
     """Implement feature using TDD with Context7 patterns."""
@@ -236,7 +236,7 @@ async def implement_feature_tdd(feature_spec: dict, context7_client):
 
 ```python
 # Intelligent debugging with automatic fix application
-from moai_workflow_testing import AIDebugger
+from abyz-lab_workflow_testing import AIDebugger
 
 async def debug_production_error(exception, context, context7_client):
     """Debug production error with AI assistance."""
@@ -269,7 +269,7 @@ async def debug_production_error(exception, context, context7_client):
 
 ```python
 # Comprehensive performance optimization
-from moai_workflow_testing import PerformanceProfiler
+from abyz-lab_workflow_testing import PerformanceProfiler
 
 async def optimize_critical_path(function_name: str, context7_client):
     """Profile and optimize critical code path."""
@@ -338,13 +338,13 @@ Issue: TDD cycle stuck in RED phase:
 
 ```bash
 # CLI diagnostics
-moai-workflow diagnose --full-check
-moai-workflow test --dry-run --verbose
-moai-workflow profile --list-available
-moai-workflow review --show-rules
+abyz-lab-workflow diagnose --full-check
+abyz-lab-workflow test --dry-run --verbose
+abyz-lab-workflow profile --list-available
+abyz-lab-workflow review --show-rules
 
 # Python diagnostics
-from moai_workflow_testing import diagnose
+from abyz-lab_workflow_testing import diagnose
 
 # Component health check
 report = await diagnose.check_all_components()
@@ -356,11 +356,11 @@ print(f"Reviewer: {report.reviewer_status}")
 
 ### Log Locations
 
-- Workflow logs: `.moai/logs/workflow.log`
-- Test results: `.moai/test-results/`
-- Profile data: `.moai/profiles/`
-- Review reports: `.moai/reviews/`
-- Debug sessions: `.moai/debug-sessions/`
+- Workflow logs: `.abyz-lab/logs/workflow.log`
+- Test results: `.abyz-lab/test-results/`
+- Profile data: `.abyz-lab/profiles/`
+- Review reports: `.abyz-lab/reviews/`
+- Debug sessions: `.abyz-lab/debug-sessions/`
 
 ---
 
@@ -381,10 +381,10 @@ print(f"Reviewer: {report.reviewer_status}")
 
 ### Related Skills
 
-- moai-foundation-core - TRUST 5 framework and SPEC-First TDD
-- moai-domain-backend - Backend development workflows
-- moai-domain-frontend - Frontend development workflows
-- moai-platform-baas - Backend-as-a-Service integration
+- abyz-lab-foundation-core - TRUST 5 framework and SPEC-First TDD
+- abyz-lab-domain-backend - Backend development workflows
+- abyz-lab-domain-frontend - Frontend development workflows
+- abyz-lab-platform-baas - Backend-as-a-Service integration
 
 ### Module References
 

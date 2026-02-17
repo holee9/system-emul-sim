@@ -1,6 +1,6 @@
 # External References
 
-Source materials and inspiration for the MoAI Foundation Thinking skill.
+Source materials and inspiration for the ABYZ-Lab Foundation Thinking skill.
 
 ## Primary Sources
 
@@ -23,10 +23,10 @@ Deep Questioning (Ideation Framework):
 
 ## Complementary Resources
 
-Related MoAI Skills:
-- moai-foundation-philosopher: Strategic architecture decisions using First Principles, Design Thinking, and Systems Engineering
-- moai-foundation-quality: TRUST 5 quality validation framework
-- moai-workflow-thinking: Sequential Thinking MCP integration for UltraThink mode
+Related ABYZ-Lab Skills:
+- abyz-lab-foundation-philosopher: Strategic architecture decisions using First Principles, Design Thinking, and Systems Engineering
+- abyz-lab-foundation-quality: TRUST 5 quality validation framework
+- abyz-lab-workflow-thinking: Sequential Thinking MCP integration for UltraThink mode
 
 ## Framework Comparison
 

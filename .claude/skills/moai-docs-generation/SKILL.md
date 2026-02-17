@@ -1,5 +1,5 @@
 ---
-name: moai-docs-generation
+name: abyz-lab-docs-generation
 description: >
   Documentation generation patterns for technical specs, API docs, user guides,
   and knowledge bases using real tools like Sphinx, MkDocs, TypeDoc, and Nextra.
@@ -137,7 +137,7 @@ Serve Swagger UI at /api-docs endpoint.
 
 Nextra (Next.js):
 
-Reference Skill("moai-library-nextra") for comprehensive Nextra patterns.
+Reference Skill("abyz-lab-library-nextra") for comprehensive Nextra patterns.
 
 Key advantages: MDX support, file-system routing, built-in search, theme customization.
 
@@ -172,7 +172,7 @@ Use Markdown with Vue components, code highlighting, and frontmatter.
 
 ### Documentation from SPEC Files
 
-Pattern for generating documentation from MoAI SPEC files:
+Pattern for generating documentation from ABYZ-Lab SPEC files:
 
 Read SPEC file content and extract key sections: id, title, description, requirements, api_endpoints.
 
@@ -252,11 +252,11 @@ Organize translations in i18n/[locale] directory structure.
 ## Works Well With
 
 Skills:
-- moai-library-nextra - Comprehensive Nextra documentation framework patterns
-- moai-lang-python - Python docstring conventions and typing
-- moai-lang-typescript - TypeScript/JSDoc documentation patterns
-- moai-domain-backend - API documentation for backend services
-- moai-workflow-project - Project documentation integration
+- abyz-lab-library-nextra - Comprehensive Nextra documentation framework patterns
+- abyz-lab-lang-python - Python docstring conventions and typing
+- abyz-lab-lang-typescript - TypeScript/JSDoc documentation patterns
+- abyz-lab-domain-backend - API documentation for backend services
+- abyz-lab-workflow-project - Project documentation integration
 
 Agents:
 - manager-docs - Documentation workflow orchestration
@@ -264,7 +264,7 @@ Agents:
 - expert-frontend - Component documentation
 
 Commands:
-- /moai:3-sync - Documentation synchronization with code changes
+- /abyz-lab:3-sync - Documentation synchronization with code changes
 
 ---
 

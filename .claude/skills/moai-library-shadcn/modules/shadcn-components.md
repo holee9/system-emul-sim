@@ -1,4 +1,4 @@
-name: moai-library-shadcn-components
+name: abyz-lab-library-shadcn-components
 description: Advanced shadcn/ui component patterns and implementations
 
 ## Advanced Component Patterns

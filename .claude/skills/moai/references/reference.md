@@ -1,9 +1,9 @@
 ---
-name: moai-reference
+name: abyz-lab-reference
 description: >
   Common execution patterns, flag reference, legacy command mapping,
   configuration file paths, and error handling delegation used across all
-  MoAI workflows. Provides resume patterns and context propagation guidance.
+  ABYZ-Lab workflows. Provides resume patterns and context propagation guidance.
   Use when needing execution patterns, flag details, or configuration reference.
 license: Apache-2.0
 compatibility: Designed for Claude Code
@@ -15,22 +15,22 @@ metadata:
   updated: "2026-02-03"
   tags: "reference, patterns, flags, configuration, legacy, resume, context"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["reference", "pattern", "flag", "config", "resume", "legacy", "mapping"]
   agents: ["manager-spec", "manager-ddd", "manager-docs", "manager-quality", "manager-git"]
   phases: ["plan", "run", "sync"]
 ---
 
-# MoAI Skill Reference
+# ABYZ-Lab Skill Reference
 
-Common patterns, flag reference, legacy command mapping, and configuration files used across all MoAI workflows.
+Common patterns, flag reference, legacy command mapping, and configuration files used across all ABYZ-Lab workflows.
 
 ---
 
@@ -76,7 +76,7 @@ Combine parallel and sequential patterns within a single workflow.
 Use Cases:
 
 - Fix Workflow: Parallel diagnostic scan (LSP + linters + AST-grep), then sequential fix application based on combined results
-- MoAI Workflow: Parallel exploration phase, then sequential SPEC generation and DDD implementation
+- ABYZ-Lab Workflow: Parallel exploration phase, then sequential SPEC generation and DDD implementation
 - Run Workflow: Parallel quality checks, then sequential implementation tasks
 
 Implementation:
@@ -93,7 +93,7 @@ When a workflow is interrupted or needs to continue from a previous session, use
 
 Behavior:
 
-- Read existing SPEC document from .moai/specs/SPEC-XXX/
+- Read existing SPEC document from .abyz-lab/specs/SPEC-XXX/
 - Determine last completed phase from SPEC status markers
 - Skip completed phases and resume from the next pending phase
 - Preserve all prior analysis, decisions, and generated artifacts
@@ -102,7 +102,7 @@ Applicable Workflows:
 
 - plan --resume SPEC-XXX: Resume SPEC creation from last checkpoint
 - run --resume SPEC-XXX: Resume DDD implementation from last completed task
-- moai --resume SPEC-XXX: Resume full autonomous workflow from last phase
+- abyz-lab --resume SPEC-XXX: Resume full autonomous workflow from last phase
 - fix --resume: Resume fix cycle from last diagnostic state
 
 ---
@@ -161,7 +161,7 @@ Propagation Method:
 - --max N: Maximum iteration count (default: 100)
 - --auto: Enable automatic fix application for Level 1-2
 
-### MoAI (Default) Flags
+### ABYZ-Lab (Default) Flags
 
 - --loop: Enable iterative fixing during run phase
 - --max N: Maximum fix iterations when --loop is active
@@ -172,18 +172,18 @@ Propagation Method:
 
 ## Legacy Command Mapping
 
-Previous /moai:X-Y command format mapped to new /moai subcommand format:
+Previous /abyz-lab:X-Y command format mapped to new /abyz-lab subcommand format:
 
-- /moai:0-project maps to /moai project
-- /moai:1-plan maps to /moai plan
-- /moai:2-run maps to /moai run
-- /moai:3-sync maps to /moai sync
-- /moai:9-feedback maps to /moai feedback
-- /moai:fix maps to /moai fix
-- /moai:loop maps to /moai loop
-- /moai:moai maps to /moai (default autonomous workflow)
+- /abyz-lab:0-project maps to /abyz-lab project
+- /abyz-lab:1-plan maps to /abyz-lab plan
+- /abyz-lab:2-run maps to /abyz-lab run
+- /abyz-lab:3-sync maps to /abyz-lab sync
+- /abyz-lab:9-feedback maps to /abyz-lab feedback
+- /abyz-lab:fix maps to /abyz-lab fix
+- /abyz-lab:loop maps to /abyz-lab loop
+- /abyz-lab:abyz-lab maps to /abyz-lab (default autonomous workflow)
 
-Note: /moai:99-release is a separate local-only command, not part of the /moai skill.
+Note: /abyz-lab:99-release is a separate local-only command, not part of the /abyz-lab skill.
 
 ---
 
@@ -191,35 +191,35 @@ Note: /moai:99-release is a separate local-only command, not part of the /moai s
 
 ### Core Configuration
 
-- .moai/config/config.yaml: Main configuration file (merged from section files)
-- .moai/config/sections/language.yaml: Language settings (conversation_language, agent_prompt_language, code_comments)
-- .moai/config/sections/user.yaml: User identification (name)
-- .moai/config/sections/quality.yaml: TRUST 5 framework settings, LSP quality gates, test coverage targets
-- .moai/config/sections/system.yaml: System metadata (moai.version)
+- .abyz-lab/config/config.yaml: Main configuration file (merged from section files)
+- .abyz-lab/config/sections/language.yaml: Language settings (conversation_language, agent_prompt_language, code_comments)
+- .abyz-lab/config/sections/user.yaml: User identification (name)
+- .abyz-lab/config/sections/quality.yaml: TRUST 5 framework settings, LSP quality gates, test coverage targets
+- .abyz-lab/config/sections/system.yaml: System metadata (abyz-lab.version)
 
 ### Project Documentation
 
-- .moai/project/product.md: Product overview, features, user value
-- .moai/project/structure.md: Project architecture and directory organization
-- .moai/project/tech.md: Technology stack, dependencies, technical decisions
+- .abyz-lab/project/product.md: Product overview, features, user value
+- .abyz-lab/project/structure.md: Project architecture and directory organization
+- .abyz-lab/project/tech.md: Technology stack, dependencies, technical decisions
 
 ### SPEC Documents
 
-- .moai/specs/SPEC-XXX/spec.md: Specification document with EARS format requirements
-- .moai/specs/SPEC-XXX/plan.md: Execution plan with task breakdown
-- .moai/specs/SPEC-XXX/acceptance.md: Acceptance criteria and test plan
+- .abyz-lab/specs/SPEC-XXX/spec.md: Specification document with EARS format requirements
+- .abyz-lab/specs/SPEC-XXX/plan.md: Execution plan with task breakdown
+- .abyz-lab/specs/SPEC-XXX/acceptance.md: Acceptance criteria and test plan
 
 ### Release Artifacts
 
 - CHANGELOG.md: Bilingual changelog (English + Korean per version)
-- .moai/cache/release-snapshots/latest.json: Release state snapshot for recovery
+- .abyz-lab/cache/release-snapshots/latest.json: Release state snapshot for recovery
 
 ### Version Files (5 files synchronized during release)
 
 - pyproject.toml: Authoritative version source
 - pkg/version/version.go: Runtime version with build-time injection
-- .moai/config/config.yaml: Config display version
-- .moai/config/sections/system.yaml: System metadata version
+- .abyz-lab/config/config.yaml: Config display version
+- .abyz-lab/config/sections/system.yaml: System metadata version
 - internal/template/templates/: Embedded template directory for binary bundling
 
 ---
@@ -228,8 +228,8 @@ Note: /moai:99-release is a separate local-only command, not part of the /moai s
 
 AI adds markers to signal workflow state:
 
-- `<moai>DONE</moai>`: Single task or phase completed
-- `<moai>COMPLETE</moai>`: Full workflow completed (all phases finished)
+- `<abyz-lab>DONE</abyz-lab>`: Single task or phase completed
+- `<abyz-lab>COMPLETE</abyz-lab>`: Full workflow completed (all phases finished)
 
 These markers enable automation detection and loop termination in the loop workflow.
 
@@ -242,7 +242,7 @@ These markers enable automation detection and loop termination in the loop workf
 - Token limit errors: Execute /clear, then guide user to resume with --resume flag
 - Permission errors: Review .claude/settings.json manually
 - Integration errors: Use expert-devops subagent
-- MoAI-ADK errors: Suggest /moai feedback to create a GitHub issue
+- ABYZ-Lab-ADK errors: Suggest /abyz-lab feedback to create a GitHub issue
 
 ---
 

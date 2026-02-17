@@ -49,7 +49,7 @@ Version: PHP 8.3+
 - Use Pest for expressive tests
 - Use database transactions for isolation
 
-## MoAI Integration
+## ABYZ-Lab Integration
 
-- Use Skill("moai-lang-php") for detailed patterns
+- Use Skill("abyz-lab-lang-php") for detailed patterns
 - Follow TRUST 5 quality gates

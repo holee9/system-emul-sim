@@ -50,7 +50,7 @@ Version: Elixir 1.17+
 - Use async: true for isolated tests
 - Use ExMachina for test factories
 
-## MoAI Integration
+## ABYZ-Lab Integration
 
-- Use Skill("moai-lang-elixir") for detailed patterns
+- Use Skill("abyz-lab-lang-elixir") for detailed patterns
 - Follow TRUST 5 quality gates

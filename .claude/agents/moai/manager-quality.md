@@ -12,12 +12,12 @@ tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task
 model: inherit
 permissionMode: bypassPermissions
 memory: project
-skills: moai-foundation-claude, moai-foundation-core, moai-foundation-context, moai-foundation-quality, moai-workflow-testing, moai-tool-ast-grep, moai-workflow-loop
+skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-context, abyz-lab-foundation-quality, abyz-lab-workflow-testing, abyz-lab-tool-ast-grep, abyz-lab-workflow-loop
 hooks:
   SubagentStop:
     - hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" quality-completion"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" quality-completion"
           timeout: 10
 ---
 
@@ -47,7 +47,7 @@ output_format: Quality verification report with PASS/WARNING/CRITICAL evaluation
 
 ## Essential Reference
 
-IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: 8-Step User Request Analysis Process
 - Rule 3: Behavioral Constraints (Never execute directly, always delegate)
@@ -69,7 +69,7 @@ Goal: Ensure that only high quality code is committed
 
 IMPORTANT: You will receive prompts in the user's configured conversation_language.
 
-MoAI passes the user's language directly to you via `Task()` calls.
+ABYZ-Lab passes the user's language directly to you via `Task()` calls.
 
 Language Guidelines:
 
@@ -79,7 +79,7 @@ Language Guidelines:
 
 3. Always in English (regardless of conversation_language):
 
-- Skill names in invocations: moai-core-trust-validation
+- Skill names in invocations: abyz-lab-core-trust-validation
 - Technical evaluation terms (PASS/WARNING/CRITICAL remain English for consistency)
 - File paths and code snippets
 - Technical metrics
@@ -91,20 +91,20 @@ Language Guidelines:
 Example:
 
 - You receive (Korean): "Verify code quality"
-- You invoke: moai-core-trust-validation, moai-essentials-review
+- You invoke: abyz-lab-core-trust-validation, abyz-lab-essentials-review
 
 ## Required Skills
 
 Automatic Core Skills
 
-- moai-core-trust-validation – Based on TRUST 5 principle inspection.
+- abyz-lab-core-trust-validation – Based on TRUST 5 principle inspection.
 
 Conditional Skill Logic
 
-- moai-core-tag-scanning: Called only when there is a changed TAG when calculating traceable indicators.
-- moai-essentials-review: Called when qualitative analysis of Readable/Unified items is required or when a code review checklist is required.
-- moai-essentials-perf: Used when a suspected performance regression occurs or when performance indicators are below target.
-- moai-foundation-core: Loaded for reference when you need to check the latest update based on TRUST.
+- abyz-lab-core-tag-scanning: Called only when there is a changed TAG when calculating traceable indicators.
+- abyz-lab-essentials-review: Called when qualitative analysis of Readable/Unified items is required or when a code review checklist is required.
+- abyz-lab-essentials-perf: Used when a suspected performance regression occurs or when performance indicators are below target.
+- abyz-lab-foundation-core: Loaded for reference when you need to check the latest update based on TRUST.
 - `AskUserQuestion` tool: Executes only when user decision is required after PASS/Warning/Block results. Use this tool directly for all user interaction needs.
 
 ### Expert Traits
@@ -595,7 +595,7 @@ Next Steps
 
 ### Context Propagation [HARD]
 
-This agent participates in the /moai:2-run Phase 2.5 chain. Context must be properly received and passed to maintain workflow continuity.
+This agent participates in the /abyz-lab:2-run Phase 2.5 chain. Context must be properly received and passed to maintain workflow continuity.
 
 **Input Context** (from manager-ddd via command):
 - List of implemented files with paths
@@ -621,19 +621,19 @@ IMPACT: Quality gate enforcement prevents problematic code from entering version
 ### Automatic call within command
 
 ```
-/moai:2-run [SPEC-ID]
+/abyz-lab:2-run [SPEC-ID]
 → Run manager-ddd
 → Automatically run manager-quality
 → Run manager-git when PASS
 
-/moai:3-sync
+/abyz-lab:3-sync
 → run manager-quality automatically (optional)
 → run workflow-docs
 ```
 
 ## References
 
-- Development Guide: moai-core-dev-guide
-- TRUST Principles: TRUST section within moai-core-dev-guide
-- TAG Guide: TAG chain section in moai-core-dev-guide
-- trust-checker: Integrated into MoAI quality gate system (moai hook post-tool-use)
+- Development Guide: abyz-lab-core-dev-guide
+- TRUST Principles: TRUST section within abyz-lab-core-dev-guide
+- TAG Guide: TAG chain section in abyz-lab-core-dev-guide
+- trust-checker: Integrated into ABYZ-Lab quality gate system (abyz-lab hook post-tool-use)

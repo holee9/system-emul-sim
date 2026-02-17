@@ -9,7 +9,7 @@ Model Context Protocol (MCP) server integration rules.
 
 ## Available MCP Servers
 
-Standard MCP servers in MoAI-ADK:
+Standard MCP servers in ABYZ-Lab-ADK:
 
 - context7: Library documentation lookup
 - sequential-thinking: Complex problem analysis
@@ -135,7 +135,7 @@ For OpenAI Codex integration and task delegation:
 - Recommended value: 60000ms (60 seconds) for slower systems
 - Default value: 15000ms (15 seconds)
 
-## MoAI Integration
+## ABYZ-Lab Integration
 
-- Skill("moai-workflow-thinking") for Sequential Thinking patterns
-- Skill("moai-foundation-claude") for MCP configuration
+- Skill("abyz-lab-workflow-thinking") for Sequential Thinking patterns
+- Skill("abyz-lab-foundation-claude") for MCP configuration

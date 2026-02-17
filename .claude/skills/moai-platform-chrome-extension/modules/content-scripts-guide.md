@@ -1,7 +1,7 @@
 ---
 name: content-scripts-guide
 description: Content script injection methods, isolated worlds, DOM access, and security
-parent-skill: moai-platform-chrome-extension
+parent-skill: abyz-lab-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

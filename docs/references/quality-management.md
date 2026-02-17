@@ -3,7 +3,7 @@
 **Document Version**: 1.0.0
 **Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
-**Author**: MoAI Documentation Agent
+**Author**: ABYZ-Lab Documentation Agent
 
 ---
 
@@ -350,7 +350,7 @@ All commits must follow the Conventional Commits specification:
 
 <body>
 
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 **Types**: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`
@@ -378,7 +378,7 @@ ECC is computed per the D-PHY 2.5 specification Annex B.
 Supports 1, 2, and 4 lane configurations.
 
 Closes #15
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 ```
@@ -389,7 +389,7 @@ was not aligned to 4096-byte boundaries. Added __attribute__((aligned(4096)))
 to DMA buffer declarations.
 
 Closes #23
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 #### Issue Tracking
@@ -403,7 +403,7 @@ Closes #23
 
 - All merges to `main` require at least one approving review
 - All automated quality gate results are stored as PR comments
-- Quality reports are archived in `.moai/reports/` per SPEC ID
+- Quality reports are archived in `.abyz-lab/reports/` per SPEC ID
 - LSP diagnostic snapshots are captured at phase start, post-transform, and pre-sync
 
 ---
@@ -586,7 +586,7 @@ Regression detection: Any increase in error count from baseline triggers a block
 ### Coverage Report Location
 
 ```
-.moai/reports/
+.abyz-lab/reports/
   coverage/
     SPEC-XXX/
       fpga/        # Questa HTML reports
@@ -696,14 +696,14 @@ n8n webhooks trigger on the following Gitea events:
 - `pull_request.opened`: Start full pipeline
 - `pull_request.synchronize`: Re-run failing gates
 - `pull_request.closed` (merged): Archive quality reports
-- `push.main`: Trigger documentation sync (moai sync)
+- `push.main`: Trigger documentation sync (abyz-lab sync)
 
 ### Quality Report Archival
 
 After every successful merge to `main`, quality reports are archived:
 
 ```
-.moai/reports/
+.abyz-lab/reports/
   SPEC-XXX/
     quality-gate-results.json    # Pass/fail per gate
     lsp-snapshot-pre-sync.json   # LSP state at sync time
@@ -750,5 +750,5 @@ None required. Coverage targets, methodology descriptions, LSP thresholds, and c
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Documentation Agent | Initial document creation |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. Added Review Notes and Revision History. |

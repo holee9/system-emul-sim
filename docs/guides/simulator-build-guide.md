@@ -364,7 +364,7 @@ diff fpga/sim/golden_reference.bin fpga/sim/rtl_output.bin \
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent | Complete software simulator build and validation guide |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent | Complete software simulator build and validation guide |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
 
 ---

@@ -1,6 +1,6 @@
-# Agents Reference - MoAI-ADK Agent Catalog
+# Agents Reference - ABYZ-Lab-ADK Agent Catalog
 
-Purpose: Complete reference catalog of MoAI-ADK's 26 specialized agents with `{domain}-{role}` naming convention and 7-tier hierarchy.
+Purpose: Complete reference catalog of ABYZ-Lab-ADK's 26 specialized agents with `{domain}-{role}` naming convention and 7-tier hierarchy.
 
 Last Updated: 2025-11-25
 Version: 2.0.0
@@ -9,7 +9,7 @@ Version: 2.0.0
 
 ## Quick Reference (30 seconds)
 
-MoAI delegates ALL tasks to specialized agents. 26 agents organized in 7 tiers:
+ABYZ-Lab delegates ALL tasks to specialized agents. 26 agents organized in 7 tiers:
 
 Tier 1: `workflow-*` (Command Processors) - Always Active
 Tier 2: `core-*` (Orchestration & Quality) - Auto-triggered
@@ -35,7 +35,7 @@ result = Task(subagent_type="code-backend", prompt="...", context={...})
 
 ### Naming Convention: `{domain}-{role}`
 
-All MoAI-ADK agents follow consistent naming:
+All ABYZ-Lab-ADK agents follow consistent naming:
 
 | Domain | Purpose | Examples |
 |--------|---------|----------|
@@ -55,14 +55,14 @@ All MoAI-ADK agents follow consistent naming:
 
 ### Tier 1: Command Processors (Essential - Always Active)
 
-Core command processors directly bound to MoAI commands.
+Core command processors directly bound to ABYZ-Lab commands.
 
 | Agent | Command | Purpose |
 |-------|---------|---------|
-| `workflow-project` | `/moai:0-project` | Project initialization and setup |
-| `workflow-spec` | `/moai:1-plan` | EARS SPEC generation and planning |
-| `workflow-ddd` | `/moai:2-run` | DDD ANALYZE-PRESERVE-IMPROVE execution |
-| `workflow-docs` | `/moai:3-sync` | Documentation generation and synchronization |
+| `workflow-project` | `/abyz-lab:0-project` | Project initialization and setup |
+| `workflow-spec` | `/abyz-lab:1-plan` | EARS SPEC generation and planning |
+| `workflow-ddd` | `/abyz-lab:2-run` | DDD ANALYZE-PRESERVE-IMPROVE execution |
+| `workflow-docs` | `/abyz-lab:3-sync` | Documentation generation and synchronization |
 
 Loading: Always active (loaded on command invocation)
 
@@ -74,7 +74,7 @@ Orchestration and quality management agents.
 
 | Agent | Trigger | Purpose |
 |-------|---------|---------|
-| `core-planner` | `/moai:2-run` Phase 1 | SPEC analysis and execution strategy |
+| `core-planner` | `/abyz-lab:2-run` Phase 1 | SPEC analysis and execution strategy |
 | `core-quality` | Post-implementation | TRUST 5 validation |
 | `core-git` | Git operations | Branch, commit, and PR management |
 
@@ -138,7 +138,7 @@ Benefits:
 
 ### Tier 5: Factory Agents (Meta-development)
 
-Meta-generation agents for MoAI-ADK development.
+Meta-generation agents for ABYZ-Lab-ADK development.
 
 | Agent | Purpose |
 |-------|---------|
@@ -146,7 +146,7 @@ Meta-generation agents for MoAI-ADK development.
 | `factory-skill` | Skill definition creation and management |
 | `factory-command` | Custom slash command creation and optimization |
 
-Use Case: When developing MoAI-ADK itself (not for end-user projects)
+Use Case: When developing ABYZ-Lab-ADK itself (not for end-user projects)
 
 ---
 
@@ -186,7 +186,7 @@ Built-in system agents for codebase exploration.
 | `Explore` | Codebase exploration and file system analysis |
 | `Plan` | Strategic decomposition and planning |
 
-Note: These are Claude Code built-in agents, not MoAI-ADK custom agents.
+Note: These are Claude Code built-in agents, not ABYZ-Lab-ADK custom agents.
 
 ---
 
@@ -212,7 +212,7 @@ Is this a new feature or architecture change?
 
 ### Delegation Principles
 
-1. Agent-First: MoAI NEVER executes tasks directly. ALWAYS delegates via Task()
+1. Agent-First: ABYZ-Lab NEVER executes tasks directly. ALWAYS delegates via Task()
 
 2. Naming Consistency: All agents follow `{domain}-{role}` pattern
  - Lowercase only
@@ -265,31 +265,31 @@ The following skills are organized for token efficiency and domain specializatio
 
 | Category | Skills | Purpose |
 |----------|--------|---------|
-| Language (Separated) | moai-lang-python, moai-lang-typescript, moai-lang-systems, moai-lang-jvm, moai-lang-mobile | Domain-specific language skills for 40-60% token savings |
-| Platform (Separated) | moai-platform-auth, moai-platform-database, moai-platform-deploy | Domain-specific platform skills for 30-50% token savings |
-| Foundation | moai-foundation-core, moai-foundation-claude, moai-foundation-context, moai-foundation-quality | Core principles and quality gates |
-| Workflow | moai-workflow-spec, moai-workflow-project, moai-workflow-testing, moai-workflow-jit-docs | Workflow automation and testing |
-| Domain | moai-domain-backend, moai-domain-frontend, moai-domain-database, moai-domain-uiux | Domain expertise patterns |
+| Language (Separated) | abyz-lab-lang-python, abyz-lab-lang-typescript, abyz-lab-lang-systems, abyz-lab-lang-jvm, abyz-lab-lang-mobile | Domain-specific language skills for 40-60% token savings |
+| Platform (Separated) | abyz-lab-platform-auth, abyz-lab-platform-database, abyz-lab-platform-deploy | Domain-specific platform skills for 30-50% token savings |
+| Foundation | abyz-lab-foundation-core, abyz-lab-foundation-claude, abyz-lab-foundation-context, abyz-lab-foundation-quality | Core principles and quality gates |
+| Workflow | abyz-lab-workflow-spec, abyz-lab-workflow-project, abyz-lab-workflow-testing, abyz-lab-workflow-jit-docs | Workflow automation and testing |
+| Domain | abyz-lab-domain-backend, abyz-lab-domain-frontend, abyz-lab-domain-database, abyz-lab-domain-uiux | Domain expertise patterns |
 
 Language Skills Selection Guide:
 
 | Language Skill | Coverage | Use When |
 |----------------|----------|----------|
-| moai-lang-python | Python 3.13, FastAPI, Django, pytest | Backend APIs, data science, automation |
-| moai-lang-typescript | TypeScript 5.9, React 19, Next.js 16, tRPC | Frontend, full-stack web development |
-| moai-lang-systems | Go 1.23, Rust 1.91, Fiber, Axum | Microservices, CLI tools, systems programming |
-| moai-lang-jvm | Java 21, Kotlin 2.0, Scala 3.4, Spring | Enterprise applications, big data |
-| moai-lang-mobile | Swift 6, Kotlin Android, Flutter 3.24 | iOS, Android, cross-platform mobile |
+| abyz-lab-lang-python | Python 3.13, FastAPI, Django, pytest | Backend APIs, data science, automation |
+| abyz-lab-lang-typescript | TypeScript 5.9, React 19, Next.js 16, tRPC | Frontend, full-stack web development |
+| abyz-lab-lang-systems | Go 1.23, Rust 1.91, Fiber, Axum | Microservices, CLI tools, systems programming |
+| abyz-lab-lang-jvm | Java 21, Kotlin 2.0, Scala 3.4, Spring | Enterprise applications, big data |
+| abyz-lab-lang-mobile | Swift 6, Kotlin Android, Flutter 3.24 | iOS, Android, cross-platform mobile |
 
 Platform Skills Selection Guide:
 
 | Platform Skill | Providers | Use When |
 |----------------|-----------|----------|
-| moai-platform-auth | Auth0, Clerk, Firebase Auth | Authentication implementation |
-| moai-platform-database | Supabase, Neon, Convex, Firestore | Database platform integration |
-| moai-platform-deploy | Vercel, Railway | Deployment and CI/CD |
+| abyz-lab-platform-auth | Auth0, Clerk, Firebase Auth | Authentication implementation |
+| abyz-lab-platform-database | Supabase, Neon, Convex, Firestore | Database platform integration |
+| abyz-lab-platform-deploy | Vercel, Railway | Deployment and CI/CD |
 
-Note: Agents now use specific skills based on their domain. Cross-language agents include moai-lang-python and moai-lang-typescript by default.
+Note: Agents now use specific skills based on their domain. Cross-language agents include abyz-lab-lang-python and abyz-lab-lang-typescript by default.
 
 ---
 
@@ -337,9 +337,9 @@ except PermissionError:
 ## Works Well With
 
 Skills:
-- [moai-foundation-core](../SKILL.md) - Parent skill (this module is part of it)
-- [moai-foundation-context](../../moai-foundation-context/SKILL.md) - Token budget and session state
-- [moai-foundation-claude](../../moai-foundation-claude/SKILL.md) - Claude Code configuration
+- [abyz-lab-foundation-core](../SKILL.md) - Parent skill (this module is part of it)
+- [abyz-lab-foundation-context](../../abyz-lab-foundation-context/SKILL.md) - Token budget and session state
+- [abyz-lab-foundation-claude](../../abyz-lab-foundation-claude/SKILL.md) - Claude Code configuration
 
 Other Modules:
 - [delegation-patterns.md](delegation-patterns.md) - Delegation strategies
@@ -347,13 +347,13 @@ Other Modules:
 - [execution-rules.md](execution-rules.md) - Security and permissions
 
 Commands:
-- `/moai:0-project` → `workflow-project`
-- `/moai:1-plan` → `workflow-spec`
-- `/moai:2-run` → `workflow-ddd`
-- `/moai:3-sync` → `workflow-docs`
+- `/abyz-lab:0-project` → `workflow-project`
+- `/abyz-lab:1-plan` → `workflow-spec`
+- `/abyz-lab:2-run` → `workflow-ddd`
+- `/abyz-lab:3-sync` → `workflow-docs`
 
 ---
 
 Total Agents: 26 active agents (down from 35, -26% reduction)
-Maintained by: MoAI-ADK Team
+Maintained by: ABYZ-Lab-ADK Team
 Status: Production Ready

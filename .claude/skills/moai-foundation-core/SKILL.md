@@ -1,13 +1,13 @@
 ---
-name: moai-foundation-core
+name: abyz-lab-foundation-core
 description: >
-  Provides MoAI-ADK foundational principles including TRUST 5 quality framework,
+  Provides ABYZ-Lab-ADK foundational principles including TRUST 5 quality framework,
   SPEC-First DDD methodology, delegation patterns, progressive disclosure,
   and agent catalog reference.
   Use when referencing TRUST 5 gates, SPEC workflow, EARS format, DDD methodology,
-  agent delegation patterns, or MoAI orchestration rules.
-  Do NOT use for context and token management (use moai-foundation-context instead)
-  or strategic analysis (use moai-foundation-philosopher instead).
+  agent delegation patterns, or ABYZ-Lab orchestration rules.
+  Do NOT use for context and token management (use abyz-lab-foundation-context instead)
+  or strategic analysis (use abyz-lab-foundation-philosopher instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -20,13 +20,13 @@ metadata:
   modularized: "true"
   tags: "foundation, core, orchestration, agents, commands, trust-5, spec-first-ddd"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords:
     - "trust-5"
@@ -55,15 +55,15 @@ triggers:
     - "sync"
 ---
 
-# MoAI Foundation Core
+# ABYZ-Lab Foundation Core
 
-Foundational principles and architectural patterns that power MoAI-ADK's AI-driven development workflow.
+Foundational principles and architectural patterns that power ABYZ-Lab-ADK's AI-driven development workflow.
 
 Core Philosophy: Quality-first, domain-driven, modular, and efficient AI development through proven patterns and automated workflows.
 
 ## Quick Reference
 
-What is MoAI Foundation Core?
+What is ABYZ-Lab Foundation Core?
 
 Six essential principles that ensure quality, efficiency, and scalability in AI-powered development:
 
@@ -127,11 +127,11 @@ Purpose: Specification-driven development ensuring clear requirements before imp
 
 Three-Phase Workflow:
 
-Phase 1 SPEC (/moai:1-plan): workflow-spec generates EARS format. Output is .moai/specs/SPEC-XXX/spec.md. Execute /clear to save 45-50K tokens.
+Phase 1 SPEC (/abyz-lab:1-plan): workflow-spec generates EARS format. Output is .abyz-lab/specs/SPEC-XXX/spec.md. Execute /clear to save 45-50K tokens.
 
-Phase 2 DDD (/moai:2-run): ANALYZE for requirements, PRESERVE for existing behavior, IMPROVE for enhancement. Validate with at least 85% coverage.
+Phase 2 DDD (/abyz-lab:2-run): ANALYZE for requirements, PRESERVE for existing behavior, IMPROVE for enhancement. Validate with at least 85% coverage.
 
-Phase 3 Docs (/moai:3-sync): API documentation, architecture diagrams, project reports.
+Phase 3 Docs (/abyz-lab:3-sync): API documentation, architecture diagrams, project reports.
 
 EARS Format: Ubiquitous for system-wide always active requirements. Event-driven for trigger-based when X do Y requirements. State-driven for conditional while X do Y requirements. Unwanted for prohibited shall not do X requirements. Optional for nice-to-have where possible do X requirements.
 
@@ -147,7 +147,7 @@ Detailed Reference: modules/spec-first-ddd.md
 
 Purpose: Task delegation to specialized agents, avoiding direct execution.
 
-Core Principle: MoAI must delegate all work through Task() to specialized agents. Direct execution bypasses specialization, quality gates, and token optimization. Proper delegation improves task success rate by 40 percent and enables parallel execution.
+Core Principle: ABYZ-Lab must delegate all work through Task() to specialized agents. Direct execution bypasses specialization, quality gates, and token optimization. Proper delegation improves task success rate by 40 percent and enables parallel execution.
 
 Delegation Syntax: Call Task with subagent_type parameter for specialized agent, prompt parameter for clear specific task, and context parameter with relevant data dictionary.
 
@@ -181,7 +181,7 @@ Total Budget is 250K tokens across all phases. Phase separation with context res
 
 Token Saving Strategies:
 
-Phase Separation: Execute /clear between phases, after /moai:1-plan to save 45-50K, when context exceeds 150K, after 50+ messages.
+Phase Separation: Execute /clear between phases, after /abyz-lab:1-plan to save 45-50K, when context exceeds 150K, after 50+ messages.
 
 Selective Loading: Load only necessary files.
 
@@ -251,11 +251,11 @@ Detailed Reference: examples.md for working code samples
 
 Agents: agent-factory for creating agents with foundation principles, skill-factory for generating skills with modular architecture, core-quality for automated TRUST 5 validation, workflow-spec for EARS format specification, workflow-ddd for ANALYZE-PRESERVE-IMPROVE execution, workflow-docs for documentation with progressive disclosure.
 
-Skills: moai-cc-claude-md for CLAUDE.md with foundation patterns, moai-cc-configuration for config with TRUST 5, moai-cc-memory for token optimization, moai-context7-integration for MCP integration.
+Skills: abyz-lab-cc-claude-md for CLAUDE.md with foundation patterns, abyz-lab-cc-configuration for config with TRUST 5, abyz-lab-cc-memory for token optimization, abyz-lab-context7-integration for MCP integration.
 
 Tools: AskUserQuestion for direct user interaction and clarification needs.
 
-Commands: /moai:1-plan for SPEC-First Phase 1, /moai:2-run for DDD Phase 2, /moai:3-sync for Documentation Phase 3, /moai:9-feedback for continuous improvement, /clear for token management.
+Commands: /abyz-lab:1-plan for SPEC-First Phase 1, /abyz-lab:2-run for DDD Phase 2, /abyz-lab:3-sync for Documentation Phase 3, /abyz-lab:9-feedback for continuous improvement, /clear for token management.
 
 Foundation Modules (Extended Documentation): modules/agents-reference.md for 26-agent catalog with 7-tier hierarchy, modules/commands-reference.md for 6 core commands workflow, modules/execution-rules.md for security, Git strategy, and compliance.
 

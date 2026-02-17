@@ -1,5 +1,5 @@
 ---
-name: moai-workflow-jit-docs/optimization
+name: abyz-lab-workflow-jit-docs/optimization
 description: Performance optimization for JIT documentation, indexing, caching, and memory management
 ---
 

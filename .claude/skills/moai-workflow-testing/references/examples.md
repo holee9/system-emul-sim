@@ -10,7 +10,7 @@
 
 **Input**:
 ```python
-from moai_workflow_testing import DDDManager, TestSpecification, TestType
+from abyz-lab_workflow_testing import DDDManager, TestSpecification, TestType
 
 # DDD 매니저 초기화
 ddd_manager = DDDManager(
@@ -162,7 +162,7 @@ class TestAuthentication:
 
 **Input**:
 ```python
-from moai_workflow_testing import AIDebugger
+from abyz-lab_workflow_testing import AIDebugger
 
 # AI 디버거 초기화
 debugger = AIDebugger(context7_client=context7)
@@ -258,7 +258,7 @@ except Exception as e:
 
 **Input**:
 ```python
-from moai_workflow_testing import AutomatedCodeReviewer
+from abyz-lab_workflow_testing import AutomatedCodeReviewer
 
 # 코드 리뷰어 초기화
 reviewer = AutomatedCodeReviewer(context7_client=context7)
@@ -363,7 +363,7 @@ review_report = await reviewer.review_codebase(
     {
       "file": "src/auth/service.py",
       "fix": "Add type hints",
-      "apply_command": "moai-workflow fix --file src/auth/service.py --type hints"
+      "apply_command": "abyz-lab-workflow fix --file src/auth/service.py --type hints"
     }
   ]
 }
@@ -401,7 +401,7 @@ jobs:
 
       - name: Run Development Workflow
         run: |
-          moai-workflow execute \
+          abyz-lab-workflow execute \
             --project . \
             --mode ci \
             --quality-gates strict \
@@ -431,7 +431,7 @@ jobs:
 함수 단위 성능 분석 패턴입니다.
 
 ```python
-from moai_workflow_testing import PerformanceProfiler
+from abyz-lab_workflow_testing import PerformanceProfiler
 
 # 프로파일러 초기화
 profiler = PerformanceProfiler(context7_client=context7)
@@ -464,7 +464,7 @@ for bottleneck in bottlenecks:
 다단계 품질 검증 패턴입니다.
 
 ```python
-from moai_workflow_testing import QualityGateManager
+from abyz-lab_workflow_testing import QualityGateManager
 
 # 품질 게이트 설정
 quality_config = {
@@ -641,17 +641,17 @@ async def code_review_process():
 
 ```bash
 # 전체 워크플로우 실행
-moai-workflow execute --project /project/src --mode full
+abyz-lab-workflow execute --project /project/src --mode full
 
 # 개별 컴포넌트 실행
-moai-workflow debug --file app.py --error "AttributeError"
-moai-workflow refactor --directory src/ --max-risk medium
-moai-workflow profile --target function_name --types cpu,memory
-moai-workflow test --spec user_auth.spec --mode ddd
-moai-workflow review --project /project/src --trust-score-min 0.8
+abyz-lab-workflow debug --file app.py --error "AttributeError"
+abyz-lab-workflow refactor --directory src/ --max-risk medium
+abyz-lab-workflow profile --target function_name --types cpu,memory
+abyz-lab-workflow test --spec user_auth.spec --mode ddd
+abyz-lab-workflow review --project /project/src --trust-score-min 0.8
 
 # CI 모드
-moai-workflow ci --commit abc123 --quality-gates strict
+abyz-lab-workflow ci --commit abc123 --quality-gates strict
 ```
 
 ---

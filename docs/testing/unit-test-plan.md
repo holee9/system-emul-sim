@@ -618,7 +618,7 @@ Yocto SDK cross-compile + host-side mock execution:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial unit test plan |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial unit test plan |
 | 2.0.0 | 2026-02-17 | spec-fw agent | Expanded FV-06 to FV-11 (48 detailed RTL tests). Added SoC Firmware tests FW-UT-01 to FW-UT-08 (65 tests). Added Host SDK tests SDK-01 to SDK-05 (37 tests). Fixed SW-03-004 magic number. Added firmware test execution strategy. |
 
 ---

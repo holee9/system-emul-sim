@@ -1,4 +1,4 @@
-# MoAI-ADK Optimization Directives
+# ABYZ-Lab-ADK Optimization Directives
 
 프로젝트 초기 설정 대비 수정/최적화/추가된 운영 지침 정리본
 
@@ -57,12 +57,12 @@
 
 | 파일 | Paths 패턴 | 로딩 조건 |
 |------|-----------|----------|
-| `spec-workflow.md` | `.moai/specs/**/*`, `**/spec.md` | SPEC 문서 작업 시 |
-| `workflow-modes.md` | `.moai/specs/**/*`, `**/*test*`, `quality.yaml` | 개발 방법론 관련 작업 |
+| `spec-workflow.md` | `.abyz-lab/specs/**/*`, `**/spec.md` | SPEC 문서 작업 시 |
+| `workflow-modes.md` | `.abyz-lab/specs/**/*`, `**/*test*`, `quality.yaml` | 개발 방법론 관련 작업 |
 | `file-reading-optimization.md` | `**/*.{py,ts,js,go,cs,cpp,rs,kt,...}` | 대용량 소스 코드 작업 시 |
 | `agent-authoring.md` | `.claude/agents/**/*` | 에이전트 정의 작업 시 |
 | `skill-authoring.md` | `.claude/skills/**/*` | 스킬 정의 작업 시 |
-| `coding-standards.md` | `.claude/**/*`, `.moai/**/*`, `CLAUDE.md` | 프로젝트 규칙 수정 시 |
+| `coding-standards.md` | `.claude/**/*`, `.abyz-lab/**/*`, `CLAUDE.md` | 프로젝트 규칙 수정 시 |
 
 **예상 효과**:
 - 일반 대화: ~10,000 → ~4,000 tokens (60% 절감)
@@ -135,9 +135,9 @@ cpp, csharp, elixir, flutter, go, java, javascript, kotlin, php, python, r, ruby
 
 ### 2. 질문 빈도 최적화
 
-#### 2.1 MoAI Constitution 강화
+#### 2.1 ABYZ-Lab Constitution 강화
 
-**위치**: `.claude/rules/moai/core/moai-constitution.md`
+**위치**: `.claude/rules/abyz-lab/core/abyz-lab-constitution.md`
 
 **추가된 섹션**: User Interaction Constraints
 
@@ -246,7 +246,7 @@ e144fbc refactor(rules): Minimize AskUserQuestion usage
 }
 ```
 
-**문서화**: `.claude/rules/moai/core/mcp-integration.md`
+**문서화**: `.claude/rules/abyz-lab/core/mcp-integration.md`
 
 **용도**:
 - AI 기반 코드 검색
@@ -264,7 +264,7 @@ e144fbc refactor(rules): Minimize AskUserQuestion usage
 
 #### 4.1 대화 언어 변경
 
-**위치**: `.moai/config/sections/language.yaml`
+**위치**: `.abyz-lab/config/sections/language.yaml`
 
 **초기 설정**: 한국어 (ko)
 **현재 설정**: 영어 (en)
@@ -293,16 +293,16 @@ language:
 
 #### Step 1: 기본 구조 복사
 ```bash
-# MoAI-ADK 구조 복사
+# ABYZ-Lab-ADK 구조 복사
 cp -r system-emul-sim/.claude new-project/.claude
-cp -r system-emul-sim/.moai new-project/.moai
+cp -r system-emul-sim/.abyz-lab new-project/.abyz-lab
 cp system-emul-sim/CLAUDE.md new-project/CLAUDE.md
 ```
 
 #### Step 2: 언어별 규칙 확인
 ```bash
 # 언어별 규칙 paths frontmatter 확인
-grep -r "^paths:" new-project/.claude/rules/moai/languages/
+grep -r "^paths:" new-project/.claude/rules/abyz-lab/languages/
 ```
 
 모든 언어 규칙에 paths가 있어야 함.
@@ -310,16 +310,16 @@ grep -r "^paths:" new-project/.claude/rules/moai/languages/
 #### Step 3: 워크플로우/개발 규칙 확인
 ```bash
 # 워크플로우 규칙 paths 확인
-head -10 new-project/.claude/rules/moai/workflow/*.md
+head -10 new-project/.claude/rules/abyz-lab/workflow/*.md
 
 # 개발 규칙 paths 확인
-head -10 new-project/.claude/rules/moai/development/*.md
+head -10 new-project/.claude/rules/abyz-lab/development/*.md
 ```
 
 #### Step 4: 질문 정책 확인
 ```bash
-# moai-constitution.md에 User Interaction Constraints 섹션 확인
-grep -A 10 "User Interaction Constraints" new-project/.claude/rules/moai/core/moai-constitution.md
+# abyz-lab-constitution.md에 User Interaction Constraints 섹션 확인
+grep -A 10 "User Interaction Constraints" new-project/.claude/rules/abyz-lab/core/abyz-lab-constitution.md
 
 # CLAUDE.md Section 8에 Minimal Question Policy 확인
 grep -A 20 "Minimal Question Policy" new-project/CLAUDE.md
@@ -328,14 +328,14 @@ grep -A 20 "Minimal Question Policy" new-project/CLAUDE.md
 #### Step 5: 프로젝트별 설정 조정
 ```bash
 # 프로젝트 정보 수정
-vim new-project/.moai/config/sections/project.yaml
+vim new-project/.abyz-lab/config/sections/project.yaml
 
 # 개발 방법론 선택
-vim new-project/.moai/config/sections/quality.yaml
+vim new-project/.abyz-lab/config/sections/quality.yaml
 # development_mode: ddd, tdd, or hybrid
 
 # 언어 설정
-vim new-project/.moai/config/sections/language.yaml
+vim new-project/.abyz-lab/config/sections/language.yaml
 ```
 
 ---
@@ -351,26 +351,26 @@ vim new-project/.moai/config/sections/language.yaml
 cat > temp.txt << 'EOF'
 ---
 paths:
-  - ".moai/specs/**/*"
+  - ".abyz-lab/specs/**/*"
   - "**/spec.md"
 ---
 
 EOF
-cat temp.txt existing-project/.claude/rules/moai/workflow/spec-workflow.md > temp2.txt
-mv temp2.txt existing-project/.claude/rules/moai/workflow/spec-workflow.md
+cat temp.txt existing-project/.claude/rules/abyz-lab/workflow/spec-workflow.md > temp2.txt
+mv temp2.txt existing-project/.claude/rules/abyz-lab/workflow/spec-workflow.md
 
 # workflow-modes.md
 cat > temp.txt << 'EOF'
 ---
 paths:
-  - ".moai/specs/**/*"
+  - ".abyz-lab/specs/**/*"
   - "**/*test*"
-  - ".moai/config/sections/quality.yaml"
+  - ".abyz-lab/config/sections/quality.yaml"
 ---
 
 EOF
-cat temp.txt existing-project/.claude/rules/moai/workflow/workflow-modes.md > temp2.txt
-mv temp2.txt existing-project/.claude/rules/moai/workflow/workflow-modes.md
+cat temp.txt existing-project/.claude/rules/abyz-lab/workflow/workflow-modes.md > temp2.txt
+mv temp2.txt existing-project/.claude/rules/abyz-lab/workflow/workflow-modes.md
 
 # file-reading-optimization.md
 cat > temp.txt << 'EOF'
@@ -381,8 +381,8 @@ paths:
 ---
 
 EOF
-cat temp.txt existing-project/.claude/rules/moai/workflow/file-reading-optimization.md > temp2.txt
-mv temp2.txt existing-project/.claude/rules/moai/workflow/file-reading-optimization.md
+cat temp.txt existing-project/.claude/rules/abyz-lab/workflow/file-reading-optimization.md > temp2.txt
+mv temp2.txt existing-project/.claude/rules/abyz-lab/workflow/file-reading-optimization.md
 ```
 
 **개발 규칙** (3개):
@@ -396,8 +396,8 @@ paths:
 ---
 
 EOF
-cat temp.txt existing-project/.claude/rules/moai/development/agent-authoring.md > temp2.txt
-mv temp2.txt existing-project/.claude/rules/moai/development/agent-authoring.md
+cat temp.txt existing-project/.claude/rules/abyz-lab/development/agent-authoring.md > temp2.txt
+mv temp2.txt existing-project/.claude/rules/abyz-lab/development/agent-authoring.md
 
 # skill-authoring.md
 cat > temp.txt << 'EOF'
@@ -407,30 +407,30 @@ paths:
 ---
 
 EOF
-cat temp.txt existing-project/.claude/rules/moai/development/skill-authoring.md > temp2.txt
-mv temp2.txt existing-project/.claude/rules/moai/development/skill-authoring.md
+cat temp.txt existing-project/.claude/rules/abyz-lab/development/skill-authoring.md > temp2.txt
+mv temp2.txt existing-project/.claude/rules/abyz-lab/development/skill-authoring.md
 
 # coding-standards.md
 cat > temp.txt << 'EOF'
 ---
 paths:
   - ".claude/**/*"
-  - ".moai/**/*"
+  - ".abyz-lab/**/*"
   - "CLAUDE.md"
 ---
 
 EOF
-cat temp.txt existing-project/.claude/rules/moai/development/coding-standards.md > temp2.txt
-mv temp2.txt existing-project/.claude/rules/moai/development/coding-standards.md
+cat temp.txt existing-project/.claude/rules/abyz-lab/development/coding-standards.md > temp2.txt
+mv temp2.txt existing-project/.claude/rules/abyz-lab/development/coding-standards.md
 ```
 
 #### Step 2: 질문 정책 추가
 
-**moai-constitution.md 업데이트**:
+**abyz-lab-constitution.md 업데이트**:
 
 ```bash
 # User Interaction Constraints 섹션 추가
-# (MoAI Orchestrator 섹션 다음에 삽입)
+# (ABYZ-Lab Orchestrator 섹션 다음에 삽입)
 ```
 
 내용:
@@ -460,18 +460,18 @@ Rules:
 
 ```bash
 cd existing-project
-git add .claude/rules/moai/workflow/*.md
-git add .claude/rules/moai/development/*.md
-git add .claude/rules/moai/core/moai-constitution.md
+git add .claude/rules/abyz-lab/workflow/*.md
+git add .claude/rules/abyz-lab/development/*.md
+git add .claude/rules/abyz-lab/core/abyz-lab-constitution.md
 git add CLAUDE.md
 
-git commit -m "refactor(rules): Apply MoAI-ADK optimization directives
+git commit -m "refactor(rules): Apply ABYZ-Lab-ADK optimization directives
 
 Apply context optimization and question frequency reduction policies.
 
 Changes:
 - Add paths frontmatter to workflow and development rules
-- Add User Interaction Constraints to moai-constitution.md
+- Add User Interaction Constraints to abyz-lab-constitution.md
 - Add Minimal Question Policy to CLAUDE.md Section 8
 
 Expected impact:
@@ -480,7 +480,7 @@ Expected impact:
 
 Ref: system-emul-sim optimization (2026-02-16)
 
-🗿 MoAI <email@mo.ai.kr>"
+🗿 ABYZ-Lab <email@mo.ai.kr>"
 ```
 
 ---
@@ -497,7 +497,7 @@ Ref: system-emul-sim optimization (2026-02-16)
 
 ### 질문 빈도 최적화 검증
 
-- [ ] moai-constitution.md에 User Interaction Constraints 섹션 존재
+- [ ] abyz-lab-constitution.md에 User Interaction Constraints 섹션 존재
 - [ ] CLAUDE.md Section 8에 Minimal Question Policy 존재
 - [ ] MEMORY.md에 강화된 즉시 실행 정책 존재
 - [ ] 사용자 승인 후 추가 질문 없이 실행됨
@@ -536,7 +536,7 @@ paths:
 ```yaml
 ---
 paths:
-  - ".moai/specific-dir/**/*"
+  - ".abyz-lab/specific-dir/**/*"
   - "**/*pattern*"
 ---
 ```
@@ -617,10 +617,10 @@ Rules:
 
 ## 라이선스
 
-이 문서는 MoAI-ADK 프로젝트의 일부이며, 동일한 라이선스를 따릅니다.
+이 문서는 ABYZ-Lab-ADK 프로젝트의 일부이며, 동일한 라이선스를 따릅니다.
 
 ---
 
 *생성일: 2026-02-16*
 *프로젝트: X-ray Detector Panel System*
-*담당: MoAI Development Team*
+*담당: ABYZ-Lab Development Team*

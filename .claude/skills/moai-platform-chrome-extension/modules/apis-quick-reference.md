@@ -1,7 +1,7 @@
 ---
 name: apis-quick-reference
 description: Quick reference for major chrome.* APIs with method signatures and permissions
-parent-skill: moai-platform-chrome-extension
+parent-skill: abyz-lab-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

@@ -565,7 +565,7 @@ docker run -d --name n8n -p 5678:5678 \
 
 <body>
 
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 **Types**:
@@ -591,7 +591,7 @@ Added SystemVerilog wrapper for AMD MIPI CSI-2 TX Subsystem IP.
 Configured for 4-lane D-PHY at 1.25 Gbps/lane.
 LUT usage: 2,800 (13.5% of device).
 
-🗿 MoAI <email@mo.ai.kr>
+🗿 ABYZ-Lab <email@mo.ai.kr>
 ```
 
 ---
@@ -600,7 +600,7 @@ LUT usage: 2,800 (13.5% of device).
 
 ### Hybrid Approach (TDD + DDD)
 
-**Configured in**: `.moai/config/sections/quality.yaml` → `development_mode: "hybrid"`
+**Configured in**: `.abyz-lab/config/sections/quality.yaml` → `development_mode: "hybrid"`
 
 **Mode Selection Logic**:
 - **New code** (new files, new modules): Use **TDD** (RED-GREEN-REFACTOR)
@@ -1055,15 +1055,15 @@ dotnet publish -c Release -r win-x64 --self-contained
 
 ## MCP Server Integrations
 
-MoAI-ADK integrates multiple MCP (Model Context Protocol) servers for specialized capabilities:
+ABYZ-Lab-ADK integrates multiple MCP (Model Context Protocol) servers for specialized capabilities:
 
 ### Sequential Thinking MCP
 
 **Purpose**: Deep analysis for architecture decisions, technology trade-offs, problem decomposition
 
-**Activation**: Use `--ultrathink` flag with any MoAI command
+**Activation**: Use `--ultrathink` flag with any ABYZ-Lab command
 ```bash
-/moai plan --ultrathink "Design CSI-2 TX module with bandwidth optimization"
+/abyz-lab plan --ultrathink "Design CSI-2 TX module with bandwidth optimization"
 ```
 
 **Use Cases**:
@@ -1079,11 +1079,11 @@ MoAI-ADK integrates multiple MCP (Model Context Protocol) servers for specialize
 
 **Purpose**: Retrieve up-to-date library documentation and API references
 
-**Usage**: Automatically invoked when MoAI needs documentation for .NET, FPGA IP, or third-party libraries
+**Usage**: Automatically invoked when ABYZ-Lab needs documentation for .NET, FPGA IP, or third-party libraries
 
 **Example**:
 ```bash
-# Internally, MoAI calls:
+# Internally, ABYZ-Lab calls:
 mcp__context7__resolve-library-id("dotnet", "8.0")
 mcp__context7__get-library-docs(library_id, "System.Text.Json")
 ```
@@ -1387,4 +1387,4 @@ This document catalogs the complete technology stack for the X-ray Detector Pane
 
 **Document End**
 
-*This is a pre-implementation technology plan. Run `/moai project --refresh` after code repositories are cloned to update documentation with actual dependencies and toolchain versions.*
+*This is a pre-implementation technology plan. Run `/abyz-lab project --refresh` after code repositories are cloned to update documentation with actual dependencies and toolchain versions.*

@@ -1,6 +1,6 @@
-# MoAI Menu Project Configuration Management
+# ABYZ-Lab Menu Project Configuration Management
 
-Unified configuration management system for MoAI menu project operations, integrating 5 specialized modules into a single cohesive system.
+Unified configuration management system for ABYZ-Lab menu project operations, integrating 5 specialized modules into a single cohesive system.
 
 ## Overview
 
@@ -15,7 +15,7 @@ This skill replaces 5 separate configuration management skills with a unified sy
 ## Quick Start
 
 ```python
-from moai_menu_project import create_config_manager, ConfigurationMigrator
+from abyz-lab_menu_project import create_config_manager, ConfigurationMigrator
 
 # Initialize configuration manager
 config_manager = create_config_manager("/path/to/config")
@@ -25,7 +25,7 @@ migrator = ConfigurationMigrator(config_manager)
 result = migrator.detect_and_migrate(backup=True)
 
 # Access module-specific configuration
-from moai_menu_project import BatchQuestionsConfigManager
+from abyz-lab_menu_project import BatchQuestionsConfigManager
 batch_manager = BatchQuestionsConfigManager(config_manager)
 settings = batch_manager.get_config()
 ```
@@ -98,7 +98,7 @@ See `schemas/config-schema.json` for complete schema definition.
 ## File Structure
 
 ```
-moai-menu-project/
+abyz-lab-menu-project/
  SKILL.md # Main skill documentation
  references/overview.md # Skill overview
  __init__.py # Package initialization
@@ -113,11 +113,11 @@ moai-menu-project/
 
 ## Integration
 
-### With MoAI Ecosystem
+### With ABYZ-Lab Ecosystem
 
-- moai-cc-configuration: Claude Code configuration patterns
-- moai-core-workflow: Workflow-based configuration management
-- moai-quality-security: Security validation and compliance
+- abyz-lab-cc-configuration: Claude Code configuration patterns
+- abyz-lab-core-workflow: Workflow-based configuration management
+- abyz-lab-quality-security: Security validation and compliance
 
 ### External Systems
 

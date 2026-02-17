@@ -56,7 +56,7 @@ Feedback Template Types:
 [What actually happens]
 
 ## Environment
-- MoAI-ADK Version: [version]
+- ABYZ-Lab-ADK Version: [version]
 - Python Version: [version]
 - OS: [Windows/macOS/Linux]
 
@@ -88,8 +88,8 @@ Feedback Template Types:
 
 ## Usage Integration
 
-Auto-triggered by `/moai:9-feedback` command:
-1. User executes `/moai:9-feedback "description"`
+Auto-triggered by `/abyz-lab:9-feedback` command:
+1. User executes `/abyz-lab:9-feedback "description"`
 2. Skill selects appropriate template type
 3. Template is populated with user input
 4. GitHub issue is created automatically

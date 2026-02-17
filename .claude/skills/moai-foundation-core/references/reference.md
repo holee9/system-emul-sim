@@ -1,4 +1,4 @@
-# moai-foundation-core Reference
+# abyz-lab-foundation-core Reference
 
 Progressive Disclosure Level 2: Extended documentation for foundational principles and architectural patterns.
 
@@ -22,7 +22,7 @@ SPEC-First DDD:
 
 Delegation Patterns:
 - Purpose: Task orchestration via specialized agents
-- Core Principle: MoAI delegates all work through Task() calls
+- Core Principle: ABYZ-Lab delegates all work through Task() calls
 - Patterns: Sequential, Parallel, Conditional delegation
 - Agent Selection: Complexity-based agent matching
 
@@ -155,7 +155,7 @@ agent_selection:
 
 ```python
 # Pre-commit hook integration for TRUST 5 validation
-from moai_foundation_core import TRUST5Validator
+from abyz-lab_foundation_core import TRUST5Validator
 
 def pre_commit_validation(staged_files: List[str]) -> bool:
     """Run TRUST 5 validation on staged files."""
@@ -186,7 +186,7 @@ def pre_commit_validation(staged_files: List[str]) -> bool:
 
 ```python
 # Complete SPEC-First DDD cycle implementation
-from moai_foundation_core import SPECManager, DDDExecutor, DocsGenerator
+from abyz-lab_foundation_core import SPECManager, DDDExecutor, DocsGenerator
 
 async def spec_first_workflow(requirements: str):
     """Execute complete SPEC-First DDD workflow."""
@@ -234,7 +234,7 @@ async def spec_first_workflow(requirements: str):
 
 ```python
 # Complexity-based agent delegation
-from moai_foundation_core import TaskAnalyzer, AgentRouter
+from abyz-lab_foundation_core import TaskAnalyzer, AgentRouter
 
 async def delegate_task(task_description: str, context: dict):
     """Delegate task to appropriate agents based on complexity."""
@@ -290,7 +290,7 @@ async def delegate_task(task_description: str, context: dict):
 
 ```python
 # Proactive token budget management
-from moai_foundation_core import TokenMonitor, ContextOptimizer
+from abyz-lab_foundation_core import TokenMonitor, ContextOptimizer
 
 class TokenAwareWorkflow:
     """Workflow with automatic token optimization."""
@@ -365,22 +365,22 @@ Issue: Progressive disclosure not loading modules:
 
 ```bash
 # TRUST 5 status check
-moai-trust check --all --verbose
+abyz-lab-trust check --all --verbose
 
 # Token budget analysis
-moai-context analyze --show-breakdown
+abyz-lab-context analyze --show-breakdown
 
 # Agent routing debug
-moai-agent route --task "description" --dry-run
+abyz-lab-agent route --task "description" --dry-run
 
 # SPEC validation
-moai-spec validate SPEC-001 --format EARS
+abyz-lab-spec validate SPEC-001 --format EARS
 ```
 
 ### Validation Utilities
 
 ```python
-from moai_foundation_core import diagnose
+from abyz-lab_foundation_core import diagnose
 
 # Full system diagnostics
 report = diagnose.run_full_check()
@@ -394,10 +394,10 @@ diagnose.verify_module_structure()
 
 ### Log Locations
 
-- TRUST 5 logs: `.moai/logs/trust5/`
-- SPEC artifacts: `.moai/specs/`
-- Agent execution logs: `.moai/logs/agents/`
-- Token usage history: `.moai/logs/tokens/`
+- TRUST 5 logs: `.abyz-lab/logs/trust5/`
+- SPEC artifacts: `.abyz-lab/specs/`
+- Agent execution logs: `.abyz-lab/logs/agents/`
+- Token usage history: `.abyz-lab/logs/tokens/`
 
 ---
 
@@ -405,7 +405,7 @@ diagnose.verify_module_structure()
 
 ### Official Documentation
 
-- MoAI-ADK Documentation: See project README
+- ABYZ-Lab-ADK Documentation: See project README
 - Claude Code Skills Guide: https://docs.anthropic.com/claude-code/skills
 - EARS Specification Format: See `modules/spec-first-ddd.md`
 
@@ -423,10 +423,10 @@ diagnose.verify_module_structure()
 
 ### Related Skills
 
-- moai-foundation-claude - Claude Code integration patterns
-- moai-workflow-project - Project management with core principles
-- moai-workflow-testing - Testing workflows with TRUST 5
-- moai-workflow-templates - Template management integration
+- abyz-lab-foundation-claude - Claude Code integration patterns
+- abyz-lab-workflow-project - Project management with core principles
+- abyz-lab-workflow-testing - Testing workflows with TRUST 5
+- abyz-lab-workflow-templates - Template management integration
 
 ### Tool References
 

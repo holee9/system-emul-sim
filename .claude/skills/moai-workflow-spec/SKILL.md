@@ -1,12 +1,12 @@
 ---
-name: moai-workflow-spec
+name: abyz-lab-workflow-spec
 description: >
   SPEC workflow orchestration with EARS format requirements, acceptance criteria,
-  and Plan-Run-Sync integration for MoAI-ADK development methodology.
+  and Plan-Run-Sync integration for ABYZ-Lab-ADK development methodology.
   Use when creating SPEC documents, writing EARS requirements, defining acceptance
-  criteria, planning features, or orchestrating the /moai plan phase.
-  Do NOT use for implementation (use moai-workflow-ddd instead)
-  or documentation generation (use moai-workflow-project instead).
+  criteria, planning features, or orchestrating the /abyz-lab plan phase.
+  Do NOT use for implementation (use abyz-lab-workflow-ddd instead)
+  or documentation generation (use abyz-lab-workflow-project instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Write Edit Bash(git:*) Bash(ls:*) Bash(wc:*) Bash(mkdir:*) Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -17,18 +17,18 @@ metadata:
   status: "active"
   updated: "2026-01-08"
   modularized: "true"
-  tags: "workflow, spec, ears, requirements, moai-adk, planning"
-  author: "MoAI-ADK Team"
+  tags: "workflow, spec, ears, requirements, abyz-lab-adk, planning"
+  author: "ABYZ-Lab-ADK Team"
   context: "fork"
   agent: "Plan"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords:
     [
@@ -77,10 +77,10 @@ When to Use:
 
 Quick Commands:
 
-- Create new SPEC: /moai:1-plan "user authentication system"
-- Create parallel SPECs with Worktrees: /moai:1-plan "login feature" "signup feature" --worktree
-- Create SPEC with new branch: /moai:1-plan "payment processing" --branch
-- Update existing SPEC: /moai:1-plan SPEC-001 "add OAuth support"
+- Create new SPEC: /abyz-lab:1-plan "user authentication system"
+- Create parallel SPECs with Worktrees: /abyz-lab:1-plan "login feature" "signup feature" --worktree
+- Create SPEC with new branch: /abyz-lab:1-plan "payment processing" --branch
+- Update existing SPEC: /abyz-lab:1-plan SPEC-001 "add OAuth support"
 
 ---
 
@@ -99,7 +99,7 @@ SPEC-First Development Philosophy:
 
 ### Constitution Reference (SDD 2025 Standard)
 
-Constitution defines the project DNA that all SPECs must respect. Before creating any SPEC, verify alignment with project constitution defined in `.moai/project/tech.md`.
+Constitution defines the project DNA that all SPECs must respect. Before creating any SPEC, verify alignment with project constitution defined in `.abyz-lab/project/tech.md`.
 
 Constitution Components:
 
@@ -222,24 +222,24 @@ Step 4 - Test Scenario Creation:
 
 ### Plan-Run-Sync Workflow Integration
 
-PLAN Phase (/moai:1-plan):
+PLAN Phase (/abyz-lab:1-plan):
 
 - manager-spec agent analyzes user input
 - EARS format requirements generation
 - Requirement clarification with user interaction
-- SPEC document creation in .moai/specs/ directory
+- SPEC document creation in .abyz-lab/specs/ directory
 - Git branch creation (optional --branch flag)
 - Git Worktree setup (optional --worktree flag)
 
-RUN Phase (/moai:2-run):
+RUN Phase (/abyz-lab:2-run):
 
 - manager-ddd agent loads SPEC document
 - ANALYZE-PRESERVE-IMPROVE DDD cycle execution
-- moai-workflow-testing skill reference for test patterns
+- abyz-lab-workflow-testing skill reference for test patterns
 - Domain Expert agent delegation (expert-backend, expert-frontend, etc.)
 - Quality validation through manager-quality agent
 
-SYNC Phase (/moai:3-sync):
+SYNC Phase (/abyz-lab:3-sync):
 
 - manager-docs agent synchronizes documentation
 - API documentation generation from SPEC
@@ -258,7 +258,7 @@ Worktree Concept:
 
 Worktree Creation:
 
-- Command /moai:1-plan "login feature" "signup feature" --worktree creates multiple SPECs
+- Command /abyz-lab:1-plan "login feature" "signup feature" --worktree creates multiple SPECs
 - Result creates project-worktrees directory with SPEC-specific subdirectories
 
 Worktree Benefits:
@@ -284,12 +284,12 @@ For advanced patterns including SPEC templates, validation automation, and workf
 
 Directory Structure (Standard 3-File Format):
 
-- .moai/specs/SPEC-{ID}/: SPEC document directory containing 3 required files
+- .abyz-lab/specs/SPEC-{ID}/: SPEC document directory containing 3 required files
   - spec.md: EARS format specification (Environment, Assumptions, Requirements, Specifications)
   - plan.md: Implementation plan, milestones, technical approach
   - acceptance.md: Detailed acceptance criteria, test scenarios (Given-When-Then format)
-- .moai/memory/: Session state files (last-session-state.json)
-- .moai/docs/: Generated documentation (api-documentation.md)
+- .abyz-lab/memory/: Session state files (last-session-state.json)
+- .abyz-lab/docs/: Generated documentation (api-documentation.md)
 
 [HARD] Required File Set:
 Every SPEC directory MUST contain all 3 files (spec.md, plan.md, acceptance.md)
@@ -361,10 +361,10 @@ Validation Checklist:
 
 ### Works Well With
 
-- moai-foundation-core: SPEC-First DDD methodology and TRUST 5 framework
-- moai-workflow-testing: DDD implementation and test automation
-- moai-workflow-project: Project initialization and configuration
-- moai-workflow-worktree: Git Worktree management for parallel development
+- abyz-lab-foundation-core: SPEC-First DDD methodology and TRUST 5 framework
+- abyz-lab-workflow-testing: DDD implementation and test automation
+- abyz-lab-workflow-project: Project initialization and configuration
+- abyz-lab-workflow-worktree: Git Worktree management for parallel development
 - manager-spec: SPEC creation and requirement analysis agent
 - manager-ddd: DDD implementation based on SPEC requirements
 - manager-quality: TRUST 5 quality validation and gate enforcement
@@ -373,16 +373,16 @@ Validation Checklist:
 
 Sequential Workflow:
 
-- Step 1 PLAN: /moai:1-plan "user authentication system"
-- Step 2 RUN: /moai:2-run SPEC-001
-- Step 3 SYNC: /moai:3-sync SPEC-001
+- Step 1 PLAN: /abyz-lab:1-plan "user authentication system"
+- Step 2 RUN: /abyz-lab:2-run SPEC-001
+- Step 3 SYNC: /abyz-lab:3-sync SPEC-001
 
 Parallel Workflow:
 
-- Create multiple SPECs: /moai:1-plan "backend API" "frontend UI" "database schema" --worktree
-- Session 1: /moai:2-run SPEC-001 (backend API)
-- Session 2: /moai:2-run SPEC-002 (frontend UI)
-- Session 3: /moai:2-run SPEC-003 (database schema)
+- Create multiple SPECs: /abyz-lab:1-plan "backend API" "frontend UI" "database schema" --worktree
+- Session 1: /abyz-lab:2-run SPEC-001 (backend API)
+- Session 2: /abyz-lab:2-run SPEC-002 (frontend UI)
+- Session 3: /abyz-lab:2-run SPEC-003 (database schema)
 
 ### Token Management
 
@@ -394,8 +394,8 @@ Session Strategy:
 
 Context Optimization:
 
-- SPEC document persists in .moai/specs/ directory
-- Session memory in .moai/memory/ for cross-session context
+- SPEC document persists in .abyz-lab/specs/ directory
+- Session memory in .abyz-lab/memory/ for cross-session context
 - Minimal context transfer through SPEC ID reference
 - Agent delegation reduces token overhead
 
@@ -403,9 +403,9 @@ Context Optimization:
 
 ## SPEC Scope and Classification (NEW)
 
-### What Belongs in .moai/specs/
+### What Belongs in .abyz-lab/specs/
 
-The `.moai/specs/` directory is EXCLUSIVELY for SPEC documents that define features to be implemented.
+The `.abyz-lab/specs/` directory is EXCLUSIVELY for SPEC documents that define features to be implemented.
 
 Valid SPEC Content:
 
@@ -422,29 +422,29 @@ SPEC Characteristics:
 - Testable: Includes acceptance criteria
 - Structured: Uses EARS format patterns
 
-### What Does NOT Belong in .moai/specs/
+### What Does NOT Belong in .abyz-lab/specs/
 
 | Document Type         | Why Not SPEC                  | Correct Location                          |
 | --------------------- | ----------------------------- | ----------------------------------------- |
-| Security Audit        | Analyzes existing code        | `.moai/reports/security-audit-{DATE}/`    |
-| Performance Report    | Documents current metrics     | `.moai/reports/performance-{DATE}/`       |
-| Dependency Analysis   | Reviews existing dependencies | `.moai/reports/dependency-review-{DATE}/` |
-| Architecture Overview | Documents current state       | `.moai/docs/architecture.md`              |
-| API Reference         | Documents existing APIs       | `.moai/docs/api-reference.md`             |
-| Meeting Notes         | Records decisions made        | `.moai/reports/meeting-{DATE}/`           |
-| Retrospective         | Analyzes past work            | `.moai/reports/retro-{DATE}/`             |
+| Security Audit        | Analyzes existing code        | `.abyz-lab/reports/security-audit-{DATE}/`    |
+| Performance Report    | Documents current metrics     | `.abyz-lab/reports/performance-{DATE}/`       |
+| Dependency Analysis   | Reviews existing dependencies | `.abyz-lab/reports/dependency-review-{DATE}/` |
+| Architecture Overview | Documents current state       | `.abyz-lab/docs/architecture.md`              |
+| API Reference         | Documents existing APIs       | `.abyz-lab/docs/api-reference.md`             |
+| Meeting Notes         | Records decisions made        | `.abyz-lab/reports/meeting-{DATE}/`           |
+| Retrospective         | Analyzes past work            | `.abyz-lab/reports/retro-{DATE}/`             |
 
 ### Exclusion Rules
 
 [HARD] Report vs SPEC Distinction:
 
-Reports analyze what EXISTS → `.moai/reports/`
-SPECs define what will be BUILT → `.moai/specs/`
+Reports analyze what EXISTS → `.abyz-lab/reports/`
+SPECs define what will be BUILT → `.abyz-lab/specs/`
 
 [HARD] Documentation vs SPEC Distinction:
 
-Documentation explains HOW TO USE → `.moai/docs/`
-SPECs define WHAT TO BUILD → `.moai/specs/`
+Documentation explains HOW TO USE → `.abyz-lab/docs/`
+SPECs define WHAT TO BUILD → `.abyz-lab/specs/`
 
 ---
 
@@ -452,12 +452,12 @@ SPECs define WHAT TO BUILD → `.moai/specs/`
 
 ### Scenario 1: Flat SPEC File → Directory Conversion
 
-Problem: `.moai/specs/SPEC-AUTH-001.md` exists as single file
+Problem: `.abyz-lab/specs/SPEC-AUTH-001.md` exists as single file
 
 Solution Steps:
 
-1. Create directory: `mkdir -p .moai/specs/SPEC-AUTH-001/`
-2. Move content: `mv .moai/specs/SPEC-AUTH-001.md .moai/specs/SPEC-AUTH-001/spec.md`
+1. Create directory: `mkdir -p .abyz-lab/specs/SPEC-AUTH-001/`
+2. Move content: `mv .abyz-lab/specs/SPEC-AUTH-001.md .abyz-lab/specs/SPEC-AUTH-001/spec.md`
 3. Create missing files:
    - Extract implementation plan → `plan.md`
    - Extract acceptance criteria → `acceptance.md`
@@ -468,7 +468,7 @@ Validation Command:
 
 ```bash
 # Check for flat SPEC files (should return empty)
-find .moai/specs -maxdepth 1 -name "SPEC-*.md" -type f
+find .abyz-lab/specs -maxdepth 1 -name "SPEC-*.md" -type f
 ```
 
 ### Scenario 2: Unnumbered SPEC ID → Number Assignment
@@ -479,31 +479,31 @@ Solution Steps:
 
 1. Find next available number:
    ```bash
-   ls -d .moai/specs/SPEC-*-[0-9][0-9][0-9] 2>/dev/null | sort -t- -k3 -n | tail -1
+   ls -d .abyz-lab/specs/SPEC-*-[0-9][0-9][0-9] 2>/dev/null | sort -t- -k3 -n | tail -1
    ```
 2. Assign number: `SPEC-REDESIGN` → `SPEC-REDESIGN-001`
 3. Rename directory:
    ```bash
-   mv .moai/specs/SPEC-REDESIGN .moai/specs/SPEC-REDESIGN-001
+   mv .abyz-lab/specs/SPEC-REDESIGN .abyz-lab/specs/SPEC-REDESIGN-001
    ```
 4. Update internal references in spec.md frontmatter
 5. Commit: `git commit -m "refactor(spec): Assign number to SPEC-REDESIGN → SPEC-REDESIGN-001"`
 
 ### Scenario 3: Report in SPEC Directory → Separation
 
-Problem: Analysis/audit document in `.moai/specs/`
+Problem: Analysis/audit document in `.abyz-lab/specs/`
 
 Solution Steps:
 
 1. Identify document type from content
 2. Create reports directory:
    ```bash
-   mkdir -p .moai/reports/security-audit-2025-01/
+   mkdir -p .abyz-lab/reports/security-audit-2025-01/
    ```
 3. Move content:
    ```bash
-   mv .moai/specs/SPEC-SECURITY-AUDIT/* .moai/reports/security-audit-2025-01/
-   rmdir .moai/specs/SPEC-SECURITY-AUDIT
+   mv .abyz-lab/specs/SPEC-SECURITY-AUDIT/* .abyz-lab/reports/security-audit-2025-01/
+   rmdir .abyz-lab/specs/SPEC-SECURITY-AUDIT
    ```
 4. Rename main file to report.md if needed
 5. Commit: `git commit -m "refactor: Move security audit from specs to reports"`
@@ -516,12 +516,12 @@ Solution Steps:
 
 1. Compare creation dates:
    ```bash
-   ls -la .moai/specs/ | grep SPEC-AUTH-001
+   ls -la .abyz-lab/specs/ | grep SPEC-AUTH-001
    ```
 2. Determine which is canonical (usually older one)
 3. Renumber newer one to next available:
    ```bash
-   mv .moai/specs/SPEC-AUTH-001-duplicate .moai/specs/SPEC-AUTH-002
+   mv .abyz-lab/specs/SPEC-AUTH-001-duplicate .abyz-lab/specs/SPEC-AUTH-002
    ```
 4. Update internal references
 5. Commit: `git commit -m "fix(spec): Resolve duplicate SPEC-AUTH-001 → SPEC-AUTH-002"`
@@ -538,11 +538,11 @@ echo "=== SPEC Organization Check ==="
 
 # Check 1: Flat files in specs root
 echo -e "\n[Check 1] Flat SPEC files (should be empty):"
-find .moai/specs -maxdepth 1 -name "SPEC-*.md" -type f
+find .abyz-lab/specs -maxdepth 1 -name "SPEC-*.md" -type f
 
 # Check 2: Directories without required files
 echo -e "\n[Check 2] SPEC directories missing required files:"
-for dir in .moai/specs/SPEC-*/; do
+for dir in .abyz-lab/specs/SPEC-*/; do
   if [ -d "$dir" ]; then
     missing=""
     [ ! -f "${dir}spec.md" ] && missing="${missing}spec.md "
@@ -554,11 +554,11 @@ done
 
 # Check 3: SPECs without numbers
 echo -e "\n[Check 3] SPECs without proper numbering:"
-ls -d .moai/specs/SPEC-*/ 2>/dev/null | grep -v -E 'SPEC-[A-Z]+-[0-9]{3}'
+ls -d .abyz-lab/specs/SPEC-*/ 2>/dev/null | grep -v -E 'SPEC-[A-Z]+-[0-9]{3}'
 
 # Check 4: Potential reports in specs
 echo -e "\n[Check 4] Potential reports in specs (check manually):"
-grep -l -r "findings\|recommendations\|audit\|analysis" .moai/specs/*/spec.md 2>/dev/null
+grep -l -r "findings\|recommendations\|audit\|analysis" .abyz-lab/specs/*/spec.md 2>/dev/null
 
 echo -e "\n=== Check Complete ==="
 ```

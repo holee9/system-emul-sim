@@ -3,7 +3,7 @@
 **Document Version**: 1.0.0
 **Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
-**Author**: MoAI Documentation Agent
+**Author**: ABYZ-Lab Documentation Agent
 **Project**: X-ray Detector Panel System
 
 ---
@@ -752,6 +752,6 @@ No additional corrections required in this review cycle. Previous review (manage
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Documentation Agent | Initial document creation |
 | 1.0.1 | 2026-02-17 | manager-quality | Approved with corrections. Bandwidth headroom clarified; UDP ports canonicalized (8000/8001/8002); Intermediate-A link speed corrected to 10 GbE; BRAM count corrected to 4. |
 | 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No additional technical corrections. Added Review Notes and Revision History. |

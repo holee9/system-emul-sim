@@ -172,9 +172,9 @@ async def test_async_api_call():
 
 ## Works Well With
 
-- moai-lang-python - Python 3.13+ patterns
-- moai-domain-backend - Backend testing strategies
-- moai-workflow-ddd - DDD workflow integration
+- abyz-lab-lang-python - Python 3.13+ patterns
+- abyz-lab-domain-backend - Backend testing strategies
+- abyz-lab-workflow-ddd - DDD workflow integration
 ```
 
 **Explanation**: This skill follows Claude Code official standards with progressive disclosure (Quick/Implementation/Advanced), stays under 500 lines, and includes practical pytest examples.

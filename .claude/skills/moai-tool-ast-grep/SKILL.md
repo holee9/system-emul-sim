@@ -1,5 +1,5 @@
 ---
-name: moai-tool-ast-grep
+name: abyz-lab-tool-ast-grep
 description: >
   AST-based structural code search, security scanning, and refactoring using ast-grep
   (sg CLI) with pattern matching and code transformation across 40+ languages.
@@ -18,11 +18,11 @@ metadata:
   status: "active"
   updated: "2026-01-11"
   tags: "ast, refactoring, code-search, lint, structural-search, security, codemod"
-  related-skills: "moai-workflow-testing, moai-foundation-quality, moai-domain-backend, moai-domain-frontend"
+  related-skills: "abyz-lab-workflow-testing, abyz-lab-foundation-quality, abyz-lab-domain-backend, abyz-lab-domain-frontend"
   context: "fork"
   agent: "Explore"
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["ast", "refactoring", "code search", "lint", "structural search", "security", "codemod", "ast-grep"]
 ---
@@ -210,13 +210,13 @@ Step 1: Use mcp__context7__resolve-library-id with query ast-grep to resolve the
 
 Step 2: Use mcp__context7__get-library-docs with the resolved library ID to fetch current documentation.
 
-### MoAI-ADK Integration
+### ABYZ-Lab-ADK Integration
 
-AST-Grep is integrated into MoAI-ADK through the Tool Registry as AST_ANALYZER type in internal/hook/registry.go, PostToolUse Hook for automatic security scanning after Write/Edit operations, and Permissions with Bash(sg:*) and Bash(ast-grep:*) auto-allowed.
+AST-Grep is integrated into ABYZ-Lab-ADK through the Tool Registry as AST_ANALYZER type in internal/hook/registry.go, PostToolUse Hook for automatic security scanning after Write/Edit operations, and Permissions with Bash(sg:*) and Bash(ast-grep:*) auto-allowed.
 
 ### Running Scans
 
-To scan with MoAI-ADK rules, execute sg scan with config pointing to .claude/skills/moai-tool-ast-grep/rules/sgconfig.yml.
+To scan with ABYZ-Lab-ADK rules, execute sg scan with config pointing to .claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml.
 
 To scan a specific directory, execute sg scan with config sgconfig.yml and the src/ directory.
 
@@ -226,12 +226,12 @@ For JSON output suitable for CI/CD, execute sg scan with config and json flag, r
 
 ## Works Well With
 
-- moai-workflow-testing: DDD integration and test pattern detection
-- moai-foundation-quality: TRUST 5 compliance and code quality gates
-- moai-domain-backend: API pattern detection and security scanning
-- moai-domain-frontend: React/Vue pattern optimization
-- moai-lang-python: Python-specific security and style rules
-- moai-lang-typescript: TypeScript type safety patterns
+- abyz-lab-workflow-testing: DDD integration and test pattern detection
+- abyz-lab-foundation-quality: TRUST 5 compliance and code quality gates
+- abyz-lab-domain-backend: API pattern detection and security scanning
+- abyz-lab-domain-frontend: React/Vue pattern optimization
+- abyz-lab-lang-python: Python-specific security and style rules
+- abyz-lab-lang-typescript: TypeScript type safety patterns
 
 ### Related Agents
 

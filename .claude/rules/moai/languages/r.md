@@ -51,7 +51,7 @@ Version: R 4.4+
 - Use withr for temporary state changes
 - Test edge cases and NA handling
 
-## MoAI Integration
+## ABYZ-Lab Integration
 
-- Use Skill("moai-lang-r") for detailed patterns
+- Use Skill("abyz-lab-lang-r") for detailed patterns
 - Follow TRUST 5 quality gates

@@ -1,5 +1,5 @@
 ---
-name: moai-lang-typescript
+name: abyz-lab-lang-typescript
 description: >
   TypeScript 5.9+ development specialist covering React 19, Next.js 16 App Router, type-safe APIs with tRPC, Zod validation, and modern TypeScript patterns. Use when developing TypeScript applications, React components, Next.js pages, or type-safe APIs.
 license: Apache-2.0
@@ -14,13 +14,13 @@ metadata:
   modularized: "false"
   tags: "typescript, react, nextjs, frontend, fullstack"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["TypeScript", "React", "Next.js", "tRPC", "Zod", ".ts", ".tsx", "tsconfig.json"]
   languages: ["typescript", "tsx"]
@@ -141,12 +141,12 @@ For TypeScript documentation, use microsoft/TypeScript with decorators satisfies
 
 ## Works Well With
 
-- moai-domain-frontend for UI components and styling patterns
-- moai-domain-backend for API design and database integration
-- moai-library-shadcn for component library integration
-- moai-workflow-testing for testing strategies and patterns
-- moai-foundation-quality for code quality standards
-- moai-essentials-debug for debugging TypeScript applications
+- abyz-lab-domain-frontend for UI components and styling patterns
+- abyz-lab-domain-backend for API design and database integration
+- abyz-lab-library-shadcn for component library integration
+- abyz-lab-workflow-testing for testing strategies and patterns
+- abyz-lab-foundation-quality for code quality standards
+- abyz-lab-essentials-debug for debugging TypeScript applications
 
 ---
 

@@ -17,19 +17,19 @@ Command Categories:
 - Configuration: config - Manage settings
 
 Quick Start:
-1. Create worktree: moai-worktree new SPEC-001 "User Authentication"
-2. Switch to worktree: moai-worktree switch SPEC-001
-3. Or use shell eval: eval $(moai-worktree go SPEC-001)
+1. Create worktree: abyz-lab-worktree new SPEC-001 "User Authentication"
+2. Switch to worktree: abyz-lab-worktree switch SPEC-001
+3. Or use shell eval: eval $(abyz-lab-worktree go SPEC-001)
 
 ---
 
 ## Creation Commands
 
-### moai-worktree new - Create Worktree
+### abyz-lab-worktree new - Create Worktree
 
 Create a new isolated Git worktree for SPEC development.
 
-Syntax: moai-worktree new <spec-id> [description] [options]
+Syntax: abyz-lab-worktree new <spec-id> [description] [options]
 
 Arguments:
 - spec-id: SPEC identifier (e.g., SPEC-001, SPEC-AUTH-001)
@@ -44,11 +44,11 @@ Options:
 - --force: Force creation even if worktree exists
 
 Examples:
-- Basic creation: moai-worktree new SPEC-001 "User Auth System"
-- Custom branch: moai-worktree new SPEC-002 "Payment" --branch feature/payment-gateway
-- From develop: moai-worktree new SPEC-003 "API Refactor" --base develop
-- With template: moai-worktree new SPEC-004 "Frontend" --template frontend
-- Fast creation: moai-worktree new SPEC-005 "Bug Fixes" --shallow --depth 1
+- Basic creation: abyz-lab-worktree new SPEC-001 "User Auth System"
+- Custom branch: abyz-lab-worktree new SPEC-002 "Payment" --branch feature/payment-gateway
+- From develop: abyz-lab-worktree new SPEC-003 "API Refactor" --base develop
+- With template: abyz-lab-worktree new SPEC-004 "Frontend" --template frontend
+- Fast creation: abyz-lab-worktree new SPEC-005 "Bug Fixes" --shallow --depth 1
 
 Auto-Generated Branch Pattern:
 - Format: feature/SPEC-{ID}-{description-kebab-case}
@@ -58,11 +58,11 @@ Auto-Generated Branch Pattern:
 
 ## Navigation Commands
 
-### moai-worktree list - List Worktrees
+### abyz-lab-worktree list - List Worktrees
 
 Display all registered worktrees with their status and metadata.
 
-Syntax: moai-worktree list [options]
+Syntax: abyz-lab-worktree list [options]
 
 Options:
 - --format <format>: Output format (table, json, csv)
@@ -72,17 +72,17 @@ Options:
 - --verbose: Show detailed information
 
 Examples:
-- Table format: moai-worktree list
-- JSON output: moai-worktree list --format json
-- Active only: moai-worktree list --status active
-- Sort by date: moai-worktree list --sort created
-- Detailed: moai-worktree list --verbose
+- Table format: abyz-lab-worktree list
+- JSON output: abyz-lab-worktree list --format json
+- Active only: abyz-lab-worktree list --status active
+- Sort by date: abyz-lab-worktree list --sort created
+- Detailed: abyz-lab-worktree list --verbose
 
-### moai-worktree switch - Switch to Worktree
+### abyz-lab-worktree switch - Switch to Worktree
 
 Change current working directory to the specified worktree.
 
-Syntax: moai-worktree switch <spec-id> [options]
+Syntax: abyz-lab-worktree switch <spec-id> [options]
 
 Options:
 - --auto-sync: Automatically sync before switching
@@ -90,15 +90,15 @@ Options:
 - --new-terminal: Open in new terminal window
 
 Examples:
-- Basic switch: moai-worktree switch SPEC-001
-- With sync: moai-worktree switch SPEC-002 --auto-sync
-- Force switch: moai-worktree switch SPEC-003 --force
+- Basic switch: abyz-lab-worktree switch SPEC-001
+- With sync: abyz-lab-worktree switch SPEC-002 --auto-sync
+- Force switch: abyz-lab-worktree switch SPEC-003 --force
 
-### moai-worktree go - Get Worktree Path
+### abyz-lab-worktree go - Get Worktree Path
 
 Output the cd command for shell integration.
 
-Syntax: moai-worktree go <spec-id> [options]
+Syntax: abyz-lab-worktree go <spec-id> [options]
 
 Options:
 - --absolute: Show absolute path
@@ -106,19 +106,19 @@ Options:
 - --export: Export as environment variable
 
 Shell Integration Methods:
-- eval pattern (recommended): eval $(moai-worktree go SPEC-001)
-- source pattern: moai-worktree go SPEC-001 | source
-- manual cd: cd $(moai-worktree go SPEC-001 --absolute)
+- eval pattern (recommended): eval $(abyz-lab-worktree go SPEC-001)
+- source pattern: abyz-lab-worktree go SPEC-001 | source
+- manual cd: cd $(abyz-lab-worktree go SPEC-001 --absolute)
 
 ---
 
 ## Management Commands
 
-### moai-worktree sync - Synchronize Worktree
+### abyz-lab-worktree sync - Synchronize Worktree
 
 Synchronize worktree with its base branch.
 
-Syntax: moai-worktree sync <spec-id> [options]
+Syntax: abyz-lab-worktree sync <spec-id> [options]
 
 Arguments:
 - spec-id: Worktree identifier (or --all for all worktrees)
@@ -132,12 +132,12 @@ Options:
 - --exclude <pattern>: Exclude specific files
 
 Examples:
-- Sync specific: moai-worktree sync SPEC-001
-- Sync all: moai-worktree sync --all
-- Interactive: moai-worktree sync SPEC-001 --interactive
-- Preview: moai-worktree sync SPEC-001 --dry-run
-- Include pattern: moai-worktree sync SPEC-001 --include "src/"
-- Exclude pattern: moai-worktree sync SPEC-001 --exclude "node_modules/"
+- Sync specific: abyz-lab-worktree sync SPEC-001
+- Sync all: abyz-lab-worktree sync --all
+- Interactive: abyz-lab-worktree sync SPEC-001 --interactive
+- Preview: abyz-lab-worktree sync SPEC-001 --dry-run
+- Include pattern: abyz-lab-worktree sync SPEC-001 --include "src/"
+- Exclude pattern: abyz-lab-worktree sync SPEC-001 --exclude "node_modules/"
 
 Conflict Resolution:
 When conflicts detected, choose from:
@@ -147,11 +147,11 @@ When conflicts detected, choose from:
 4. Skip file
 5. Abort sync
 
-### moai-worktree remove - Remove Worktree
+### abyz-lab-worktree remove - Remove Worktree
 
 Remove a worktree and clean up its registration.
 
-Syntax: moai-worktree remove <spec-id> [options]
+Syntax: abyz-lab-worktree remove <spec-id> [options]
 
 Options:
 - --force: Force removal without confirmation
@@ -160,17 +160,17 @@ Options:
 - --dry-run: Show what would be removed without doing it
 
 Examples:
-- Interactive: moai-worktree remove SPEC-001
-- Force: moai-worktree remove SPEC-001 --force
-- Keep branch: moai-worktree remove SPEC-001 --keep-branch
-- With backup: moai-worktree remove SPEC-001 --backup
-- Preview: moai-worktree remove SPEC-001 --dry-run
+- Interactive: abyz-lab-worktree remove SPEC-001
+- Force: abyz-lab-worktree remove SPEC-001 --force
+- Keep branch: abyz-lab-worktree remove SPEC-001 --keep-branch
+- With backup: abyz-lab-worktree remove SPEC-001 --backup
+- Preview: abyz-lab-worktree remove SPEC-001 --dry-run
 
-### moai-worktree clean - Clean Up Worktrees
+### abyz-lab-worktree clean - Clean Up Worktrees
 
 Remove worktrees for merged branches or stale worktrees.
 
-Syntax: moai-worktree clean [options]
+Syntax: abyz-lab-worktree clean [options]
 
 Options:
 - --merged-only: Only remove worktrees with merged branches
@@ -181,22 +181,22 @@ Options:
 - --force: Skip confirmation prompts
 
 Examples:
-- Merged only: moai-worktree clean --merged-only
-- Stale (30 days): moai-worktree clean --stale
-- Custom threshold: moai-worktree clean --stale --days 14
-- Interactive: moai-worktree clean --interactive
-- Preview: moai-worktree clean --dry-run
-- Force: moai-worktree clean --force
+- Merged only: abyz-lab-worktree clean --merged-only
+- Stale (30 days): abyz-lab-worktree clean --stale
+- Custom threshold: abyz-lab-worktree clean --stale --days 14
+- Interactive: abyz-lab-worktree clean --interactive
+- Preview: abyz-lab-worktree clean --dry-run
+- Force: abyz-lab-worktree clean --force
 
 ---
 
 ## Status and Configuration
 
-### moai-worktree status - Show Worktree Status
+### abyz-lab-worktree status - Show Worktree Status
 
 Display detailed status information about worktrees.
 
-Syntax: moai-worktree status [spec-id] [options]
+Syntax: abyz-lab-worktree status [spec-id] [options]
 
 Arguments:
 - spec-id: Specific worktree (optional, shows current if not specified)
@@ -208,11 +208,11 @@ Options:
 - --format <format>: Output format (table, json)
 
 Examples:
-- Current worktree: moai-worktree status
-- Specific worktree: moai-worktree status SPEC-001
-- All with sync check: moai-worktree status --all --sync-check
-- Detailed Git status: moai-worktree status SPEC-001 --detailed
-- JSON output: moai-worktree status --all --format json
+- Current worktree: abyz-lab-worktree status
+- Specific worktree: abyz-lab-worktree status SPEC-001
+- All with sync check: abyz-lab-worktree status --all --sync-check
+- Detailed Git status: abyz-lab-worktree status SPEC-001 --detailed
+- JSON output: abyz-lab-worktree status --all --format json
 
 Status Output Includes:
 - Worktree path and branch
@@ -220,11 +220,11 @@ Status Output Includes:
 - Modified and untracked files
 - Sync status and last sync time
 
-### moai-worktree config - Configuration Management
+### abyz-lab-worktree config - Configuration Management
 
-Manage moai-worktree configuration settings.
+Manage abyz-lab-worktree configuration settings.
 
-Syntax: moai-worktree config <action> [key] [value]
+Syntax: abyz-lab-worktree config <action> [key] [value]
 
 Actions:
 - get [key]: Get configuration value
@@ -242,11 +242,11 @@ Configuration Keys:
 - sync_strategy: Sync strategy (merge, rebase, squash)
 
 Examples:
-- List all: moai-worktree config list
-- Get value: moai-worktree config get worktree_root
-- Set value: moai-worktree config set auto_sync true
-- Reset: moai-worktree config reset worktree_root
-- Edit: moai-worktree config edit
+- List all: abyz-lab-worktree config list
+- Get value: abyz-lab-worktree config get worktree_root
+- Set value: abyz-lab-worktree config set auto_sync true
+- Reset: abyz-lab-worktree config reset worktree_root
+- Edit: abyz-lab-worktree config edit
 
 ---
 
@@ -259,7 +259,7 @@ Sync all active worktrees:
 - Run sync for each ID in sequence or parallel
 
 Clean all merged worktrees:
-- moai-worktree clean --merged-only --force
+- abyz-lab-worktree clean --merged-only --force
 
 Create worktrees from SPEC list:
 - Read SPEC IDs from file
@@ -268,7 +268,7 @@ Create worktrees from SPEC list:
 ### Shell Aliases
 
 Recommended aliases for .bashrc or .zshrc:
-- mw: Short for moai-worktree
+- mw: Short for abyz-lab-worktree
 - mwl: List worktrees
 - mws: Switch to worktree
 - mwg: Navigate with eval pattern

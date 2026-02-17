@@ -749,9 +749,9 @@ Per project `quality.yaml` (Hybrid mode):
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial Host SDK architecture design document |
-| 1.0.1 | 2026-02-17 | MoAI Agent | Fixed Section 4.2 TryParseHeader: added Crc16 field at offset 28 (uint16), corrected BitDepth to offset 30, corrected Flags to offset 31, added CRC-16/CCITT validation call after magic check |
-| 1.0.2 | 2026-02-17 | MoAI Agent (chief-architect) | MINOR-2: Renamed Frame.TimestampUs → Frame.TimestampNs in §3.2 data model and §5.2 FrameAssembler.BuildFrame() for nanosecond precision consistency with host-sdk-api.md. |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial Host SDK architecture design document |
+| 1.0.1 | 2026-02-17 | ABYZ-Lab Agent | Fixed Section 4.2 TryParseHeader: added Crc16 field at offset 28 (uint16), corrected BitDepth to offset 30, corrected Flags to offset 31, added CRC-16/CCITT validation call after magic check |
+| 1.0.2 | 2026-02-17 | ABYZ-Lab Agent (chief-architect) | MINOR-2: Renamed Frame.TimestampUs → Frame.TimestampNs in §3.2 data model and §5.2 FrameAssembler.BuildFrame() for nanosecond precision consistency with host-sdk-api.md. |
 
 ---
 

@@ -784,7 +784,7 @@ jobs:
         run: npm install -g @ast-grep/cli
 
       - name: Run Security Scan
-        run: sg scan --config .claude/skills/moai-tool-ast-grep/rules/sgconfig.yml --format github
+        run: sg scan --config .claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml --format github
 
       - name: Upload Results
         if: always()
@@ -801,7 +801,7 @@ jobs:
 #!/bin/bash
 echo "Running AST-Grep security scan..."
 
-sg scan --config .claude/skills/moai-tool-ast-grep/rules/sgconfig.yml --format compact
+sg scan --config .claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml --format compact
 
 if [ $? -ne 0 ]; then
     echo "AST-Grep found issues. Please fix before committing."
@@ -965,7 +965,7 @@ sg run --pattern 'oldFunc($$$ARGS)' --rewrite 'newFunc($$$ARGS)' --lang javascri
 
 ```bash
 # Scan for security issues
-sg scan --config .claude/skills/moai-tool-ast-grep/rules/sgconfig.yml --severity error
+sg scan --config .claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml --severity error
 
 # Generate SARIF report for GitHub Security
 sg scan --config sgconfig.yml --format sarif -o security-report.sarif
@@ -1096,4 +1096,4 @@ sg scan --config sgconfig.yml --debug
 
 **Version**: 1.0.0
 **Last Updated**: 2026-01-06
-**Skill**: moai-tool-ast-grep
+**Skill**: abyz-lab-tool-ast-grep

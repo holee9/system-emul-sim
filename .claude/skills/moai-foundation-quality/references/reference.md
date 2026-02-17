@@ -1,6 +1,6 @@
 # Enterprise Code Quality Reference
 
-Complete API reference and technical documentation for the moai-foundation-quality skill.
+Complete API reference and technical documentation for the abyz-lab-foundation-quality skill.
 
 ---
 
@@ -111,7 +111,7 @@ class QualityConfig:
  # Output settings
  generate_reports: bool = True
  output_formats: List[str] = field(default_factory=lambda: ["html", "json"])
- output_directory: str = ".moai/reports/quality"
+ output_directory: str = ".abyz-lab/reports/quality"
 
  @classmethod
  def default(cls) -> "QualityConfig:
@@ -1263,4 +1263,4 @@ class ParallelQualityAnalyzer:
  """Split analysis into parallel tasks"""
 ```
 
-This comprehensive reference documentation provides complete API coverage for the moai-foundation-quality skill, including all classes, methods, configuration options, and integration patterns needed for enterprise code quality management.
+This comprehensive reference documentation provides complete API coverage for the abyz-lab-foundation-quality skill, including all classes, methods, configuration options, and integration patterns needed for enterprise code quality management.

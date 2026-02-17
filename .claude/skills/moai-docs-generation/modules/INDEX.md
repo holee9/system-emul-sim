@@ -41,14 +41,14 @@ Static Site Generators:
 
 - Quick Start: Use SKILL.md for immediate guidance
 - Implementation: Reference module files for detailed patterns
-- Advanced: Combine with moai-library-nextra for full documentation sites
+- Advanced: Combine with abyz-lab-library-nextra for full documentation sites
 
 ### Integration with Other Skills
 
-- Skill("moai-library-nextra") - Comprehensive Nextra documentation framework
-- Skill("moai-lang-python") - Python docstring conventions
-- Skill("moai-lang-typescript") - TypeScript documentation patterns
-- Skill("moai-domain-backend") - API documentation for services
+- Skill("abyz-lab-library-nextra") - Comprehensive Nextra documentation framework
+- Skill("abyz-lab-lang-python") - Python docstring conventions
+- Skill("abyz-lab-lang-typescript") - TypeScript documentation patterns
+- Skill("abyz-lab-domain-backend") - API documentation for services
 
 ---
 

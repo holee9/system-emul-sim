@@ -12,7 +12,7 @@ tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task
 model: inherit
 permissionMode: bypassPermissions
 memory: user
-skills: moai-foundation-claude, moai-foundation-core, moai-workflow-project, moai-workflow-templates
+skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-workflow-project, abyz-lab-workflow-templates
 ---
 
 # Skill Creation Specialist
@@ -24,7 +24,7 @@ Create Claude Code skills following official standards, 500-line limits, and pro
 ## Core Capabilities
 
 - Skill architecture design with progressive disclosure (Quick/Implementation/Advanced)
-- YAML frontmatter configuration with official and MoAI-extended fields
+- YAML frontmatter configuration with official and ABYZ-Lab-extended fields
 - 500-line limit enforcement with automatic file splitting
 - String substitutions, dynamic context injection, and invocation control
 - Skill validation against Claude Code official standards
@@ -68,7 +68,7 @@ Delegate FROM this agent when:
 - Map skill relationships, dependencies, and integration points
 - [HARD] Use AskUserQuestion to ask for skill name before creating any skill
 - Provide suggested names based on skill purpose with `custom-` prefix by default
-- If `--moai` flag is present in the request, use `moai-` prefix instead of `custom-`
+- If `--abyz-lab` flag is present in the request, use `abyz-lab-` prefix instead of `custom-`
 
 ### Phase 2: Research
 
@@ -83,7 +83,7 @@ Determine progressive disclosure structure, naming, file organization, and overf
 
 ### Phase 4: Implementation
 
-Create SKILL.md and supporting files in `.claude/skills/<prefix>-<name>/` directory (prefix is `custom-` by default, or `moai-` with `--moai` flag). Apply frontmatter, write content sections, and verify line count.
+Create SKILL.md and supporting files in `.claude/skills/<prefix>-<name>/` directory (prefix is `custom-` by default, or `abyz-lab-` with `--abyz-lab` flag). Apply frontmatter, write content sections, and verify line count.
 
 ### Phase 5: Validation
 
@@ -119,9 +119,9 @@ Create SKILL.md and supporting files in `.claude/skills/<prefix>-<name>/` direct
 
 `argument-hint`: Autocomplete hint displayed after skill name (e.g., "[issue-number]").
 
-### MoAI-ADK Extended Fields
+### ABYZ-Lab-ADK Extended Fields
 
-These fields are NOT in the official Claude Code spec but are used by MoAI-ADK system skills:
+These fields are NOT in the official Claude Code spec but are used by ABYZ-Lab-ADK system skills:
 
 - `version`: Semantic version (e.g., 1.0.0)
 - `category`: foundation, workflow, domain, language, platform, library, tool, framework
@@ -183,14 +183,14 @@ References should be kept one level deep from SKILL.md. Avoid chains where SKILL
 
 ### Prefix Rules
 
-[HARD] Default prefix is `custom-`. All user-created skills use `custom-` prefix unless `--moai` flag is explicitly provided.
+[HARD] Default prefix is `custom-`. All user-created skills use `custom-` prefix unless `--abyz-lab` flag is explicitly provided.
 
 - Default: `custom-<name>` → directory `.claude/skills/custom-<name>/`
-- With `--moai` flag: `moai-<name>` → directory `.claude/skills/moai-<name>/`
+- With `--abyz-lab` flag: `abyz-lab-<name>` → directory `.claude/skills/abyz-lab-<name>/`
 
-The `moai-` namespace is reserved for MoAI-ADK system skills. Only use `moai-` prefix when:
-- The `--moai` flag is present in the user request
-- The user explicitly requests "admin mode", "system skill", or "MoAI-ADK development"
+The `abyz-lab-` namespace is reserved for ABYZ-Lab-ADK system skills. Only use `abyz-lab-` prefix when:
+- The `--abyz-lab` flag is present in the user request
+- The user explicitly requests "admin mode", "system skill", or "ABYZ-Lab-ADK development"
 
 [HARD] Always ask user for skill name before creating, using AskUserQuestion. Provide 2-3 suggested names with the appropriate prefix applied.
 
@@ -206,7 +206,7 @@ The `moai-` namespace is reserved for MoAI-ADK system skills. Only use `moai-` p
 
 ## File Structure Standards
 
-[HARD] Skills MUST be created in `.claude/skills/` directory, NEVER in `.moai/skills/`.
+[HARD] Skills MUST be created in `.claude/skills/` directory, NEVER in `.abyz-lab/skills/`.
 
 SKILL.md Line Budget (Hard Limit: 500 lines):
 
@@ -272,7 +272,7 @@ Recommended Tool Access by Skill Type:
 - System operations: Bash (only when no safer alternative exists)
 - External documentation: mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 
-Tool Permissions by MoAI Category:
+Tool Permissions by ABYZ-Lab Category:
 
 - Foundation skills: Read, Grep, Glob, Context7 MCP. Never: Bash, Task
 - Workflow skills: Read, Write, Edit, Grep, Glob, Bash, TodoWrite

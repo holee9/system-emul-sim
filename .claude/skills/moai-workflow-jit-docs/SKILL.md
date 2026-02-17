@@ -1,5 +1,5 @@
 ---
-name: moai-workflow-jit-docs
+name: abyz-lab-workflow-jit-docs
 description: >
   Enhanced Just-In-Time document loading system that intelligently discovers,
   loads, and caches relevant documentation based on user intent and project
@@ -18,13 +18,13 @@ metadata:
   modularized: "false"
   tags: "workflow, documentation, jit-loading, context-aware, caching, discovery"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["documentation", "docs", "API reference", "how to", "implement", "best practices", "technology guide", "framework documentation"]
   phases: ["plan", "run", "sync"]
@@ -86,8 +86,8 @@ The system retrieves documentation from multiple sources in priority order:
 
 Local Project Documentation (Highest Priority):
 
-- Check .moai/docs/ for project-specific documentation
-- Check .moai/specs/ for requirements and specifications
+- Check .abyz-lab/docs/ for project-specific documentation
+- Check .abyz-lab/specs/ for requirements and specifications
 - Check README.md for project overview
 - Check docs/ directory for comprehensive documentation
 
@@ -246,11 +246,11 @@ Agents:
 
 Skills:
 
-- moai-docs-generation: Documentation generation
-- moai-workflow-docs: Documentation validation
-- moai-library-nextra: Nextra documentation
+- abyz-lab-docs-generation: Documentation generation
+- abyz-lab-workflow-docs: Documentation validation
+- abyz-lab-library-nextra: Nextra documentation
 
 Commands:
 
-- /moai:3-sync: Documentation synchronization
-- /moai:9-feedback: Documentation improvements
+- /abyz-lab:3-sync: Documentation synchronization
+- /abyz-lab:9-feedback: Documentation improvements

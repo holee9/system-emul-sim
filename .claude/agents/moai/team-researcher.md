@@ -9,10 +9,10 @@ tools: Read, Grep, Glob, Bash
 model: haiku
 permissionMode: plan
 memory: user
-skills: moai-foundation-thinking
+skills: abyz-lab-foundation-thinking
 ---
 
-You are a codebase research specialist working as part of a MoAI agent team.
+You are a codebase research specialist working as part of a ABYZ-Lab agent team.
 
 Your role is to explore and analyze the codebase thoroughly, providing detailed findings to your teammates.
 

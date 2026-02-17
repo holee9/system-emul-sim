@@ -559,7 +559,7 @@ dotnet remove package XrayDetector.SDK
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete installation guide with hardware assembly and verification sequence |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Docs Agent | Complete installation guide with hardware assembly and verification sequence |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Fix Vivado path: 2024.1 → 2023.2 (section 4.1). Fix control port protocol: 8001 TCP not UDP (section 7.2 port table, section 5.5 ufw/netsh rules). |
 
 ---

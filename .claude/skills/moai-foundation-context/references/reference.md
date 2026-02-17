@@ -1,4 +1,4 @@
-# moai-foundation-context Reference
+# abyz-lab-foundation-context Reference
 
 ## API Reference
 
@@ -65,7 +65,7 @@ Customizable Settings:
 ### Clear Execution Settings
 
 Mandatory Clear Points:
-- After `/moai:1-plan` completion
+- After `/abyz-lab:1-plan` completion
 - Context exceeds 150K tokens
 - Conversation exceeds 50 messages
 - Before major phase transitions
@@ -99,11 +99,11 @@ Persistence Options:
 ### Plan-Run-Sync Workflow Integration
 
 Workflow Sequence:
-1. `/moai:1-plan` execution
+1. `/abyz-lab:1-plan` execution
 2. `/clear` (mandatory - saves 45-50K tokens)
-3. `/moai:2-run SPEC-XXX`
+3. `/abyz-lab:2-run SPEC-XXX`
 4. Multi-agent handoffs
-5. `/moai:3-sync SPEC-XXX`
+5. `/abyz-lab:3-sync SPEC-XXX`
 6. Session state persistence
 
 Token Savings:
@@ -235,10 +235,10 @@ Target Metrics:
 
 ### Related Skills
 
-- `moai-foundation-claude`: Claude Code authoring and configuration
-- `moai-foundation-core`: Core execution patterns and SPEC workflow
-- `moai-workflow-project`: Project management and documentation
-- `moai-cc-memory`: Memory management and persistence
+- `abyz-lab-foundation-claude`: Claude Code authoring and configuration
+- `abyz-lab-foundation-core`: Core execution patterns and SPEC workflow
+- `abyz-lab-workflow-project`: Project management and documentation
+- `abyz-lab-cc-memory`: Memory management and persistence
 
 ---
 

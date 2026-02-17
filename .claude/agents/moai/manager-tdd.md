@@ -13,24 +13,24 @@ description: |
 tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: inherit
 permissionMode: default
-skills: moai-foundation-claude, moai-foundation-core, moai-foundation-quality, moai-workflow-tdd, moai-workflow-testing, moai-workflow-ddd
+skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-quality, abyz-lab-workflow-tdd, abyz-lab-workflow-testing, abyz-lab-workflow-ddd
 hooks:
   PreToolUse:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" tdd-pre-implementation"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" tdd-pre-implementation"
           timeout: 5
   PostToolUse:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" tdd-post-implementation"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" tdd-post-implementation"
           timeout: 10
   SubagentStop:
     - hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" tdd-completion"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" tdd-completion"
           timeout: 10
 ---
 
@@ -59,8 +59,8 @@ output_format: New implementation code with specification tests, coverage report
 checkpoint_strategy:
   enabled: true
   interval: every_cycle
-  # CRITICAL: Always use project root for .moai to prevent duplicate .moai in subfolders
-  location: $CLAUDE_PROJECT_DIR/.moai/memory/checkpoints/tdd/
+  # CRITICAL: Always use project root for .abyz-lab to prevent duplicate .abyz-lab in subfolders
+  location: $CLAUDE_PROJECT_DIR/.abyz-lab/memory/checkpoints/tdd/
   resume_capability: true
 
 memory_management:
@@ -183,7 +183,7 @@ TDD Implementation Report:
 
 ## Essential Reference
 
-IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: 8-Step User Request Analysis Process
 - Rule 3: Behavioral Constraints (Never execute directly, always delegate)
@@ -198,7 +198,7 @@ For complete execution guidelines and mandatory rules, refer to @CLAUDE.md.
 
 IMPORTANT: Receive prompts in the user's configured conversation_language.
 
-MoAI passes the user's language directly through natural language delegation for multilingual support.
+ABYZ-Lab passes the user's language directly through natural language delegation for multilingual support.
 
 Language Guidelines:
 
@@ -220,12 +220,12 @@ Always in English (regardless of conversation_language):
 
 Skills Pre-loaded:
 
-- Skills from YAML frontmatter: moai-workflow-tdd, moai-workflow-testing
+- Skills from YAML frontmatter: abyz-lab-workflow-tdd, abyz-lab-workflow-testing
 
 Example:
 
 - Receive (Korean): "Implement SPEC-AUTH-001 user authentication feature"
-- Skills pre-loaded: moai-workflow-tdd (TDD methodology), moai-workflow-testing (specification tests)
+- Skills pre-loaded: abyz-lab-workflow-tdd (TDD methodology), abyz-lab-workflow-testing (specification tests)
 - Write code in English with English comments
 - Provide status updates to user in their language
 
@@ -235,14 +235,14 @@ Example:
 
 Automatic Core Skills (from YAML frontmatter):
 
-- moai-foundation-claude: Core execution rules and agent delegation patterns
-- moai-workflow-tdd: TDD methodology and RED-GREEN-REFACTOR cycle
-- moai-workflow-testing: Specification tests and coverage verification
+- abyz-lab-foundation-claude: Core execution rules and agent delegation patterns
+- abyz-lab-workflow-tdd: TDD methodology and RED-GREEN-REFACTOR cycle
+- abyz-lab-workflow-testing: Specification tests and coverage verification
 
-Conditional Skills (auto-loaded by MoAI when needed):
+Conditional Skills (auto-loaded by ABYZ-Lab when needed):
 
-- moai-workflow-project: Project management and configuration patterns
-- moai-foundation-quality: Quality validation and metrics analysis
+- abyz-lab-workflow-project: Project management and configuration patterns
+- abyz-lab-foundation-quality: Quality validation and metrics analysis
 
 ---
 
@@ -639,7 +639,7 @@ To prevent V8 heap memory overflow during long-running TDD sessions, this agent 
 
 **Checkpoint Strategy**:
 - Checkpoint after every RED-GREEN-REFACTOR cycle completion
-- Checkpoint location: `.moai/memory/checkpoints/tdd/`
+- Checkpoint location: `.abyz-lab/memory/checkpoints/tdd/`
 - Auto-checkpoint on memory pressure detection
 
 **Checkpoint Content**:
@@ -669,10 +669,10 @@ To prevent V8 heap memory overflow during long-running TDD sessions, this agent 
 **Usage**:
 ```bash
 # Normal execution (auto-checkpointing)
-/moai run SPEC-001
+/abyz-lab run SPEC-001
 
 # Resume from checkpoint after crash
-/moai run SPEC-001 --resume latest
+/abyz-lab run SPEC-001 --resume latest
 ```
 
 ## Error Handling
@@ -738,4 +738,4 @@ Changelog:
   - Ralph-style LSP integration
   - Checkpoint and resume capability
   - Memory management for long sessions
-  - Integration with moai-workflow-tdd skill
+  - Integration with abyz-lab-workflow-tdd skill

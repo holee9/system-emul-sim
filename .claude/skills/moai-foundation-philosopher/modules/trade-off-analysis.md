@@ -151,4 +151,4 @@ Options:
 ---
 
 Version: 1.0.0
-Parent Skill: moai-foundation-philosopher
+Parent Skill: abyz-lab-foundation-philosopher

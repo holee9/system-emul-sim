@@ -18,7 +18,7 @@ Parallel Development Benefits:
 
 Core Workflow:
 
-To set up parallel development, create worktrees for each SPEC using moai-worktree new with the SPEC ID and description. For parallel execution, navigate to each worktree using moai-worktree go and run /moai:2-run in separate terminals or background processes. For integration, use moai-worktree sync --all to synchronize all worktrees, then clean up merged worktrees with moai-worktree clean --merged-only.
+To set up parallel development, create worktrees for each SPEC using abyz-lab-worktree new with the SPEC ID and description. For parallel execution, navigate to each worktree using abyz-lab-worktree go and run /abyz-lab:2-run in separate terminals or background processes. For integration, use abyz-lab-worktree sync --all to synchronize all worktrees, then clean up merged worktrees with abyz-lab-worktree clean --merged-only.
 
 ---
 
@@ -80,7 +80,7 @@ Main Repository (project_root/):
 - Source code, docs, and configuration files
 - Central worktree registry file
 
-Worktree Root ({repo}/.moai/worktrees/{project-name}/):
+Worktree Root ({repo}/.abyz-lab/worktrees/{project-name}/):
 - Contains all worktrees for the project
 - Each SPEC has dedicated subdirectory
 - Independent environment per worktree

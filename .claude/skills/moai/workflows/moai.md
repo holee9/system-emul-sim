@@ -1,5 +1,5 @@
 ---
-name: moai-workflow-moai
+name: abyz-lab-workflow-abyz-lab
 description: >
   Full autonomous plan-run-sync pipeline. Default workflow when no subcommand
   is specified. Handles parallel exploration, SPEC generation, DDD/TDD
@@ -12,24 +12,24 @@ metadata:
   category: "workflow"
   status: "active"
   updated: "2026-02-07"
-  tags: "moai, autonomous, pipeline, plan-run-sync, default"
+  tags: "abyz-lab, autonomous, pipeline, plan-run-sync, default"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
-  keywords: ["moai", "autonomous", "pipeline", "build", "implement", "create"]
-  agents: ["moai"]
+  keywords: ["abyz-lab", "autonomous", "pipeline", "build", "implement", "create"]
+  agents: ["abyz-lab"]
   phases: ["plan", "run", "sync"]
 ---
 
-# Workflow: MoAI - Autonomous Development Orchestration
+# Workflow: ABYZ-Lab - Autonomous Development Orchestration
 
-Purpose: Full autonomous workflow. User provides a goal, MoAI autonomously executes plan -> run -> sync pipeline. This is the default workflow when no subcommand is specified.
+Purpose: Full autonomous workflow. User provides a goal, ABYZ-Lab autonomously executes plan -> run -> sync pipeline. This is the default workflow when no subcommand is specified.
 
 Flow: Explore -> Plan -> Run -> Sync -> Done
 
@@ -54,7 +54,7 @@ Flow: Explore -> Plan -> Run -> Sync -> Done
 
 ## Development Mode Routing (CRITICAL)
 
-[HARD] Before Phase 2 implementation, ALWAYS check `.moai/config/sections/quality.yaml`:
+[HARD] Before Phase 2 implementation, ALWAYS check `.abyz-lab/config/sections/quality.yaml`:
 
 ```yaml
 constitution:
@@ -117,14 +117,14 @@ User approval checkpoint via AskUserQuestion:
 ## Phase 1: SPEC Generation
 
 - Delegate to manager-spec subagent
-- Output: EARS-format SPEC document at .moai/specs/SPEC-XXX/spec.md
+- Output: EARS-format SPEC document at .abyz-lab/specs/SPEC-XXX/spec.md
 - Includes requirements, acceptance criteria, technical approach
 
 ## Phase 2: Implementation (TDD or DDD based on development_mode)
 
 [HARD] Agent delegation mandate: ALL implementation tasks MUST be delegated to specialized agents. NEVER execute implementation directly, even after auto compact.
 
-[HARD] Methodology selection based on `.moai/config/sections/quality.yaml`:
+[HARD] Methodology selection based on `.abyz-lab/config/sections/quality.yaml`:
 
 - **New features** (per hybrid_settings.new_features): Use `manager-tdd` (RED-GREEN-REFACTOR)
 - **Legacy refactoring** (per hybrid_settings.legacy_refactoring): Use `manager-ddd` (ANALYZE-PRESERVE-IMPROVE)
@@ -150,7 +150,7 @@ Loop behavior (when --loop flag or workflow.yaml loop_prevention settings enable
 - Delegate to manager-docs subagent
 - Synchronize documentation with implementation
 - Detect SPEC-implementation divergence and update SPEC documents accordingly
-- Conditionally update project documents (.moai/project/) when structural changes detected
+- Conditionally update project documents (.abyz-lab/project/) when structural changes detected
 - Respect SPEC lifecycle level for update strategy (spec-first, spec-anchored, spec-as-source)
 - Add completion marker on success
 
@@ -191,8 +191,8 @@ All implementation follows CLAUDE.md Section 7 Safe Development Protocol:
 ## Completion Markers
 
 AI must add a marker when work is complete:
-- `<moai>DONE</moai>` - Task complete
-- `<moai>COMPLETE</moai>` - Full completion
+- `<abyz-lab>DONE</abyz-lab>` - Task complete
+- `<abyz-lab>COMPLETE</abyz-lab>` - Full completion
 
 ## Execution Summary
 

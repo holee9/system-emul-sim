@@ -5,16 +5,16 @@ paths:
 
 # Skill Authoring
 
-Guidelines for creating MoAI skills following the Agent Skills open standard (agentskills.io).
+Guidelines for creating ABYZ-Lab skills following the Agent Skills open standard (agentskills.io).
 
 ## YAML Frontmatter Schema
 
-MoAI skills follow the Agent Skills standard with MoAI-specific extensions.
+ABYZ-Lab skills follow the Agent Skills standard with ABYZ-Lab-specific extensions.
 
 ### Standard Fields (agentskills.io)
 
 Required fields:
-- name: Skill identifier, lowercase with hyphens, max 64 characters (system: moai-{category}-{name}, user: custom-{name})
+- name: Skill identifier, lowercase with hyphens, max 64 characters (system: abyz-lab-{category}-{name}, user: custom-{name})
 - description: Purpose description using YAML folded scalar (>), max 1024 characters
 
 Optional standard fields:
@@ -42,7 +42,7 @@ Common metadata keys:
 - context: Contextual description for skill behavior
 - agent: Target agent name
 
-### MoAI Extension Fields
+### ABYZ-Lab Extension Fields
 
 Complex structured fields kept at top level with standardized comments.
 
@@ -61,7 +61,7 @@ triggers: Loading trigger conditions
 
 ```yaml
 ---
-name: moai-example-skill
+name: abyz-lab-example-skill
 description: >
   Brief description of what this skill does, max 1024 characters.
   Use YAML folded scalar (>) for multi-line descriptions.
@@ -77,13 +77,13 @@ metadata:
   modularized: "false"
   tags: "example, demo, template"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["example", "demo"]
   agents: ["expert-backend"]
@@ -132,7 +132,7 @@ Foundation Skills:
 
 Workflow Skills:
 - Allowed: Read, Write, Edit, Grep, Glob, Bash, TodoWrite
-- Conditional: AskUserQuestion (MoAI only), Task (managers only)
+- Conditional: AskUserQuestion (ABYZ-Lab only), Task (managers only)
 
 Domain Skills:
 - Allowed: Read, Grep, Glob, Bash
@@ -164,4 +164,4 @@ triggers:
 - Use YAML folded scalar (>) for description field
 - Keep all metadata values as quoted strings
 - Use space-delimited format for allowed-tools
-- Mark MoAI extension fields with standardized comments
+- Mark ABYZ-Lab extension fields with standardized comments

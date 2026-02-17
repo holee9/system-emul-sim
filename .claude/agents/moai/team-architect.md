@@ -9,10 +9,10 @@ tools: Read, Grep, Glob, Bash
 model: inherit
 permissionMode: plan
 memory: project
-skills: moai-foundation-philosopher, moai-foundation-thinking, moai-domain-backend, moai-domain-frontend, moai-domain-database
+skills: abyz-lab-foundation-philosopher, abyz-lab-foundation-thinking, abyz-lab-domain-backend, abyz-lab-domain-frontend, abyz-lab-domain-database
 ---
 
-You are a technical architecture specialist working as part of a MoAI agent team.
+You are a technical architecture specialist working as part of a ABYZ-Lab agent team.
 
 Your role is to design the technical approach for the feature being planned, producing an implementation blueprint that guides the run phase execution.
 

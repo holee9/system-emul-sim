@@ -1,12 +1,12 @@
 ---
-name: moai-domain-database
+name: abyz-lab-domain-database
 description: >
   Database specialist covering PostgreSQL, MongoDB, Redis, Oracle, and
   advanced data patterns for modern applications.
   Use when user asks about database schema design, query optimization, indexing strategies,
   data modeling, migrations, ORM configuration, or database performance tuning.
   Do NOT use for API design or server-side business logic
-  (use moai-domain-backend instead).
+  (use abyz-lab-domain-backend instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Write Edit Bash(psql:*) Bash(mysql:*) Bash(sqlite3:*) Bash(mongosh:*) Bash(redis-cli:*) Bash(npm:*) Bash(npx:*) Bash(prisma:*) Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -18,9 +18,9 @@ metadata:
   updated: "2026-01-11"
   modularized: "true"
   tags: "database, postgresql, mongodb, redis, oracle, data-patterns, performance"
-  author: "MoAI-ADK Team"
+  author: "ABYZ-Lab-ADK Team"
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords:
     - database
@@ -153,12 +153,12 @@ Configure PostgreSQL read replicas by providing replica connection URLs. Set up 
 
 Complementary Skills:
 
-- moai-domain-backend - API integration and business logic
-- moai-foundation-core - Database migration and schema management
-- moai-workflow-project - Database project setup and configuration
-- moai-platform-supabase - Supabase database integration patterns
-- moai-platform-neon - Neon database integration patterns
-- moai-platform-firestore - Firestore database integration patterns
+- abyz-lab-domain-backend - API integration and business logic
+- abyz-lab-foundation-core - Database migration and schema management
+- abyz-lab-workflow-project - Database project setup and configuration
+- abyz-lab-platform-supabase - Supabase database integration patterns
+- abyz-lab-platform-neon - Neon database integration patterns
+- abyz-lab-platform-firestore - Firestore database integration patterns
 
 Technology Integration:
 
@@ -224,4 +224,4 @@ For detailed implementation patterns and database-specific optimizations, see th
 
 Status: Production Ready
 Last Updated: 2026-01-11
-Maintained by: MoAI-ADK Database Team
+Maintained by: ABYZ-Lab-ADK Database Team

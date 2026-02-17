@@ -49,7 +49,7 @@ Version: Swift 6+
 - Mock dependencies with protocols
 - Use snapshot testing for UI
 
-## MoAI Integration
+## ABYZ-Lab Integration
 
-- Use Skill("moai-lang-swift") for detailed patterns
+- Use Skill("abyz-lab-lang-swift") for detailed patterns
 - Follow TRUST 5 quality gates

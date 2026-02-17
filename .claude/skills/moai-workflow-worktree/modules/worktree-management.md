@@ -141,7 +141,7 @@ Detailed Reference: Refer to resource-optimization.md for optimization patterns
 
 The registry is the central database tracking all worktrees and their metadata.
 
-Storage Location: ~/.worktrees/{PROJECT_NAME}/.moai-worktree-registry.json
+Storage Location: ~/.worktrees/{PROJECT_NAME}/.abyz-lab-worktree-registry.json
 
 Registry Contents:
 - version: Schema version for compatibility

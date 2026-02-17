@@ -1,19 +1,19 @@
 ---
 paths:
-  - ".moai/specs/**/*"
+  - ".abyz-lab/specs/**/*"
   - "**/*test*"
-  - ".moai/config/sections/quality.yaml"
+  - ".abyz-lab/config/sections/quality.yaml"
 ---
 
 # Workflow Modes
 
-Development methodology reference for MoAI-ADK SPEC workflow.
+Development methodology reference for ABYZ-Lab-ADK SPEC workflow.
 
 For phase overview, token strategy, and transitions, see @spec-workflow.md
 
 ## Methodology Selection
 
-The Run Phase adapts its workflow based on `quality.development_mode` in `.moai/config/sections/quality.yaml`:
+The Run Phase adapts its workflow based on `quality.development_mode` in `.abyz-lab/config/sections/quality.yaml`:
 
 | Mode | Workflow Cycle | Best For | Agent Strategy |
 |------|---------------|----------|----------------|
@@ -118,7 +118,7 @@ Team-specific rules:
 
 ## Methodology Selection Guide
 
-### Auto-Detection (via /moai project or /moai init)
+### Auto-Detection (via /abyz-lab project or /abyz-lab init)
 
 The system automatically recommends a methodology based on project analysis:
 
@@ -132,10 +132,10 @@ The system automatically recommends a methodology based on project analysis:
 ### Manual Override
 
 Users can override the auto-detected methodology:
-- During init: Use `moai init --mode <ddd|tdd|hybrid>` flag (default: hybrid)
-- After project setup: Re-run `/moai project` to auto-detect based on codebase analysis
-- Manual edit: Edit `quality.development_mode` in `.moai/config/sections/quality.yaml`
-- Per session: Set `MOAI_DEVELOPMENT_MODE` environment variable
+- During init: Use `abyz-lab init --mode <ddd|tdd|hybrid>` flag (default: hybrid)
+- After project setup: Re-run `/abyz-lab project` to auto-detect based on codebase analysis
+- Manual edit: Edit `quality.development_mode` in `.abyz-lab/config/sections/quality.yaml`
+- Per session: Set `ABYZ-LAB_DEVELOPMENT_MODE` environment variable
 
 ### Methodology Comparison
 

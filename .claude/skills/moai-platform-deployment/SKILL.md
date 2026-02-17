@@ -1,5 +1,5 @@
 ---
-name: moai-platform-deployment
+name: abyz-lab-platform-deployment
 description: >
   Deployment and hosting platform specialist covering Vercel, Railway, and Convex.
   Use when deploying applications, configuring edge functions, setting up continuous deployment,
@@ -15,13 +15,13 @@ metadata:
   platforms: "Vercel, Railway, Convex"
   tags: "deployment, hosting, vercel, railway, convex, edge, containers, serverless, real-time"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 4500
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["deploy", "deployment", "hosting", "vercel", "railway", "convex", "edge functions", "containers", "docker", "serverless", "real-time", "preview deployment", "continuous deployment"]
   agents: ["expert-devops", "expert-backend", "expert-frontend"]
@@ -395,12 +395,12 @@ For detailed platform-specific patterns, configuration options, and advanced use
 
 ## Works Well With
 
-- moai-domain-backend for backend architecture patterns
-- moai-domain-frontend for frontend integration
-- moai-lang-typescript for TypeScript best practices
-- moai-lang-python for Python deployment (Railway)
-- moai-platform-auth for authentication integration
-- moai-platform-database for database patterns
+- abyz-lab-domain-backend for backend architecture patterns
+- abyz-lab-domain-frontend for frontend integration
+- abyz-lab-lang-typescript for TypeScript best practices
+- abyz-lab-lang-python for Python deployment (Railway)
+- abyz-lab-platform-auth for authentication integration
+- abyz-lab-platform-database for database patterns
 
 ---
 

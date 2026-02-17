@@ -553,8 +553,8 @@ Upon receiving each packet, the SoC CSI-2 RX hardware and V4L2 driver perform:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.1 | 2026-02-17 | MoAI Agent (manager-docs) | Fix RAW16 data type code (0x2C → 0x2E per MIPI CSI-2 v1.3); clarify CSI-2 overhead 11-15% with 85% efficiency factor |
-| 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Initial specification with D-PHY timing, ECC algorithm, CRC-16 polynomial, complete packet examples |
+| 1.0.1 | 2026-02-17 | ABYZ-Lab Agent (manager-docs) | Fix RAW16 data type code (0x2C → 0x2E per MIPI CSI-2 v1.3); clarify CSI-2 overhead 11-15% with 85% efficiency factor |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-docs) | Initial specification with D-PHY timing, ECC algorithm, CRC-16 polynomial, complete packet examples |
 
 ---
 

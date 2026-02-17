@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Architecture design documents (system, FPGA, SoC firmware, Host SDK)
 - Development guides (setup, FPGA build, firmware build, SDK build, simulator, tools, installation, deployment)
 - Project documentation (CONTRIBUTING, CHANGELOG, roadmap, glossary)
-- MoAI-ADK project configuration and workflow rules
+- ABYZ-Lab-ADK project configuration and workflow rules
 
 ### Changed
 - Performance target updated from 3072x3072@30fps to 3072x3072@15fps (CSI-2 bandwidth constraint)
@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Project Configuration
 - `detector_config.yaml`: Single source of truth for system configuration
-- `.moai/config/`: MoAI-ADK project settings (quality, language, workflow)
+- `.abyz-lab/config/`: ABYZ-Lab-ADK project settings (quality, language, workflow)
 - Quality configuration: Hybrid methodology (TDD + DDD)
 
 #### Documentation
@@ -81,6 +81,6 @@ Future versions align with project milestones (W1-W28):
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial CHANGELOG creation |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial CHANGELOG creation |
 
 ---

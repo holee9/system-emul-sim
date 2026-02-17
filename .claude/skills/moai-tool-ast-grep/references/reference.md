@@ -199,7 +199,7 @@ This skill contains 4 modules:
   - Go patterns (error handling, interfaces, etc.)
   - Rust patterns (macros, traits, etc.)
 
-### MoAI-ADK Integration
+### ABYZ-Lab-ADK Integration
 
 #### Tool Registry
 - **Registration**: `internal/hook/registry.go` as AST_ANALYZER type
@@ -208,8 +208,8 @@ This skill contains 4 modules:
 
 #### Running Scans
 ```bash
-# Scan with MoAI-ADK rules
-sg scan --config .claude/skills/moai-tool-ast-grep/rules/sgconfig.yml
+# Scan with ABYZ-Lab-ADK rules
+sg scan --config .claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml
 
 # Scan specific directory
 sg scan --config sgconfig.yml src/
@@ -252,12 +252,12 @@ sg scan --config sgconfig.yml --json > results.json
 
 ### Related Skills
 
-- **moai-workflow-testing** - DDD integration, test pattern detection
-- **moai-foundation-quality** - TRUST 5 compliance, code quality gates
-- **moai-domain-backend** - API pattern detection, security scanning
-- **moai-domain-frontend** - React/Vue pattern optimization
-- **moai-lang-python** - Python-specific security and style rules
-- **moai-lang-typescript** - TypeScript type safety patterns
+- **abyz-lab-workflow-testing** - DDD integration, test pattern detection
+- **abyz-lab-foundation-quality** - TRUST 5 compliance, code quality gates
+- **abyz-lab-domain-backend** - API pattern detection, security scanning
+- **abyz-lab-domain-frontend** - React/Vue pattern optimization
+- **abyz-lab-lang-python** - Python-specific security and style rules
+- **abyz-lab-lang-typescript** - TypeScript type safety patterns
 
 ### Related Agents
 

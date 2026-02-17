@@ -1,4 +1,4 @@
-name: moai-foundation-uiux-accessibility
+name: abyz-lab-foundation-uiux-accessibility
 description: WCAG 2.2 compliance, testing, and keyboard navigation
 
 ## WCAG 2.2 Accessibility Implementation

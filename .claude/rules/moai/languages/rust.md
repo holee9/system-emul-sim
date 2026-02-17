@@ -50,7 +50,7 @@ Version: Rust 1.92+ (2024 edition)
 - Use mockall for mocking traits
 - Use test fixtures with rstest
 
-## MoAI Integration
+## ABYZ-Lab Integration
 
-- Use Skill("moai-lang-rust") for detailed patterns
+- Use Skill("abyz-lab-lang-rust") for detailed patterns
 - Follow TRUST 5 quality gates

@@ -6,10 +6,10 @@ Flow: TeamCreate -> Task Decomposition -> Parallel Implementation -> Quality Val
 
 ## Prerequisites
 
-- Approved SPEC document at .moai/specs/SPEC-XXX/
+- Approved SPEC document at .abyz-lab/specs/SPEC-XXX/
 - workflow.team.enabled: true
 - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-- Triggered by: /moai run SPEC-XXX --team OR auto-detected complexity >= threshold
+- Triggered by: /abyz-lab run SPEC-XXX --team OR auto-detected complexity >= threshold
 
 ## Phase 0: SPEC Analysis and Task Decomposition
 
@@ -27,7 +27,7 @@ Flow: TeamCreate -> Task Decomposition -> Parallel Implementation -> Quality Val
 
 4. Create team:
    ```
-   TeamCreate(team_name: "moai-run-SPEC-XXX")
+   TeamCreate(team_name: "abyz-lab-run-SPEC-XXX")
    ```
 
 5. Create shared task list with dependencies:
@@ -48,10 +48,10 @@ Select team pattern based on SPEC scope and spawn ALL teammates using Task() wit
 ```
 Task(
   subagent_type: "team-backend-dev",
-  team_name: "moai-run-SPEC-XXX",
+  team_name: "abyz-lab-run-SPEC-XXX",
   name: "backend-dev",
   mode: "acceptEdits",
-  prompt: "You are the backend developer on team moai-run-SPEC-XXX.
+  prompt: "You are the backend developer on team abyz-lab-run-SPEC-XXX.
     SPEC Summary: {spec_summary}
     Your requirements: {backend_requirements}
     File ownership: {backend_file_patterns}
@@ -63,10 +63,10 @@ Task(
 
 Task(
   subagent_type: "team-frontend-dev",
-  team_name: "moai-run-SPEC-XXX",
+  team_name: "abyz-lab-run-SPEC-XXX",
   name: "frontend-dev",
   mode: "acceptEdits",
-  prompt: "You are the frontend developer on team moai-run-SPEC-XXX.
+  prompt: "You are the frontend developer on team abyz-lab-run-SPEC-XXX.
     SPEC Summary: {spec_summary}
     Your requirements: {frontend_requirements}
     File ownership: {frontend_file_patterns}
@@ -77,10 +77,10 @@ Task(
 
 Task(
   subagent_type: "team-tester",
-  team_name: "moai-run-SPEC-XXX",
+  team_name: "abyz-lab-run-SPEC-XXX",
   name: "tester",
   mode: "acceptEdits",
-  prompt: "You are the testing specialist on team moai-run-SPEC-XXX.
+  prompt: "You are the testing specialist on team abyz-lab-run-SPEC-XXX.
     SPEC Summary: {spec_summary}
     File ownership: all test files (*_test.go, *.test.*, __tests__/)
     Wait for implementation tasks to complete before writing integration tests.
@@ -96,10 +96,10 @@ Add designer teammate before the implementation pattern teammates:
 ```
 Task(
   subagent_type: "team-designer",
-  team_name: "moai-run-SPEC-XXX",
+  team_name: "abyz-lab-run-SPEC-XXX",
   name: "designer",
   mode: "acceptEdits",
-  prompt: "You are the UI/UX designer on team moai-run-SPEC-XXX.
+  prompt: "You are the UI/UX designer on team abyz-lab-run-SPEC-XXX.
     SPEC Summary: {spec_summary}
     File ownership: *.pen, design tokens, style configs.
     Create designs first, then share specs with frontend-dev via SendMessage.
@@ -112,10 +112,10 @@ Task(
 Use team-backend-dev for both api-layer and data-layer (unique names):
 
 ```
-Task(subagent_type: "team-backend-dev", team_name: "moai-run-SPEC-XXX", name: "api-layer", mode: "acceptEdits", ...)
-Task(subagent_type: "team-frontend-dev", team_name: "moai-run-SPEC-XXX", name: "ui-layer", mode: "acceptEdits", ...)
-Task(subagent_type: "team-backend-dev", team_name: "moai-run-SPEC-XXX", name: "data-layer", mode: "acceptEdits", ...)
-Task(subagent_type: "team-quality", team_name: "moai-run-SPEC-XXX", name: "quality", mode: "plan", ...)
+Task(subagent_type: "team-backend-dev", team_name: "abyz-lab-run-SPEC-XXX", name: "api-layer", mode: "acceptEdits", ...)
+Task(subagent_type: "team-frontend-dev", team_name: "abyz-lab-run-SPEC-XXX", name: "ui-layer", mode: "acceptEdits", ...)
+Task(subagent_type: "team-backend-dev", team_name: "abyz-lab-run-SPEC-XXX", name: "data-layer", mode: "acceptEdits", ...)
+Task(subagent_type: "team-quality", team_name: "abyz-lab-run-SPEC-XXX", name: "quality", mode: "plan", ...)
 ```
 
 ### Spawn Prompt Requirements
@@ -168,7 +168,7 @@ Testing:
 - Validates coverage targets
 - Reports test failures to responsible teammates
 
-MoAI coordination:
+ABYZ-Lab coordination:
 - Forward API contract info from backend to frontend
 - Resolve any blocking issues
 - Monitor task progress via TaskList
@@ -177,7 +177,7 @@ MoAI coordination:
 ### Delegate Mode
 
 When workflow.yaml `team.delegate_mode: true`:
-- MoAI operates in coordination-only mode during the entire run phase
+- ABYZ-Lab operates in coordination-only mode during the entire run phase
 - Focus on: task assignment, message routing, progress monitoring, conflict resolution
 - Do NOT directly implement code or modify files (no Write, Edit, or Bash for implementation)
 - Delegate ALL implementation to teammates via task assignment and SendMessage

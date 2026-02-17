@@ -225,4 +225,4 @@ Review Trigger: If bug rate doesn't decrease 50% in 2 months
 ---
 
 Version: 1.0.0
-Parent Skill: moai-foundation-philosopher
+Parent Skill: abyz-lab-foundation-philosopher

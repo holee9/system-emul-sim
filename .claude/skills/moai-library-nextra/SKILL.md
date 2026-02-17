@@ -1,5 +1,5 @@
 ---
-name: moai-library-nextra
+name: abyz-lab-library-nextra
 description: >
   Enterprise Nextra documentation framework with Next.js. Use when building documentation
   sites, knowledge bases, or API reference documentation.
@@ -14,9 +14,9 @@ metadata:
   status: "active"
   updated: "2026-01-11"
   tags: "library, nextra, nextjs, documentation, mdx, static-site"
-  aliases: "moai-library-nextra"
+  aliases: "abyz-lab-library-nextra"
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["documentation", "nextra", "docs site", "knowledge base", "api reference", "mdx", "static site"]
 ---
@@ -102,7 +102,7 @@ For Vercel deployment, install the Vercel CLI globally using npm, then run the v
 
 ## Integration with Other Skills
 
-Complementary skills include moai-docs-generation for auto-generating docs from code, moai-workflow-docs for validating documentation quality, and moai-cc-claude-md for Markdown formatting.
+Complementary skills include abyz-lab-docs-generation for auto-generating docs from code, abyz-lab-workflow-docs for validating documentation quality, and abyz-lab-cc-claude-md for Markdown formatting.
 
 ---
 
@@ -118,9 +118,9 @@ Version 1.0.0 released 2025-11-12 provided initial Nextra architecture guide, th
 
 ---
 
-Maintained by: MoAI-ADK Team
+Maintained by: ABYZ-Lab-ADK Team
 Domain: Documentation Architecture
-Generated with: MoAI-ADK Skill Factory
+Generated with: ABYZ-Lab-ADK Skill Factory
 
 ---
 
@@ -134,11 +134,11 @@ Agents:
 
 Skills:
 
-- moai-docs-generation for content generation
-- moai-workflow-docs for documentation validation
-- moai-library-mermaid for diagram integration
+- abyz-lab-docs-generation for content generation
+- abyz-lab-workflow-docs for documentation validation
+- abyz-lab-library-mermaid for diagram integration
 
 Commands:
 
-- moai:3-sync for documentation deployment
-- moai:0-project for Nextra project initialization
+- abyz-lab:3-sync for documentation deployment
+- abyz-lab:0-project for Nextra project initialization

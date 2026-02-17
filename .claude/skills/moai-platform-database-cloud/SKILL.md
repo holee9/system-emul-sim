@@ -1,5 +1,5 @@
 ---
-name: moai-platform-database-cloud
+name: abyz-lab-platform-database-cloud
 description: >
   Cloud database platform specialist covering Neon (serverless PostgreSQL), Supabase (PostgreSQL 16 with real-time),
   and Firebase Firestore (NoSQL with offline sync). Use when choosing cloud databases, setting up serverless
@@ -17,15 +17,15 @@ metadata:
   modularized: "true"
   tags: "database, postgresql, nosql, serverless, real-time, offline, cloud"
   context7-libraries: "/neondatabase/neon, /supabase/supabase, /firebase/firebase-docs"
-  related-skills: "moai-platform-auth, moai-lang-typescript, moai-domain-backend"
+  related-skills: "abyz-lab-platform-auth, abyz-lab-lang-typescript, abyz-lab-domain-backend"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 4500
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["neon", "supabase", "firestore", "cloud database", "serverless postgresql", "real-time database", "offline sync", "pgvector", "rls", "database branching", "vector database", "nosql", "mobile database"]
   agents: ["expert-backend", "expert-devops", "manager-spec"]
@@ -33,7 +33,7 @@ triggers:
   languages: ["typescript", "javascript", "python", "go"]
 ---
 
-# moai-platform-database-cloud: Cloud Database Platform Specialist
+# abyz-lab-platform-database-cloud: Cloud Database Platform Specialist
 
 ## Quick Reference
 
@@ -177,17 +177,17 @@ For comparative analysis and migration guidance, see reference/comparison.md whi
 
 ## Works Well With
 
-- moai-platform-auth for authentication integration with Supabase Auth or Firebase Auth
-- moai-lang-typescript for TypeScript patterns across all platforms
-- moai-lang-flutter for Firestore mobile SDK patterns
-- moai-domain-backend for backend architecture with database integration
-- moai-domain-mobile for mobile-first database patterns
-- moai-quality-security for security best practices (RLS policies, Security Rules)
+- abyz-lab-platform-auth for authentication integration with Supabase Auth or Firebase Auth
+- abyz-lab-lang-typescript for TypeScript patterns across all platforms
+- abyz-lab-lang-flutter for Firestore mobile SDK patterns
+- abyz-lab-domain-backend for backend architecture with database integration
+- abyz-lab-domain-mobile for mobile-first database patterns
+- abyz-lab-quality-security for security best practices (RLS policies, Security Rules)
 
 ---
 
 Status: Production Ready
-Generated with: MoAI-ADK Skill Factory v2.0
+Generated with: ABYZ-Lab-ADK Skill Factory v2.0
 Last Updated: 2026-02-09
 Version: 2.0.0 (Consolidated)
 Platforms: Neon, Supabase, Firestore

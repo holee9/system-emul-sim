@@ -1,5 +1,5 @@
 ---
-name: moai-library-nextra/optimization
+name: abyz-lab-library-nextra/optimization
 description: Performance optimization for Nextra sites, caching, static generation, and deployment
 ---
 

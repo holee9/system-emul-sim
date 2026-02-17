@@ -1,20 +1,20 @@
 ---
 paths:
-  - ".moai/specs/**/*"
+  - ".abyz-lab/specs/**/*"
   - "**/spec.md"
 ---
 
 # SPEC Workflow
 
-MoAI's three-phase development workflow with token budget management.
+ABYZ-Lab's three-phase development workflow with token budget management.
 
 ## Phase Overview
 
 | Phase | Command | Agent | Token Budget | Purpose |
 |-------|---------|-------|--------------|---------|
-| Plan | /moai plan | manager-spec | 30K | Create SPEC document |
-| Run | /moai run | manager-ddd/tdd (per quality.yaml) | 180K | DDD/TDD implementation |
-| Sync | /moai sync | manager-docs | 40K | Documentation sync |
+| Plan | /abyz-lab plan | manager-spec | 30K | Create SPEC document |
+| Run | /abyz-lab run | manager-ddd/tdd (per quality.yaml) | 180K | DDD/TDD implementation |
+| Sync | /abyz-lab sync | manager-docs | 40K | Documentation sync |
 
 ## Plan Phase
 
@@ -27,7 +27,7 @@ Token Strategy:
 - Saves 45-50K tokens for implementation
 
 Output:
-- SPEC document at `.moai/specs/SPEC-XXX/spec.md`
+- SPEC document at `.abyz-lab/specs/SPEC-XXX/spec.md`
 - EARS format requirements
 - Acceptance criteria
 - Technical approach
@@ -69,13 +69,13 @@ Output:
 ## Completion Markers
 
 AI uses markers to signal task completion:
-- `<moai>DONE</moai>` - Task complete
-- `<moai>COMPLETE</moai>` - Full completion
+- `<abyz-lab>DONE</abyz-lab>` - Task complete
+- `<abyz-lab>COMPLETE</abyz-lab>` - Full completion
 
 ## Context Management
 
 /clear Strategy:
-- After /moai plan completion (mandatory)
+- After /abyz-lab plan completion (mandatory)
 - When context exceeds 150K tokens
 - Before major phase transitions
 
@@ -88,11 +88,11 @@ Progressive Disclosure:
 
 Plan to Run:
 - Trigger: SPEC document approved
-- Action: Execute /clear, then /moai run SPEC-XXX
+- Action: Execute /clear, then /abyz-lab run SPEC-XXX
 
 Run to Sync:
 - Trigger: Implementation complete, tests passing
-- Action: Execute /moai sync SPEC-XXX
+- Action: Execute /abyz-lab sync SPEC-XXX
 
 ## Agent Teams Variant
 
@@ -109,7 +109,7 @@ When team mode is enabled (workflow.team.enabled and AGENT_TEAMS env), phases ca
 ### Team Mode Plan Phase
 - TeamCreate for parallel research team
 - Teammates explore codebase, analyze requirements, design approach
-- MoAI synthesizes into SPEC document
+- ABYZ-Lab synthesizes into SPEC document
 - Shutdown team, /clear before Run phase
 
 ### Team Mode Run Phase
@@ -146,10 +146,10 @@ When to prefer sub-agent mode:
 
 Detailed team orchestration steps are defined in dedicated workflow files:
 
-- Plan phase: @.claude/skills/moai/workflows/team-plan.md
-- Run phase: @.claude/skills/moai/workflows/team-run.md
-- Fix phase: @.claude/skills/moai/workflows/team-debug.md
-- Review: @.claude/skills/moai/workflows/team-review.md
+- Plan phase: @.claude/skills/abyz-lab/workflows/team-plan.md
+- Run phase: @.claude/skills/abyz-lab/workflows/team-run.md
+- Fix phase: @.claude/skills/abyz-lab/workflows/team-debug.md
+- Review: @.claude/skills/abyz-lab/workflows/team-review.md
 
 ### Known Limitations
 
@@ -168,7 +168,7 @@ Agent teams are experimental. Current limitations from Claude Code documentation
 
 Both conditions must be met for team mode:
 - `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in environment or settings.json env
-- `workflow.team.enabled: true` in `.moai/config/sections/workflow.yaml`
+- `workflow.team.enabled: true` in `.abyz-lab/config/sections/workflow.yaml`
 
 If prerequisites are not met, all subcommands gracefully fall back to sub-agent mode.
 

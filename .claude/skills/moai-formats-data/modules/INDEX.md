@@ -1,6 +1,6 @@
-# MoAI Data Format Skill Modules
+# ABYZ-Lab Data Format Skill Modules
 
-This directory contains the detailed implementation modules for the moai-formats-data skill, following Claude Code's progressive disclosure pattern.
+This directory contains the detailed implementation modules for the abyz-lab-formats-data skill, following Claude Code's progressive disclosure pattern.
 
 ## Module Architecture
 
@@ -156,7 +156,7 @@ Each module focuses on a specific aspect of data format handling, providing comp
 All modules work together seamlessly for comprehensive data format management:
 
 ```python
-from moai_formats_data import (
+from abyz-lab_formats_data import (
     TOONEncoder,        # from toon-encoding module
     JSONOptimizer,      # from json-optimization module
     DataValidator,      # from data-validation module

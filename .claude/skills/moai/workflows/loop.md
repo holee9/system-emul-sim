@@ -1,5 +1,5 @@
 ---
-name: moai-workflow-loop
+name: abyz-lab-workflow-loop
 description: >
   Iterative autonomous fixing workflow that scans, fixes, verifies, and
   repeats until all issues are resolved or max iterations reached.
@@ -15,13 +15,13 @@ metadata:
   updated: "2026-02-07"
   tags: "loop, iterative, auto-fix, diagnostics, testing, coverage"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["loop", "iterate", "repeat", "until done", "keep fixing", "all errors"]
   agents: ["expert-debug", "expert-backend", "expert-frontend", "expert-testing"]
@@ -50,16 +50,16 @@ Each iteration executes the following steps in order:
 
 Step 1 - Completion Check:
 - Check for completion marker in previous iteration response
-- Marker types: `<moai>DONE</moai>`, `<moai>COMPLETE</moai>`
+- Marker types: `<abyz-lab>DONE</abyz-lab>`, `<abyz-lab>COMPLETE</abyz-lab>`
 - If marker found: Exit loop with success
 
 Step 2 - Memory Pressure Check (if --memory-check enabled):
 - Calculate session duration from start time
 - Monitor iteration time for GC pressure signs (doubling iteration time)
 - If session duration exceeds 25 minutes OR iteration time doubling:
-  - Save proactive checkpoint to $CLAUDE_PROJECT_DIR/.moai/cache/loop-snapshots/memory-pressure.json
+  - Save proactive checkpoint to $CLAUDE_PROJECT_DIR/.abyz-lab/cache/loop-snapshots/memory-pressure.json
   - Warn user about memory pressure
-  - Suggest resuming with /moai:loop --resume memory-pressure
+  - Suggest resuming with /abyz-lab:loop --resume memory-pressure
 - If memory-safe limit reached (50 iterations): Exit with checkpoint
 
 Step 3 - Parallel Diagnostics:
@@ -101,7 +101,7 @@ Step 7 - Verification:
 - [HARD] After each fix: TaskUpdate to change item to completed
 
 Step 8 - Snapshot Save:
-- Save iteration snapshot to $CLAUDE_PROJECT_DIR/.moai/cache/loop-snapshots/
+- Save iteration snapshot to $CLAUDE_PROJECT_DIR/.abyz-lab/cache/loop-snapshots/
 - Increment iteration counter
 
 Step 9 - Repeat or Exit:
@@ -119,19 +119,19 @@ The loop exits when any of these conditions are met:
 
 ## Snapshot Management
 
-Snapshot location: $CLAUDE_PROJECT_DIR/.moai/cache/loop-snapshots/
+Snapshot location: $CLAUDE_PROJECT_DIR/.abyz-lab/cache/loop-snapshots/
 
 Files:
 - iteration-001.json, iteration-002.json, etc. (per-iteration snapshots)
 - latest.json (symlink to most recent)
 - memory-pressure.json (proactive checkpoint on memory pressure)
 
-Loop state file: $CLAUDE_PROJECT_DIR/.moai/cache/.moai_loop_state.json
+Loop state file: $CLAUDE_PROJECT_DIR/.abyz-lab/cache/.abyz-lab_loop_state.json
 
 Resume commands:
-- /moai:loop --resume latest
-- /moai:loop --resume iteration-002
-- /moai:loop --resume memory-pressure
+- /abyz-lab:loop --resume latest
+- /abyz-lab:loop --resume iteration-002
+- /abyz-lab:loop --resume memory-pressure
 
 ## Language-Specific Commands
 

@@ -525,7 +525,7 @@ For detailed hardware diagnostics, see the [Troubleshooting Guide](troubleshooti
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete user manual with quick start, GUI walkthrough, CLI operation, and monitoring |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Docs Agent | Complete user manual with quick start, GUI walkthrough, CLI operation, and monitoring |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix FPGA error codes (Section 8.5) to match spi-register-map.md bit definitions. Corrected SPI_TIMEOUT->WATCHDOG(0x80), FRAME_INCOMPLETE->ROIC_FAULT(0x10), SYSTEM_ERROR->CONFIG_ERROR(0x40). |
 | 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
 

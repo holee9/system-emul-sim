@@ -3,14 +3,14 @@
 **Document Version**: 1.0.0
 **Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
-**Author**: MoAI Documentation Agent
+**Author**: ABYZ-Lab Documentation Agent
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [MoAI Orchestrator Role](#moai-orchestrator-role)
+2. [ABYZ-Lab Orchestrator Role](#abyz-lab-orchestrator-role)
 3. [Agent Catalog](#agent-catalog)
 4. [Agent Selection Decision Tree](#agent-selection-decision-tree)
 5. [Parallel Execution Patterns](#parallel-execution-patterns)
@@ -18,7 +18,7 @@
 7. [SPEC Workflow](#spec-workflow)
 8. [Team Mode vs Sub-Agent Mode](#team-mode-vs-sub-agent-mode)
 9. [Progressive Disclosure](#progressive-disclosure)
-10. [MoAI Commands Reference](#moai-commands-reference)
+10. [ABYZ-Lab Commands Reference](#abyz-lab-commands-reference)
 11. [Error Recovery Patterns](#error-recovery-patterns)
 12. [Context Management](#context-management)
 13. [Practical Examples](#practical-examples)
@@ -27,13 +27,13 @@
 
 ## Overview
 
-MoAI is the strategic orchestrator for Claude Code. It delegates all implementation tasks to specialized agents rather than executing them directly. This document explains how MoAI orchestrates the 16-agent system, manages token budgets, and coordinates multi-phase development workflows for the X-ray Detector Panel System.
+ABYZ-Lab is the strategic orchestrator for Claude Code. It delegates all implementation tasks to specialized agents rather than executing them directly. This document explains how ABYZ-Lab orchestrates the 16-agent system, manages token budgets, and coordinates multi-phase development workflows for the X-ray Detector Panel System.
 
-**Core Principle**: MoAI never implements directly. It plans, delegates, monitors, and synthesizes results. This ensures each task is handled by the most specialized agent with optimal context allocation.
+**Core Principle**: ABYZ-Lab never implements directly. It plans, delegates, monitors, and synthesizes results. This ensures each task is handled by the most specialized agent with optimal context allocation.
 
 ---
 
-## MoAI Orchestrator Role
+## ABYZ-Lab Orchestrator Role
 
 ### Responsibilities
 
@@ -43,7 +43,7 @@ MoAI is the strategic orchestrator for Claude Code. It delegates all implementat
 | Token budget allocation | Manage 200K token context window across phases |
 | Parallel execution | Launch independent agents simultaneously |
 | Result synthesis | Combine agent outputs into coherent responses |
-| User interaction | Only MoAI uses AskUserQuestion; agents cannot |
+| User interaction | Only ABYZ-Lab uses AskUserQuestion; agents cannot |
 | Quality gate enforcement | Validate TRUST 5 compliance across all outputs |
 
 ### Execution Flow
@@ -76,7 +76,7 @@ User Request
   - Include sources if web search used
 ```
 
-### Hard Rules for MoAI
+### Hard Rules for ABYZ-Lab
 
 1. **Language**: All user-facing responses in Korean (conversation_language: ko)
 2. **No XML in responses**: XML is for agent-to-agent data only
@@ -88,7 +88,7 @@ User Request
 
 ## Agent Catalog
 
-MoAI-ADK includes 16 specialized agents organized into four tiers.
+ABYZ-Lab-ADK includes 16 specialized agents organized into four tiers.
 
 ### Manager Agents (8 agents)
 
@@ -122,7 +122,7 @@ Expert agents implement specific technical domains.
 
 ### Builder Agents (3 agents)
 
-Builder agents create MoAI-ADK components.
+Builder agents create ABYZ-Lab-ADK components.
 
 | Agent | Purpose |
 |-------|---------|
@@ -149,7 +149,7 @@ Team agents work in parallel within a TeamCreate/TeamDelete lifecycle.
 
 ## Agent Selection Decision Tree
 
-When processing a user request, MoAI follows this decision logic:
+When processing a user request, ABYZ-Lab follows this decision logic:
 
 ```
 User Request
@@ -212,7 +212,7 @@ Tasks are independent when they:
 **Example: Parallel documentation sprint**
 
 ```
-MoAI launches simultaneously:
+ABYZ-Lab launches simultaneously:
   Task(expert-backend, "Generate API docs for sdk/include/")
   Task(expert-backend, "Generate API docs for fw/include/")
   Task(manager-docs, "Create architecture diagrams from docs/architecture/")
@@ -236,7 +236,7 @@ Step 3: Task(manager-ddd, "Implement SPEC-SIM-001")
 
 ### File Write Conflict Prevention
 
-Before parallel agent launch, MoAI analyzes file ownership:
+Before parallel agent launch, ABYZ-Lab analyzes file ownership:
 
 ```
 Parallel safe:
@@ -269,9 +269,9 @@ The total Claude Code context window is 200K tokens, allocated as follows:
 
 | Phase | Command | Agent | Budget | Strategy |
 |-------|---------|-------|--------|----------|
-| Plan | `/moai plan` | manager-spec | 30K | Load requirements only |
-| Run | `/moai run SPEC-XXX` | manager-ddd/tdd | 180K | Selective file loading |
-| Sync | `/moai sync SPEC-XXX` | manager-docs | 40K | Result caching |
+| Plan | `/abyz-lab plan` | manager-spec | 30K | Load requirements only |
+| Run | `/abyz-lab run SPEC-XXX` | manager-ddd/tdd | 180K | Selective file loading |
+| Sync | `/abyz-lab sync SPEC-XXX` | manager-docs | 40K | Result caching |
 | **Total** | | | **250K** | Phase separation with /clear |
 
 ### Warning Thresholds
@@ -295,11 +295,11 @@ The total Claude Code context window is 200K tokens, allocated as follows:
 
 The SPEC workflow is the primary development methodology: Plan → Run → Sync.
 
-### Phase 1: Plan (`/moai plan "description"`)
+### Phase 1: Plan (`/abyz-lab plan "description"`)
 
 **Agent**: manager-spec
 **Token Budget**: 30K
-**Output**: `.moai/specs/SPEC-XXX/spec.md`
+**Output**: `.abyz-lab/specs/SPEC-XXX/spec.md`
 
 The SPEC document uses EARS (Easy Approach to Requirements Syntax) format:
 
@@ -313,7 +313,7 @@ The SPEC document uses EARS (Easy Approach to Requirements Syntax) format:
 
 **After Plan phase**: Execute `/clear` immediately. This is mandatory.
 
-### Phase 2: Run (`/moai run SPEC-XXX`)
+### Phase 2: Run (`/abyz-lab run SPEC-XXX`)
 
 **Agent**: manager-ddd (legacy) or manager-tdd (new code), per `quality.yaml`
 **Token Budget**: 180K
@@ -334,7 +334,7 @@ For **legacy code** (DDD cycle):
 - TRUST 5 quality gates passed
 - Zero LSP errors
 
-### Phase 3: Sync (`/moai sync SPEC-XXX`)
+### Phase 3: Sync (`/abyz-lab sync SPEC-XXX`)
 
 **Agent**: manager-docs
 **Token Budget**: 40K
@@ -360,7 +360,7 @@ Multiple agents run in persistent, named contexts with inter-agent communication
 
 **Prerequisites**:
 - `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in environment
-- `workflow.team.enabled: true` in `.moai/config/sections/workflow.yaml`
+- `workflow.team.enabled: true` in `.abyz-lab/config/sections/workflow.yaml`
 
 **Prefer team mode for**:
 - Research tasks where parallel exploration adds real value
@@ -439,81 +439,81 @@ Claude decides when to access Level 3 based on task complexity.
 
 ---
 
-## MoAI Commands Reference
+## ABYZ-Lab Commands Reference
 
-### `/moai plan "description"`
+### `/abyz-lab plan "description"`
 
 Creates a SPEC document for a new feature or change.
 
 ```bash
 # Create a specification for the CSI-2 packet former module
-/moai plan "CSI-2 packet former with ECC generation for 4-lane D-PHY transmission"
+/abyz-lab plan "CSI-2 packet former with ECC generation for 4-lane D-PHY transmission"
 
 # Create specification for the FPGA simulator
-/moai plan "FpgaSimulator C# tool that generates synthetic frame data for testing"
+/abyz-lab plan "FpgaSimulator C# tool that generates synthetic frame data for testing"
 ```
 
-**Output**: `.moai/specs/SPEC-XXX/spec.md`
-**Follow-up**: Review SPEC, then `/clear`, then `/moai run SPEC-XXX`
+**Output**: `.abyz-lab/specs/SPEC-XXX/spec.md`
+**Follow-up**: Review SPEC, then `/clear`, then `/abyz-lab run SPEC-XXX`
 
-### `/moai run SPEC-XXX`
+### `/abyz-lab run SPEC-XXX`
 
 Implements the specified SPEC document.
 
 ```bash
 # Implement SPEC-SIM-001 (FpgaSimulator)
-/moai run SPEC-SIM-001
+/abyz-lab run SPEC-SIM-001
 
 # Force team mode for complex cross-domain implementation
-/moai run SPEC-ARCH-001 --team
+/abyz-lab run SPEC-ARCH-001 --team
 
 # Force sub-agent mode
-/moai run SPEC-FW-001 --solo
+/abyz-lab run SPEC-FW-001 --solo
 ```
 
-**Prerequisite**: SPEC document exists at `.moai/specs/SPEC-XXX/spec.md`
+**Prerequisite**: SPEC document exists at `.abyz-lab/specs/SPEC-XXX/spec.md`
 
-### `/moai sync SPEC-XXX`
+### `/abyz-lab sync SPEC-XXX`
 
 Generates documentation and creates a pull request.
 
 ```bash
 # Generate documentation for completed SPEC-SIM-001
-/moai sync SPEC-SIM-001
+/abyz-lab sync SPEC-SIM-001
 ```
 
 **Output**: API docs, README update, CHANGELOG entry, PR
 
-### `/moai fix`
+### `/abyz-lab fix`
 
 Fixes failing tests, build errors, or quality gate violations.
 
 ```bash
 # Fix the current failing tests
-/moai fix
+/abyz-lab fix
 
 # Fix a specific error type
-/moai fix "LSP type errors in sdk/include/frame_buffer.h"
+/abyz-lab fix "LSP type errors in sdk/include/frame_buffer.h"
 ```
 
-### `/moai loop`
+### `/abyz-lab loop`
 
 Runs a continuous improvement loop until quality gates pass.
 
 ```bash
 # Run loop until all tests pass
-/moai loop
+/abyz-lab loop
 
 # Maximum 3 iterations (default)
-/moai loop --max-iterations 3
+/abyz-lab loop --max-iterations 3
 ```
 
-### `/moai feedback`
+### `/abyz-lab feedback`
 
-Submits a GitHub issue for MoAI-ADK improvements.
+Submits a GitHub issue for ABYZ-Lab-ADK improvements.
 
 ```bash
-/moai feedback
+/abyz-lab feedback
 # Prompts for issue type: bug, feature, improvement, etc.
 ```
 
@@ -550,7 +550,7 @@ When context window is exhausted:
 When LSP diagnostics show errors after implementation:
 
 ```
-/moai fix "zero LSP errors required for sync phase"
+/abyz-lab fix "zero LSP errors required for sync phase"
 ```
 
 The `manager-quality` agent will:
@@ -563,7 +563,7 @@ The `manager-quality` agent will:
 When CSI-2 integration fails between FPGA and SoC:
 
 ```
-/moai fix "CSI-2 V4L2 driver not receiving frames from FPGA simulator"
+/abyz-lab fix "CSI-2 V4L2 driver not receiving frames from FPGA simulator"
   → expert-debug analyzes V4L2 dmesg output
   → expert-backend verifies CSI-2 packet format
   → expert-backend verifies FPGA simulator output format
@@ -574,7 +574,7 @@ When CSI-2 integration fails between FPGA and SoC:
 When tool permission is denied:
 
 1. Check `settings.json` allowedTools configuration
-2. Review `.moai/config/sections/user.yaml` for permission policy
+2. Review `.abyz-lab/config/sections/user.yaml` for permission policy
 3. Do not use `--dangerously-skip-permissions` without explicit user instruction
 
 ---
@@ -585,7 +585,7 @@ When tool permission is denied:
 
 | Trigger | Action |
 |---------|--------|
-| After `/moai plan` completion | Mandatory /clear |
+| After `/abyz-lab plan` completion | Mandatory /clear |
 | Context exceeds 150K tokens | Immediate /clear |
 | Conversation exceeds 50 messages | Recommended /clear |
 | Before major phase transition (plan→run, run→sync) | Recommended /clear |
@@ -594,11 +594,11 @@ When tool permission is denied:
 ### What Persists Across `/clear`
 
 The following information is preserved across `/clear` because it exists in files:
-- SPEC documents (`.moai/specs/`)
-- Quality configuration (`.moai/config/`)
+- SPEC documents (`.abyz-lab/specs/`)
+- Quality configuration (`.abyz-lab/config/`)
 - Project memory (`.claude/` CLAUDE.md files)
 - Generated code (source files)
-- Test results (`.moai/reports/`)
+- Test results (`.abyz-lab/reports/`)
 
 ### What is Lost on `/clear`
 
@@ -607,7 +607,7 @@ The following information is preserved across `/clear` because it exists in file
 - In-flight agent results
 - Debug context from current session
 
-**Best Practice**: Before executing `/clear`, note the current task state in a brief summary. MoAI can resume from this summary.
+**Best Practice**: Before executing `/clear`, note the current task state in a brief summary. ABYZ-Lab can resume from this summary.
 
 ---
 
@@ -619,7 +619,7 @@ The following information is preserved across `/clear` because it exists in file
 
 ```
 Step 1 (Parallel analysis):
-  MoAI launches simultaneously:
+  ABYZ-Lab launches simultaneously:
     Task(Explore, "List all public classes in tools/ParameterExtractor/")
     Task(Explore, "List all public classes in tools/CodeGenerator/")
     Task(Explore, "List all public classes in tools/FpgaSimulator/")
@@ -628,13 +628,13 @@ Step 2 (Token check):
   If context > 100K → /clear, reload SPEC documents only
 
 Step 3 (Parallel documentation):
-  MoAI launches simultaneously:
+  ABYZ-Lab launches simultaneously:
     Task(manager-docs, "Generate API docs for ParameterExtractor")
     Task(manager-docs, "Generate API docs for CodeGenerator")
     Task(manager-docs, "Generate API docs for FpgaSimulator")
 
 Step 4 (Synthesis):
-  MoAI merges results into docs/api/tools.md
+  ABYZ-Lab merges results into docs/api/tools.md
 ```
 
 **Total time**: ~3-5 minutes (vs ~15 minutes sequential)
@@ -648,11 +648,11 @@ Step 4 (Synthesis):
 
 ```
 Step 1 (Plan phase - already done):
-  /moai plan "FpgaSimulator" → SPEC-SIM-001 created
+  /abyz-lab plan "FpgaSimulator" → SPEC-SIM-001 created
   /clear → Free 45K tokens
 
 Step 2 (Run phase):
-  /moai run SPEC-SIM-001
+  /abyz-lab run SPEC-SIM-001
 
   manager-ddd/tdd workflow:
     RED: Write FpgaSimulatorTests.cs (failing)
@@ -665,7 +665,7 @@ Step 2 (Run phase):
       LSP → zero errors
 
 Step 3 (Sync phase):
-  /moai sync SPEC-SIM-001
+  /abyz-lab sync SPEC-SIM-001
 
   manager-docs workflow:
     Generate: docs/api/tools/fpga-simulator.md
@@ -682,7 +682,7 @@ Step 3 (Sync phase):
 
 ```
 Step 1 (Multi-angle investigation using team mode):
-  /moai fix "D-PHY 800 Mbps instability - systematic debug" --team
+  /abyz-lab fix "D-PHY 800 Mbps instability - systematic debug" --team
 
   Team spawns:
     team-researcher: "Analyze current FPGA ISERDES configuration for 800M"
@@ -690,7 +690,7 @@ Step 1 (Multi-angle investigation using team mode):
     team-architect: "Evaluate IDELAY calibration approach for Artix-7 at 800M"
 
 Step 2 (Synthesis):
-  MoAI receives findings from all three teammates
+  ABYZ-Lab receives findings from all three teammates
   Synthesizes into debugging action plan
 
 Step 3 (Fix implementation):
@@ -740,5 +740,5 @@ None required. All token budgets, agent counts, workflow phases, and command exa
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Documentation Agent | Initial document creation |
 | 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. Added Review Notes and Revision History. |

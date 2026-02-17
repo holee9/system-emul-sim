@@ -9,7 +9,7 @@ Last Updated: 2026-01-06
 
 ## Quick Reference (30 seconds)
 
-Core Principle: MoAI NEVER executes directly. All work via `Task()` delegation to specialized agents.
+Core Principle: ABYZ-Lab NEVER executes directly. All work via `Task()` delegation to specialized agents.
 
 Three Primary Patterns:
 1. Sequential - Dependencies between agents (Phase 1 → Phase 2 → Phase 3)
@@ -215,7 +215,7 @@ Agents (Delegation Targets):
 - core-quality - Quality validation
 
 Skills:
-- moai-foundation-token-optimization - Context management
+- abyz-lab-foundation-token-optimization - Context management
 
 Foundation Modules:
 - [Token Optimization](token-optimization.md) - Context passing strategies

@@ -1,5 +1,5 @@
 ---
-name: moai-foundation-uiux
+name: abyz-lab-foundation-uiux
 description: Moai Design Systems - Professional implementation guide
 version: 1.0.0
 modularized: false
@@ -421,9 +421,9 @@ For these cases, consider:
 
 - [Component Architecture](component-architecture.md) - Component patterns and Atomic Design
 - [Accessibility WCAG](accessibility-wcag.md) - WCAG 2.2 compliance and testing
-- `moai-library-shadcn` - shadcn/ui component library
-- `moai-code-frontend` - Frontend architecture patterns
-- `moai-lang-unified` - TypeScript best practices
+- `abyz-lab-library-shadcn` - shadcn/ui component library
+- `abyz-lab-code-frontend` - Frontend architecture patterns
+- `abyz-lab-lang-unified` - TypeScript best practices
 
 ---
 

@@ -275,7 +275,7 @@ class FileSplittingDecision:
 # Usage
 splitter = FileSplittingDecision()
 
-decision = splitter.should_split(".claude/skills/moai-foundation-core/SKILL.md")
+decision = splitter.should_split(".claude/skills/abyz-lab-foundation-core/SKILL.md")
 
 if decision["split_needed"]:
  print(f" SKILL.md needs splitting: {decision['line_count']} lines")
@@ -286,7 +286,7 @@ if decision["split_needed"]:
  
  # Execute splitting
  splitter.execute_split(
- ".claude/skills/moai-foundation-core",
+ ".claude/skills/abyz-lab-foundation-core",
  decision["recommendations"]
  )
  
@@ -531,7 +531,7 @@ class SkillOrganizer:
  return "".join(navigation)
 
 # Usage
-organizer = SkillOrganizer(".claude/skills/moai-foundation-core")
+organizer = SkillOrganizer(".claude/skills/abyz-lab-foundation-core")
 
 # Validate current structure
 validation = organizer.validate_structure()
@@ -543,7 +543,7 @@ organizer.organize_skill()
 
 # Generate navigation
 navigation = organizer.generate_navigation()
-with open(".claude/skills/moai-foundation-core/NAVIGATION.md", 'w') as f:
+with open(".claude/skills/abyz-lab-foundation-core/NAVIGATION.md", 'w') as f:
  f.write(navigation)
 ```
 
@@ -622,7 +622,7 @@ class ModuleDiscovery:
  return sorted(results, key=lambda x: x["relevance"], reverse=True)
 
 # Usage
-discovery = ModuleDiscovery(".claude/skills/moai-foundation-core")
+discovery = ModuleDiscovery(".claude/skills/abyz-lab-foundation-core")
 
 # Discover all modules
 modules = discovery.discover_modules()
@@ -642,21 +642,21 @@ for result in results:
 ## Works Well With
 
 Skills:
-- moai-foundation-progressive-disclosure - Content structuring
-- moai-cc-skill-factory - Skill creation with modular structure
-- moai-foundation-token-optimization - File loading efficiency
+- abyz-lab-foundation-progressive-disclosure - Content structuring
+- abyz-lab-cc-skill-factory - Skill creation with modular structure
+- abyz-lab-foundation-token-optimization - File loading efficiency
 
 Agents:
 - skill-factory - Create skills with standard file structure
 - docs-manager - Generate documentation following modular pattern
 
 Commands:
-- /moai:1-plan - SPEC generation with modular docs
-- /moai:3-sync - Documentation sync to modular structure
+- /abyz-lab:1-plan - SPEC generation with modular docs
+- /abyz-lab:3-sync - Documentation sync to modular structure
 
 Memory:
 - @.claude/skills/ - Standard skill location
-- Skill("moai-foundation-core") modules/ - Memory files following modular pattern
+- Skill("abyz-lab-foundation-core") modules/ - Memory files following modular pattern
 
 ---
 

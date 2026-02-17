@@ -60,7 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Architecture validation
-        run: python .moai/scripts/validate_architecture.py
+        run: python .abyz-lab/scripts/validate_architecture.py
       - name: Import consistency
         run: pip install isort && isort --check-only src/
 
@@ -82,9 +82,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate commit messages
-        run: python .moai/scripts/validate_commits.py
+        run: python .abyz-lab/scripts/validate_commits.py
       - name: Check traceability
-        run: python .moai/scripts/check_traceability.py
+        run: python .abyz-lab/scripts/check_traceability.py
 
   quality-gate:
     name: "Final Quality Gate"

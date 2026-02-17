@@ -242,7 +242,7 @@ name: SPEC-First DDD Pipeline
 on:
   push:
     paths:
-      - '.moai/specs/**'
+      - '.abyz-lab/specs/**'
       - 'src/**'
       - 'tests/**'
 
@@ -253,9 +253,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate SPEC format
-        run: python .moai/scripts/validate_spec.py
+        run: python .abyz-lab/scripts/validate_spec.py
       - name: Check requirement traceability
-        run: python .moai/scripts/check_traceability.py
+        run: python .abyz-lab/scripts/check_traceability.py
 
   ddd-implementation:
     name: "Phase 2: DDD Implementation"
@@ -266,7 +266,7 @@ jobs:
       - name: Run characterization tests
         run: pytest tests/ -v --tb=short
       - name: Verify tests exist for all requirements
-        run: python .moai/scripts/verify_test_coverage_mapping.py
+        run: python .abyz-lab/scripts/verify_test_coverage_mapping.py
 
   quality-gates:
     name: "Phase 3: Quality Gates"
@@ -277,7 +277,7 @@ jobs:
       - name: Run tests with coverage
         run: pytest --cov=src --cov-fail-under=85
       - name: Validate TRUST 5
-        run: python .moai/scripts/validate_trust5.py
+        run: python .abyz-lab/scripts/validate_trust5.py
 ```
 
 ---

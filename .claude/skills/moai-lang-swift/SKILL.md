@@ -1,5 +1,5 @@
 ---
-name: moai-lang-swift
+name: abyz-lab-lang-swift
 description: >
   Swift 6+ development specialist covering SwiftUI, Combine, Swift
   Concurrency, and iOS patterns. Use when building iOS apps, macOS apps, or
@@ -16,15 +16,15 @@ metadata:
   modularized: "true"
   tags: "swift, swiftui, ios, macos, combine, concurrency"
   context7-libraries: "/apple/swift, /apple/swift-evolution"
-  related-skills: "moai-lang-kotlin, moai-lang-flutter"
+  related-skills: "abyz-lab-lang-kotlin, abyz-lab-lang-flutter"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["Swift", "SwiftUI", "Combine", "iOS", "macOS", "async", "await", "Actor", "@Observable", ".swift", "Xcode"]
   languages: ["swift"]
@@ -128,11 +128,11 @@ Async Test with MainActor: Apply @MainActor attribute to test class extending XC
 
 ## Works Well With
 
-- `moai-lang-kotlin` - Android counterpart for cross-platform projects
-- `moai-lang-flutter` - Flutter/Dart for cross-platform mobile
-- `moai-domain-backend` - API integration and backend communication
-- `moai-foundation-quality` - iOS security best practices
-- `moai-workflow-testing` - Xcode debugging and profiling
+- `abyz-lab-lang-kotlin` - Android counterpart for cross-platform projects
+- `abyz-lab-lang-flutter` - Flutter/Dart for cross-platform mobile
+- `abyz-lab-domain-backend` - API integration and backend communication
+- `abyz-lab-foundation-quality` - iOS security best practices
+- `abyz-lab-workflow-testing` - Xcode debugging and profiling
 
 ## Resources
 

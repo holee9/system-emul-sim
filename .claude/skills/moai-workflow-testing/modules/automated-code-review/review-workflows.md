@@ -165,7 +165,7 @@ jobs:
 
       - name: Run automated code review
         run: |
-          moai review \
+          abyz-lab review \
             --path . \
             --output review-report.json \
             --format json \
@@ -233,7 +233,7 @@ code_review:
   stage: review
   image: python:3.10
   script:
-    - moai review --path . --output review-report.json --format json
+    - abyz-lab review --path . --output review-report.json --format json
   artifacts:
     paths:
       - review-report.json
@@ -249,7 +249,7 @@ quality_gate:
   stage: report
   image: python:3.10
   script:
-    - moai quality-gate --report review-report.json --fail-on-violation
+    - abyz-lab quality-gate --report review-report.json --fail-on-violation
   dependencies:
     - code_review
   allow_failure: false

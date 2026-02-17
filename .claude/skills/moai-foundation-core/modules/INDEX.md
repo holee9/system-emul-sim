@@ -1,6 +1,6 @@
-# MoAI Foundation Core - Modules Directory
+# ABYZ-Lab Foundation Core - Modules Directory
 
-Purpose: Extended documentation modules for moai-foundation-core skill, providing deep dives into each foundational principle.
+Purpose: Extended documentation modules for abyz-lab-foundation-core skill, providing deep dives into each foundational principle.
 
 Version: 1.0.0
 Last Updated: 2025-11-25
@@ -9,7 +9,7 @@ Last Updated: 2025-11-25
 
 ## Module Overview
 
-This directory contains 9 comprehensive modules covering MoAI-ADK's foundational principles and execution rules:
+This directory contains 9 comprehensive modules covering ABYZ-Lab-ADK's foundational principles and execution rules:
 
 ### 1. trust-5-framework.md (982 lines)
 TRUST 5 Quality Framework - Automated quality gates ensuring code quality, security, maintainability, and traceability.
@@ -33,10 +33,10 @@ Use Cases:
 Specification-Driven Development - EARS format requirements with ANALYZE-PRESERVE-IMPROVE DDD cycles.
 
 Quick Access:
-- SPEC generation (/moai:1-plan)
+- SPEC generation (/abyz-lab:1-plan)
 - EARS format patterns
-- DDD implementation (/moai:2-run)
-- Documentation sync (/moai:3-sync)
+- DDD implementation (/abyz-lab:2-run)
+- Documentation sync (/abyz-lab:3-sync)
 
 Use Cases:
 - New feature development
@@ -115,7 +115,7 @@ Use Cases:
 ---
 
 ### 7. agents-reference.md (NEW)
-Agent Catalog - Complete reference of MoAI-ADK's 26 specialized agents with 7-tier hierarchy.
+Agent Catalog - Complete reference of ABYZ-Lab-ADK's 26 specialized agents with 7-tier hierarchy.
 
 Quick Access:
 - `{domain}-{role}` naming convention
@@ -132,15 +132,15 @@ Use Cases:
 ---
 
 ### 8. commands-reference.md (NEW)
-Command Catalog - Complete reference for MoAI-ADK's 6 core commands in SPEC-First DDD workflow.
+Command Catalog - Complete reference for ABYZ-Lab-ADK's 6 core commands in SPEC-First DDD workflow.
 
 Quick Access:
-- /moai:0-project (Project init)
-- /moai:1-plan (SPEC generation)
-- /moai:2-run (DDD implementation)
-- /moai:3-sync (Documentation)
-- /moai:9-feedback (Improvement)
-- /moai:99-release (Deployment)
+- /abyz-lab:0-project (Project init)
+- /abyz-lab:1-plan (SPEC generation)
+- /abyz-lab:2-run (DDD implementation)
+- /abyz-lab:3-sync (Documentation)
+- /abyz-lab:9-feedback (Improvement)
+- /abyz-lab:99-release (Deployment)
 
 Use Cases:
 - Command workflow execution
@@ -177,7 +177,7 @@ Use Cases:
 # Load specific module
 from pathlib import Path
 
-skill_path = Path(".claude/skills/moai-foundation-core")
+skill_path = Path(".claude/skills/abyz-lab-foundation-core")
 module_path = skill_path / "modules" / "trust-5-framework.md"
 
 with open(module_path) as f:
@@ -211,7 +211,7 @@ class ModuleLoader:
 class ModuleSearch:
  def search_topic(self, query: str) -> list:
  """Search for topic across all modules."""
- modules_dir = Path(".claude/skills/moai-foundation-core/modules")
+ modules_dir = Path(".claude/skills/abyz-lab-foundation-core/modules")
  results = []
  
  for module_file in modules_dir.glob("*.md"):
@@ -274,9 +274,9 @@ Detailed Reference: [TRUST 5 Framework Module](modules/trust-5-framework.md)
 ## Works Well With
 
 Skills:
-- moai-foundation-core (parent skill)
-- moai-cc-skill-factory (skill creation)
-- moai-core-agent-factory (agent creation)
+- abyz-lab-foundation-core (parent skill)
+- abyz-lab-cc-skill-factory (skill creation)
+- abyz-lab-core-agent-factory (agent creation)
 
 Agents:
 - skill-factory (module generation)
@@ -284,13 +284,13 @@ Agents:
 - quality-gate (validation)
 
 Commands:
-- /moai:1-plan (SPEC-First DDD)
-- /moai:2-run (DDD implementation)
-- /moai:3-sync (Documentation)
+- /abyz-lab:1-plan (SPEC-First DDD)
+- /abyz-lab:2-run (DDD implementation)
+- /abyz-lab:3-sync (Documentation)
 - /clear (Token optimization)
 
 ---
 
-Maintained by: MoAI-ADK Team
+Maintained by: ABYZ-Lab-ADK Team
 Status: Production Ready
 Next Review: As needed when foundation principles evolve

@@ -52,7 +52,7 @@ Version: C++23 / C++20
 - Use sanitizers (ASan, UBSan) in CI
 - Use benchmark tests for performance
 
-## MoAI Integration
+## ABYZ-Lab Integration
 
-- Use Skill("moai-lang-cpp") for detailed patterns
+- Use Skill("abyz-lab-lang-cpp") for detailed patterns
 - Follow TRUST 5 quality gates

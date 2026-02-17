@@ -420,7 +420,7 @@ Path-Based Permissions:
  "./tests/",
  "./docs/",
  "./.claude/",
- "./.moai/"
+ "./.abyz-lab/"
  ],
  "blockedPaths": [
  "./.env*",

@@ -1,13 +1,13 @@
 ---
-name: moai-domain-backend
+name: abyz-lab-domain-backend
 description: >
   Backend development specialist covering API design, database integration,
   microservices architecture, and modern backend patterns.
   Use when user asks about API design, REST or GraphQL endpoints, server implementation,
   authentication, authorization, middleware, or backend service architecture.
   Do NOT use for database-specific schema design or query optimization
-  (use moai-domain-database instead) or frontend implementation
-  (use moai-domain-frontend instead).
+  (use abyz-lab-domain-database instead) or frontend implementation
+  (use abyz-lab-domain-frontend instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Write Edit Bash(npm:*) Bash(npx:*) Bash(node:*) Bash(uv:*) Bash(pip:*) Bash(pytest:*) Bash(ruff:*) Bash(docker:*) Bash(curl:*) Bash(go:*) Bash(cargo:*) Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -19,9 +19,9 @@ metadata:
   updated: "2026-01-11"
   modularized: "false"
   tags: "backend, api, database, microservices, architecture"
-  author: "MoAI-ADK Team"
+  author: "ABYZ-Lab-ADK Team"
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords:
     - backend
@@ -129,11 +129,11 @@ Create an optimized SQLAlchemy engine with QueuePool, pool_size 20, max_overflow
 
 ## Works Well With
 
-- moai-domain-frontend - Full-stack development integration
-- moai-domain-database - Advanced database patterns
-- moai-foundation-core - MCP server development patterns for backend services
-- moai-quality-security - Security validation and compliance
-- moai-foundation-core - Core architectural principles
+- abyz-lab-domain-frontend - Full-stack development integration
+- abyz-lab-domain-database - Advanced database patterns
+- abyz-lab-foundation-core - MCP server development patterns for backend services
+- abyz-lab-quality-security - Security validation and compliance
+- abyz-lab-foundation-core - Core architectural principles
 
 ---
 
@@ -165,4 +165,4 @@ For working code examples, see [examples.md](examples.md).
 
 Status: Production Ready
 Last Updated: 2026-01-11
-Maintained by: MoAI-ADK Backend Team
+Maintained by: ABYZ-Lab-ADK Backend Team

@@ -1,4 +1,4 @@
-name: moai-foundation-uiux-components
+name: abyz-lab-foundation-uiux-components
 description: Atomic Design component patterns and implementation
 
 ## Atomic Design Component Structure

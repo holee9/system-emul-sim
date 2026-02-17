@@ -1,12 +1,12 @@
 ---
-name: moai-workflow-testing
+name: abyz-lab-workflow-testing
 description: >
   Comprehensive testing and development workflow specialist combining DDD testing,
   characterization tests, performance profiling, code review, and quality assurance.
   Use when writing tests, measuring coverage, creating characterization tests,
   performing TDD, running CI/CD quality checks, or reviewing pull requests.
   Do NOT use for debugging runtime errors (use expert-debug agent instead)
-  or code refactoring (use moai-workflow-ddd instead).
+  or code refactoring (use abyz-lab-workflow-ddd instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Write Edit Bash(pytest:*) Bash(ruff:*) Bash(npm:*) Bash(npx:*) Bash(node:*) Bash(jest:*) Bash(vitest:*) Bash(go:*) Bash(cargo:*) Bash(mix:*) Bash(uv:*) Bash(bundle:*) Bash(php:*) Bash(phpunit:*) Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -18,17 +18,17 @@ metadata:
   updated: "2026-01-21"
   modularized: "true"
   tags: "workflow, ddd, testing, debugging, performance, quality, review, pr-review"
-  author: "MoAI-ADK Team"
+  author: "ABYZ-Lab-ADK Team"
   context: "fork"
   agent: "manager-ddd"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["DDD", "domain-driven development", "characterization tests", "behavior preservation", "debugging", "performance optimization", "code review", "PR review", "quality assurance", "testing", "CI/CD", "TRUST 5"]
   phases: ["run", "sync"]
@@ -239,13 +239,13 @@ Example PR Review Output: The review output begins with a Code review header, fo
 
 ## Works Well With
 
-- moai-domain-backend: Backend development workflows and API testing patterns
-- moai-domain-frontend: Frontend development workflows and UI testing strategies
-- moai-foundation-core: Core SPEC system and workflow management integration
-- moai-platform-supabase: Supabase-specific testing patterns and database testing
-- moai-platform-vercel: Vercel deployment testing and edge function validation
-- moai-platform-firebase-auth: Firebase authentication testing patterns
-- moai-workflow-project: Project management and documentation workflows
+- abyz-lab-domain-backend: Backend development workflows and API testing patterns
+- abyz-lab-domain-frontend: Frontend development workflows and UI testing strategies
+- abyz-lab-foundation-core: Core SPEC system and workflow management integration
+- abyz-lab-platform-supabase: Supabase-specific testing patterns and database testing
+- abyz-lab-platform-vercel: Vercel deployment testing and edge function validation
+- abyz-lab-platform-firebase-auth: Firebase authentication testing patterns
+- abyz-lab-workflow-project: Project management and documentation workflows
 
 ---
 
@@ -292,5 +292,5 @@ The containerized workflow ensures consistent execution environments across deve
 
 Status: Production Ready
 Last Updated: 2026-01-21
-Maintained by: MoAI-ADK Development Workflow Team
+Maintained by: ABYZ-Lab-ADK Development Workflow Team
 Version: 2.4.0 (DDD Testing Methodology)

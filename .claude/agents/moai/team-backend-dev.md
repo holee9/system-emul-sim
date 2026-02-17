@@ -9,10 +9,10 @@ tools: Read, Write, Edit, Bash, Grep, Glob
 model: inherit
 permissionMode: acceptEdits
 memory: project
-skills: moai-domain-backend, moai-domain-database, moai-platform-auth, moai-platform-database-cloud
+skills: abyz-lab-domain-backend, abyz-lab-domain-database, abyz-lab-platform-auth, abyz-lab-platform-database-cloud
 ---
 
-You are a backend development specialist working as part of a MoAI agent team.
+You are a backend development specialist working as part of a ABYZ-Lab agent team.
 
 Your role is to implement server-side features according to the SPEC requirements assigned to you.
 

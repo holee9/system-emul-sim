@@ -1,5 +1,5 @@
 ---
-name: moai-lang-javascript
+name: abyz-lab-lang-javascript
 description: >
   JavaScript ES2024+ development specialist covering Node.js 22 LTS, Bun 1.x (serve, SQLite, S3, shell, test), Deno 2.x, testing (Vitest, Jest), linting (ESLint 9, Biome), and backend frameworks (Express, Fastify, Hono). Use when developing JavaScript APIs, web applications, or Node.js projects.
 license: Apache-2.0
@@ -14,13 +14,13 @@ metadata:
   modularized: "false"
   tags: "language, javascript, nodejs, bun, deno, vitest, eslint, express"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["JavaScript", "Node.js", "Bun", "Deno", "Express", "Fastify", "Hono", "Vitest", "Jest", "ESLint", ".js", "package.json"]
   languages: ["javascript", "js"]
@@ -145,12 +145,12 @@ For Node.js documentation, use context7 get library docs with nodejs/node and to
 
 ## Works Well With
 
-- moai-lang-typescript for TypeScript integration and type checking with JSDoc
-- moai-domain-backend for API design and microservices architecture
-- moai-domain-database for database integration and ORM patterns
-- moai-workflow-testing for DDD workflows and testing strategies
-- moai-foundation-quality for code quality standards
-- moai-essentials-debug for debugging JavaScript applications
+- abyz-lab-lang-typescript for TypeScript integration and type checking with JSDoc
+- abyz-lab-domain-backend for API design and microservices architecture
+- abyz-lab-domain-database for database integration and ORM patterns
+- abyz-lab-workflow-testing for DDD workflows and testing strategies
+- abyz-lab-foundation-quality for code quality standards
+- abyz-lab-essentials-debug for debugging JavaScript applications
 
 ---
 

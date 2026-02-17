@@ -805,7 +805,7 @@ Attachments:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete troubleshooting guide with diagnostic commands, issue categories, and log collection procedures |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Docs Agent | Complete troubleshooting guide with diagnostic commands, issue categories, and log collection procedures |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix register addresses throughout: STATUS=0x20, CONTROL=0x21, FRAME_COUNT_LO=0x30, TIMING_GATE_ON=0x50, TIMING_GATE_OFF=0x51, CSI2_LANE_SPEED=0x60, CSI2_STATUS=0x70, ERROR_FLAGS=0x80. Corrected ERROR_FLAGS bit definitions to match spi-register-map.md. |
 | 1.1.0 | 2026-02-17 | manager-docs | Add 800M D-PHY Debugging Procedures section, Error Recovery State Machine, and Log Analysis Guide. |
 | 1.1.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Fix Section 4.1: CSI2_LANE_SPEED register corrected from 0x60 to 0x61; 0x60 is CSI2_LANE_COUNT. Speed code values corrected to 0x64=400Mbps, 0x7D=800Mbps per canonical register map. Same correction applied to 800M D-PHY Debugging step 1. |

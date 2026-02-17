@@ -1,12 +1,12 @@
 ---
-name: moai-workflow-templates
+name: abyz-lab-workflow-templates
 description: >
   Template management system for code boilerplates, feedback templates, scaffolding,
   and project optimization workflows.
   Use when creating code templates, generating boilerplate files, managing project
   scaffolding, optimizing template performance, or preparing GitHub issue templates.
-  Do NOT use for SPEC document creation (use moai-workflow-spec instead)
-  or documentation generation (use moai-workflow-project instead).
+  Do NOT use for SPEC document creation (use abyz-lab-workflow-spec instead)
+  or documentation generation (use abyz-lab-workflow-project instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Write Edit Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -18,16 +18,16 @@ metadata:
   updated: "2026-01-11"
   modularized: "true"
   tags: "workflow, templates, boilerplate, scaffolding, optimization, feedback"
-  aliases: "moai-workflow-templates"
-  replaces: "moai-core-code-templates, moai-core-feedback-templates, moai-project-template-optimizer"
+  aliases: "abyz-lab-workflow-templates"
+  replaces: "abyz-lab-core-code-templates, abyz-lab-core-feedback-templates, abyz-lab-project-template-optimizer"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["template", "boilerplate", "scaffolding", "code template", "project template", "feedback template", "GitHub issue", "template optimization"]
   phases: ["plan"]
@@ -52,8 +52,8 @@ Core Capabilities:
 When to Use:
 
 - Scaffolding new projects or features
-- Creating GitHub issues with /moai:9-feedback
-- Optimizing template structures after MoAI-ADK updates
+- Creating GitHub issues with /abyz-lab:9-feedback
+- Optimizing template structures after ABYZ-Lab-ADK updates
 - Restoring from project backups
 - Managing template versions and customizations
 - Generating boilerplate code
@@ -121,7 +121,7 @@ Concept: Structured templates for consistent GitHub issue creation.
 
 Six Template Types: Bug Report, Feature Request, Improvement, Refactor, Documentation, and Question/Discussion.
 
-Integration: Auto-triggered by the /moai:9-feedback command.
+Integration: Auto-triggered by the /abyz-lab:9-feedback command.
 
 For all template types and usage, see the Feedback Templates module documentation.
 
@@ -169,7 +169,7 @@ For complete implementation, see the Template Optimizer module section on Versio
 
 Code Templates include FastAPI REST API template, React component template, Docker and CI/CD templates, and template variables with scaffolding patterns.
 
-Feedback Templates include Bug Report template, Feature Request template, Improvement template, Refactor template, Documentation template, Question template, and integration with /moai:9-feedback command.
+Feedback Templates include Bug Report template, Feature Request template, Improvement template, Refactor template, Documentation template, Question template, and integration with /abyz-lab:9-feedback command.
 
 Template Optimizer includes 6-phase optimization workflow, smart merge algorithm, backup discovery and restoration, and version tracking with history.
 
@@ -234,22 +234,22 @@ Agents:
 
 Skills:
 
-- moai-project-config-manager: Configuration management and validation
-- moai-cc-configuration: Claude Code settings integration
-- moai-foundation-specs: SPEC template generation
-- moai-docs-generation: Documentation template scaffolding
-- moai-core-workflow: Template-driven workflows
+- abyz-lab-project-config-manager: Configuration management and validation
+- abyz-lab-cc-configuration: Claude Code settings integration
+- abyz-lab-foundation-specs: SPEC template generation
+- abyz-lab-docs-generation: Documentation template scaffolding
+- abyz-lab-core-workflow: Template-driven workflows
 
 Commands:
 
-- /moai:0-project: Project initialization with templates
-- /moai:9-feedback: Feedback template selection and issue creation
+- /abyz-lab:0-project: Project initialization with templates
+- /abyz-lab:9-feedback: Feedback template selection and issue creation
 
 ## Workflow Integration
 
 Project Initialization Workflow: Select code template using Pattern 1, scaffold project structure, apply customizations, and initialize version tracking using Pattern 5.
 
-Feedback Submission Workflow: Execute /moai:9-feedback command, select issue type using Pattern 2, fill template fields, and auto-generate GitHub issue.
+Feedback Submission Workflow: Execute /abyz-lab:9-feedback command, select issue type using Pattern 2, fill template fields, and auto-generate GitHub issue.
 
 Template Update Workflow: Detect template version change, create backup using Pattern 4, run smart merge using Pattern 3, and update version history using Pattern 5.
 
@@ -265,7 +265,7 @@ Template Update Workflow: Detect template version change, create backup using Pa
 
 - v3.1.0 (2026-01-11): Converted to CLAUDE.md documentation standards, removed code blocks and tables
 - v3.0.0 (2026-01-08): Major version with modular architecture
-- v2.0.0 (2025-11-24): Unified moai-core-code-templates, moai-core-feedback-templates, and moai-project-template-optimizer into single skill with 5 core patterns
+- v2.0.0 (2025-11-24): Unified abyz-lab-core-code-templates, abyz-lab-core-feedback-templates, and abyz-lab-project-template-optimizer into single skill with 5 core patterns
 - v1.0.0 (2025-11-22): Original individual skills
 
 ---
@@ -273,4 +273,4 @@ Template Update Workflow: Detect template version change, create backup using Pa
 Status: Production Ready (Enterprise)
 Modular Architecture: SKILL.md + 3 core modules
 Integration: Plan-Run-Sync workflow optimized
-Generated with: MoAI-ADK Skill Factory
+Generated with: ABYZ-Lab-ADK Skill Factory

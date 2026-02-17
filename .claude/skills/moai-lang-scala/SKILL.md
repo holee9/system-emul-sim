@@ -1,5 +1,5 @@
 ---
-name: moai-lang-scala
+name: abyz-lab-lang-scala
 description: >
   Scala 3.4+ development specialist covering Akka, Cats Effect, ZIO, and
   Spark patterns. Use when building distributed systems, big data pipelines,
@@ -16,13 +16,13 @@ metadata:
   modularized: "true"
   tags: "language, scala, akka, cats-effect, zio, spark, sbt"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["Scala", "Akka", "Cats Effect", "ZIO", "Spark", ".scala", ".sc", "build.sbt", "sbt"]
   languages: ["scala"]
@@ -153,10 +153,10 @@ Effect System Issues:
 
 ## Works Well With
 
-- moai-lang-java - JVM interoperability, Spring Boot integration
-- moai-domain-backend - REST API, GraphQL, microservices patterns
-- moai-domain-database - Doobie, Slick, database patterns
-- moai-workflow-testing - ScalaTest, MUnit, property-based testing
+- abyz-lab-lang-java - JVM interoperability, Spring Boot integration
+- abyz-lab-domain-backend - REST API, GraphQL, microservices patterns
+- abyz-lab-domain-database - Doobie, Slick, database patterns
+- abyz-lab-workflow-testing - ScalaTest, MUnit, property-based testing
 
 ---
 

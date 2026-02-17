@@ -22,7 +22,7 @@ DDD Context7 integration provides a comprehensive domain-driven development work
 ### Basic DDD Cycle
 
 ```python
-from moai_workflow_testing import DDDManager, TestSpecification, TestType
+from abyz-lab_workflow_testing import DDDManager, TestSpecification, TestType
 
 # Initialize DDD Manager
 ddd_manager = DDDManager(

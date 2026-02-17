@@ -1,5 +1,5 @@
 ---
-name: moai-workflow-fix
+name: abyz-lab-workflow-fix
 description: >
   One-shot autonomous fix workflow with parallel scanning and classification.
   Finds LSP errors, linting issues, and type errors, classifies by severity,
@@ -15,13 +15,13 @@ metadata:
   updated: "2026-02-07"
   tags: "fix, auto-fix, lsp, linting, diagnostics, errors, type-check"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["fix", "auto-fix", "error", "lint", "diagnostic", "lsp", "type error"]
   agents: ["expert-debug", "expert-backend", "expert-frontend", "expert-refactoring"]
@@ -126,7 +126,7 @@ All fixes follow CLAUDE.md Section 7 Safe Development Protocol:
 
 ## Snapshot Save/Resume
 
-Snapshot location: $CLAUDE_PROJECT_DIR/.moai/cache/fix-snapshots/
+Snapshot location: $CLAUDE_PROJECT_DIR/.abyz-lab/cache/fix-snapshots/
 
 Snapshot contents:
 - Timestamp
@@ -137,8 +137,8 @@ Snapshot contents:
 - Scan results
 
 Resume commands:
-- /moai:fix --resume (uses latest snapshot)
-- /moai:fix --resume fix-20260119-143052 (uses specific snapshot)
+- /abyz-lab:fix --resume (uses latest snapshot)
+- /abyz-lab:fix --resume fix-20260119-143052 (uses specific snapshot)
 
 ## Team Mode
 
@@ -151,7 +151,7 @@ For detailed team orchestration steps, see workflows/team-debug.md.
 Fallback: If team mode is unavailable, standard single-agent fix workflow continues.
 
 Team Prerequisites:
-- workflow.team.enabled: true in .moai/config/sections/workflow.yaml
+- workflow.team.enabled: true in .abyz-lab/config/sections/workflow.yaml
 - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in environment
 - If prerequisites not met: Falls back to standard single-agent fix workflow
 
@@ -168,7 +168,7 @@ Team Prerequisites:
 9. Apply Level 1-2 fixes via agent delegation
 10. Request approval for Level 3 fixes via AskUserQuestion
 11. Verify fixes by re-running diagnostics
-12. Save snapshot to $CLAUDE_PROJECT_DIR/.moai/cache/fix-snapshots/
+12. Save snapshot to $CLAUDE_PROJECT_DIR/.abyz-lab/cache/fix-snapshots/
 13. Report with evidence (file:line changes)
 
 ---

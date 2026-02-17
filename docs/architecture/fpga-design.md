@@ -911,8 +911,8 @@ FpgaSimulator (C#)                  FPGA RTL (SystemVerilog)
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial FPGA architecture design document |
-| 1.0.1 | 2026-02-17 | MoAI Agent (chief-architect) | CRITICAL-1: Fixed §6.3 DEVICE_ID from 0xA735 to 0xD7E0 (upper 16 bits), added DEVICE_ID_LO reg 0x01=0x0001 (full 32-bit ID = 0xD7E0_0001). MINOR-1: Fixed §5.2 Lane Speed from incorrect "1.0 Gbps/lane" to verified "400 Mbps/lane (stable) / 800 Mbps/lane (debugging in progress)". |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial FPGA architecture design document |
+| 1.0.1 | 2026-02-17 | ABYZ-Lab Agent (chief-architect) | CRITICAL-1: Fixed §6.3 DEVICE_ID from 0xA735 to 0xD7E0 (upper 16 bits), added DEVICE_ID_LO reg 0x01=0x0001 (full 32-bit ID = 0xD7E0_0001). MINOR-1: Fixed §5.2 Lane Speed from incorrect "1.0 Gbps/lane" to verified "400 Mbps/lane (stable) / 800 Mbps/lane (debugging in progress)". |
 
 ---
 

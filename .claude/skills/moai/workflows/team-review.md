@@ -8,14 +8,14 @@ Flow: TeamCreate -> Perspective Assignment -> Parallel Review -> Report Consolid
 
 - workflow.team.enabled: true
 - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-- Triggered by: /moai review --team OR explicit multi-perspective review request
+- Triggered by: /abyz-lab review --team OR explicit multi-perspective review request
 
 ## Phase 0: Review Setup
 
 1. Identify the code changes to review (diff, PR, or file list)
 2. Create team:
    ```
-   TeamCreate(team_name: "moai-review-{target}")
+   TeamCreate(team_name: "abyz-lab-review-{target}")
    ```
 3. Create review tasks:
    ```
@@ -33,10 +33,10 @@ Use the review team pattern. All spawns MUST use Task() with `team_name` and `na
 ```
 Task(
   subagent_type: "team-quality",
-  team_name: "moai-review-{target}",
+  team_name: "abyz-lab-review-{target}",
   name: "security-reviewer",
   mode: "plan",
-  prompt: "You are a security reviewer on team moai-review-{target}.
+  prompt: "You are a security reviewer on team abyz-lab-review-{target}.
     Review the following changes for security issues.
     Check OWASP Top 10 compliance, input validation, authentication/authorization,
     secrets exposure, injection risks.
@@ -46,10 +46,10 @@ Task(
 
 Task(
   subagent_type: "team-quality",
-  team_name: "moai-review-{target}",
+  team_name: "abyz-lab-review-{target}",
   name: "perf-reviewer",
   mode: "plan",
-  prompt: "You are a performance reviewer on team moai-review-{target}.
+  prompt: "You are a performance reviewer on team abyz-lab-review-{target}.
     Review the following changes for performance issues.
     Check algorithmic complexity, database query efficiency, memory usage,
     caching opportunities, bundle size impact.
@@ -59,10 +59,10 @@ Task(
 
 Task(
   subagent_type: "team-quality",
-  team_name: "moai-review-{target}",
+  team_name: "abyz-lab-review-{target}",
   name: "quality-reviewer",
   mode: "plan",
-  prompt: "You are a code quality reviewer on team moai-review-{target}.
+  prompt: "You are a code quality reviewer on team abyz-lab-review-{target}.
     Review the following changes for code quality.
     Check TRUST 5 compliance, naming conventions, error handling,
     test coverage, documentation, consistency with project patterns.
@@ -72,10 +72,10 @@ Task(
 
 Task(
   subagent_type: "team-quality",
-  team_name: "moai-review-{target}",
+  team_name: "abyz-lab-review-{target}",
   name: "ux-reviewer",
   mode: "plan",
-  prompt: "You are a UX reviewer on team moai-review-{target}.
+  prompt: "You are a UX reviewer on team abyz-lab-review-{target}.
     Review the following changes for user experience impact.
     Validate user flows remain functional, check error states and edge cases
     from the user's perspective, verify accessibility compliance,
@@ -85,7 +85,7 @@ Task(
 )
 ```
 
-All four reviewers run in parallel. Messages from teammates are delivered automatically to MoAI.
+All four reviewers run in parallel. Messages from teammates are delivered automatically to ABYZ-Lab.
 
 ## Phase 2: Parallel Review
 

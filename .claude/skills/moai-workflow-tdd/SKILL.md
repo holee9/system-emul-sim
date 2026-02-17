@@ -1,11 +1,11 @@
 ---
-name: moai-workflow-tdd
+name: abyz-lab-workflow-tdd
 description: >
   Test-Driven Development workflow specialist using RED-GREEN-REFACTOR
   cycle for test-first software development.
   Use when developing new features from scratch, creating isolated modules,
   or when behavior specification drives implementation.
-  Do NOT use for refactoring existing code (use moai-workflow-ddd instead)
+  Do NOT use for refactoring existing code (use abyz-lab-workflow-ddd instead)
   or when behavior preservation is the primary goal.
 license: Apache-2.0
 compatibility: Designed for Claude Code
@@ -18,18 +18,18 @@ metadata:
   updated: "2026-02-03"
   modularized: "true"
   tags: "workflow, tdd, test-driven, red-green-refactor, test-first"
-  author: "MoAI-ADK Team"
+  author: "ABYZ-Lab-ADK Team"
   context: "fork"
   agent: "manager-tdd"
-  related-skills: "moai-workflow-ddd, moai-workflow-testing, moai-foundation-quality"
+  related-skills: "abyz-lab-workflow-ddd, abyz-lab-workflow-testing, abyz-lab-foundation-quality"
 
-# MoAI Extension: Progressive Disclosure
+# ABYZ-Lab Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# MoAI Extension: Triggers
+# ABYZ-Lab Extension: Triggers
 triggers:
   keywords: ["TDD", "test-driven development", "red-green-refactor", "test-first", "new feature", "greenfield"]
   phases: ["run"]
@@ -40,7 +40,7 @@ triggers:
 
 ## Development Mode Configuration (CRITICAL)
 
-[NOTE] This workflow is selected based on `.moai/config/sections/quality.yaml`:
+[NOTE] This workflow is selected based on `.abyz-lab/config/sections/quality.yaml`:
 
 ```yaml
 constitution:
@@ -53,7 +53,7 @@ constitution:
 **When to use this workflow**:
 - `development_mode: tdd` → Always use TDD
 - `development_mode: hybrid` + new package/module → Use TDD
-- `development_mode: hybrid` + refactoring existing code → Use DDD instead (moai-workflow-ddd)
+- `development_mode: hybrid` + refactoring existing code → Use DDD instead (abyz-lab-workflow-ddd)
 
 **Key distinction**:
 - **New file/package** (doesn't exist yet) → TDD (this workflow)

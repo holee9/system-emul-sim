@@ -6,7 +6,7 @@ version: 1.0.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
-author: MoAI Agent (manager-spec)
+author: ABYZ-Lab Agent (manager-spec)
 priority: critical
 milestone: M0.5
 gate_week: W26
@@ -16,7 +16,7 @@ gate_week: W26
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial SPEC creation for M0.5 CSI-2 PoC milestone |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-spec) | Initial SPEC creation for M0.5 CSI-2 PoC milestone |
 
 ---
 
@@ -654,7 +654,7 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial SPEC creation for M0.5 CSI-2 PoC milestone |
+| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-spec) | Initial SPEC creation for M0.5 CSI-2 PoC milestone |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed gate_week W6→W26, corrected performance tier table (added Intermediate-A/B tiers, removed Maximum tier), updated PoC success threshold, fixed Linux kernel version reference, updated PoC timing W3-W6→W23-W26 |
 | 1.0.2 | 2026-02-17 | spec-fpga | Status planned→approved, fixed RAW16 data type 0x2C→0x2E (per MIPI CSI-2 v1.3 Table 10) |
 
