@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-sync
+name: moai-workflow-sync
 description: >
   Synchronizes documentation with code changes, verifies project quality,
   and finalizes pull requests. Third step of the Plan-Run-Sync workflow.
@@ -15,13 +15,13 @@ metadata:
   updated: "2026-02-03"
   tags: "sync, documentation, pull-request, quality, verification, pr"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["sync", "docs", "pr", "documentation", "pull request", "changelog", "readme"]
   agents: ["manager-docs", "manager-quality", "manager-git"]
@@ -36,8 +36,8 @@ Synchronize documentation with code changes, verify project quality, and finaliz
 
 ## Scope
 
-- Implements Step 4 of ABYZ-Lab's 4-step workflow (Report and Commit)
-- Receives implementation artifacts from /abyz-lab run
+- Implements Step 4 of MoAI's 4-step workflow (Report and Commit)
+- Receives implementation artifacts from /moai run
 - Produces synchronized documentation, commits, and PR readiness
 
 ## Input
@@ -62,14 +62,14 @@ Synchronize documentation with code changes, verify project quality, and finaliz
 
 Before execution, load these essential files:
 
-- .abyz-lab/config/config.yaml (git strategy, language settings)
-- .abyz-lab/config/sections/git-strategy.yaml (auto_branch, branch creation policy)
-- .abyz-lab/config/sections/language.yaml (git_commit_messages setting)
-- .abyz-lab/specs/ directory listing (SPEC documents for sync)
-- .abyz-lab/project/ directory listing (project documents for conditional update)
+- .moai/config/config.yaml (git strategy, language settings)
+- .moai/config/sections/git-strategy.yaml (auto_branch, branch creation policy)
+- .moai/config/sections/language.yaml (git_commit_messages setting)
+- .moai/specs/ directory listing (SPEC documents for sync)
+- .moai/project/ directory listing (project documents for conditional update)
 - README.md (current project documentation)
 
-Pre-execution commands: git status, git diff, git branch, git log, find .abyz-lab/specs.
+Pre-execution commands: git status, git diff, git branch, git log, find .moai/specs.
 
 ---
 
@@ -183,7 +183,7 @@ Status mode early exit: If mode is "status", display quality report and exit. No
 
 #### Step 1.1: Verify Prerequisites
 
-- .abyz-lab/ directory must exist
+- .moai/ directory must exist
 - .claude/ directory must exist
 - Project must be inside a Git repository
 
@@ -259,8 +259,8 @@ Display sync plan report and present options:
 Before any modifications:
 
 - Generate timestamp identifier
-- Create backup directory: .abyz-lab/backups/sync-{timestamp}/
-- Copy critical files: README.md, docs/, .abyz-lab/specs/
+- Create backup directory: .moai/backups/sync-{timestamp}/
+- Copy critical files: README.md, docs/, .moai/specs/
 - Verify backup integrity (non-empty directory check)
 
 #### Step 2.2: Document Synchronization
@@ -278,7 +278,7 @@ Tasks for manager-docs:
 - Fix project issues and restore broken references
 - Update SPEC documents based on divergence analysis and lifecycle level (see Step 2.2.1)
 - Detect changed domains and generate domain-specific updates
-- Generate sync report: .abyz-lab/reports/sync-report-{timestamp}.md
+- Generate sync report: .moai/reports/sync-report-{timestamp}.md
 
 All document updates use conversation_language setting.
 
@@ -306,7 +306,7 @@ Level 3 (spec-as-source):
 
 #### Step 2.2.5: Project Document Update (Conditional)
 
-Purpose: Update .abyz-lab/project/ documents when significant structural changes are detected.
+Purpose: Update .moai/project/ documents when significant structural changes are detected.
 
 Condition: Execute this step ONLY when the divergence report from Phase 1.5 indicates:
 - New directories were created in the project
@@ -314,7 +314,7 @@ Condition: Execute this step ONLY when the divergence report from Phase 1.5 indi
 - New major features or capabilities were implemented
 - Significant architectural changes occurred
 
-Skip condition: If .abyz-lab/project/ directory does not exist or contains no files, skip this step entirely.
+Skip condition: If .moai/project/ directory does not exist or contains no files, skip this step entirely.
 
 Agent: manager-docs subagent
 
@@ -356,7 +356,7 @@ Record version changes, status transitions, and divergence summary. Include in s
 
 #### Step 3.0: Detect Git Workflow Strategy
 
-Read `github.git_workflow` from `.abyz-lab/config/sections/system.yaml`. This determines how changes are delivered.
+Read `github.git_workflow` from `.moai/config/sections/system.yaml`. This determines how changes are delivered.
 
 | Strategy | Branch Model | PR Behavior | Best For |
 |----------|-------------|-------------|----------|
@@ -493,12 +493,12 @@ Tool: AskUserQuestion with options tailored to delivery result:
 
 **If PR was created (github_flow feature branch, or gitflow):**
 - Review PR on GitHub
-- Auto-Merge PR (/abyz-lab sync --merge)
-- Create Next SPEC (/abyz-lab plan)
+- Auto-Merge PR (/moai sync --merge)
+- Create Next SPEC (/moai plan)
 - Start New Session (/clear)
 
 **If direct push (main_direct, or github_flow main branch):**
-- Create Next SPEC (/abyz-lab plan)
+- Create Next SPEC (/moai plan)
 - Continue Development
 - Start New Session (/clear)
 
@@ -523,7 +523,7 @@ When user aborts at any decision point:
 
 - No changes made to documents, Git history, or branch state
 - Project remains in current state
-- Display retry command: /abyz-lab sync [mode]
+- Display retry command: /moai sync [mode]
 - Exit with code 0
 
 ---
@@ -543,4 +543,4 @@ All of the following must be verified:
 
 Version: 3.1.0
 Updated: 2026-02-13
-Source: Extracted from .claude/commands/abyz-lab/3-sync.md v3.4.0. Added SPEC divergence analysis, project document updates, SPEC lifecycle awareness, team mode section, LSP quality gates, strategy-aware git delivery, and deployment readiness check (Phase 0) with test verification, migration detection, environment changes, and backward compatibility assessment.
+Source: Extracted from .claude/commands/moai/3-sync.md v3.4.0. Added SPEC divergence analysis, project document updates, SPEC lifecycle awareness, team mode section, LSP quality gates, strategy-aware git delivery, and deployment readiness check (Phase 0) with test verification, migration detection, environment changes, and backward compatibility assessment.

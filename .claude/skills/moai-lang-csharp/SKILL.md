@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-csharp
+name: moai-lang-csharp
 description: >
   C# 12 / .NET 8 development specialist covering ASP.NET Core, Entity Framework, Blazor, and modern C# patterns. Use when developing .NET APIs, web applications, or enterprise solutions.
 license: Apache-2.0
@@ -15,13 +15,13 @@ metadata:
   tags: "language, csharp, dotnet, aspnet-core, entity-framework, blazor"
   context7-libraries: "/dotnet/aspnetcore, /dotnet/efcore, /dotnet/runtime"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["C#", "Csharp", ".NET", "ASP.NET", "Entity Framework", "Blazor", ".cs", ".csproj", ".sln", "dotnet"]
   languages: ["csharp", "c#"]
@@ -126,8 +126,8 @@ For async enumerable streaming, create async methods returning IAsyncEnumerable 
 
 ## Works Well With
 
-- `abyz-lab-domain-backend` - API design, database integration patterns
-- `abyz-lab-platform-deploy` - Azure, Docker, Kubernetes deployment
-- `abyz-lab-workflow-testing` - Testing strategies and patterns
-- `abyz-lab-foundation-quality` - Code quality standards
-- `abyz-lab-essentials-debug` - Debugging .NET applications
+- `moai-domain-backend` - API design, database integration patterns
+- `moai-platform-deploy` - Azure, Docker, Kubernetes deployment
+- `moai-workflow-testing` - Testing strategies and patterns
+- `moai-foundation-quality` - Code quality standards
+- `moai-essentials-debug` - Debugging .NET applications

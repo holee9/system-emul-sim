@@ -6,19 +6,19 @@
 
 ```bash
 # Start Ralph loop for automated error fixing
-/abyz-lab:loop
+/moai:loop
 
 # Start with custom max iterations
-/abyz-lab:loop --max-iterations 5
+/moai:loop --max-iterations 5
 
 # Start with specific completion criteria
-/abyz-lab:loop --zero-warnings true
+/moai:loop --zero-warnings true
 ```
 
 **Loop State Management:**
 
 ```json
-// .abyz-lab/cache/.abyz-lab_loop_state.json
+// .moai/cache/.moai_loop_state.json
 {
   "active": true,
   "iteration": 1,
@@ -40,7 +40,7 @@
 **Example Conversation Flow:**
 
 ```
-User: /abyz-lab:loop
+User: /moai:loop
 Claude: Ralph loop activated. Starting automated error correction...
 
 [Claude makes code changes]
@@ -125,19 +125,19 @@ Ralph Loop: COMPLETE | Manual cancellation
 
 ```bash
 # Fix all current LSP errors
-/abyz-lab:fix
+/moai:fix
 
 # Fix errors in specific file
-/abyz-lab:fix src/auth.py
+/moai:fix src/auth.py
 
 # Fix with specific severity threshold
-/abyz-lab:fix --severity error
+/moai:fix --severity error
 ```
 
 **Example Session:**
 
 ```
-User: /abyz-lab:fix
+User: /moai:fix
 
 Claude: Running LSP diagnostics...
 
@@ -249,8 +249,8 @@ ralph:
     security_scan: true
     quality_scan: true
     custom_rules:
-      - .abyz-lab/ast-grep/security/**/*.yml
-      - .abyz-lab/ast-grep/quality/**/*.yml
+      - .moai/ast-grep/security/**/*.yml
+      - .moai/ast-grep/quality/**/*.yml
 
   loop:
     max_iterations: 15
@@ -330,7 +330,7 @@ ralph:
   ast_grep:
     enabled: true
     rules:
-      - .abyz-lab/ast-grep/python/**/*.yml
+      - .moai/ast-grep/python/**/*.yml
 
   loop:
     completion:
@@ -357,8 +357,8 @@ ralph:
   ast_grep:
     enabled: true
     rules:
-      - .abyz-lab/ast-grep/react/**/*.yml
-      - .abyz-lab/ast-grep/typescript/**/*.yml
+      - .moai/ast-grep/react/**/*.yml
+      - .moai/ast-grep/typescript/**/*.yml
 ```
 
 **Multi-Language Project:**
@@ -378,7 +378,7 @@ ralph:
   ast_grep:
     enabled: true
     rules:
-      - .abyz-lab/ast-grep/**/*.yml
+      - .moai/ast-grep/**/*.yml
 ```
 
 ---
@@ -434,13 +434,13 @@ sys.exit(1)
 # stop__loop_controller (Go compiled hook)
 
 def load_loop_state() -> dict:
-    state_file = Path(".abyz-lab/cache/.abyz-lab_loop_state.json")
+    state_file = Path(".moai/cache/.moai_loop_state.json")
     if state_file.exists():
         return json.loads(state_file.read_text())
     return {"active": False}
 
 def save_loop_state(state: dict):
-    state_file = Path(".abyz-lab/cache/.abyz-lab_loop_state.json")
+    state_file = Path(".moai/cache/.moai_loop_state.json")
     state_file.parent.mkdir(parents=True, exist_ok=True)
     state_file.write_text(json.dumps(state, indent=2))
 
@@ -620,7 +620,7 @@ func ProcessUser(id int) error {
 **AST-grep Rule:**
 
 ```yaml
-# .abyz-lab/ast-grep/security/sql-injection.yml
+# .moai/ast-grep/security/sql-injection.yml
 id: sql-injection-python
 language: python
 rule:
@@ -655,7 +655,7 @@ def get_user(user_id):
 **AST-grep Rule:**
 
 ```yaml
-# .abyz-lab/ast-grep/security/xss-prevention.yml
+# .moai/ast-grep/security/xss-prevention.yml
 id: xss-react
 language: typescript
 rule:
@@ -698,7 +698,7 @@ function UserProfile({ bio }: { bio: string }) {
 **AST-grep Rule:**
 
 ```yaml
-# .abyz-lab/ast-grep/security/hardcoded-secrets.yml
+# .moai/ast-grep/security/hardcoded-secrets.yml
 id: hardcoded-api-key
 language: python
 rule:
@@ -757,23 +757,23 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install ABYZ-Lab-ADK
+      - name: Install MoAI-ADK
         run: |
-          go install github.com/modu-ai/abyz-lab-adk/cmd/abyz-lab@latest
-          abyz-lab init
+          go install github.com/modu-ai/moai-adk/cmd/moai@latest
+          moai init
 
       - name: Run Ralph Loop
         run: |
-          claude -p "/abyz-lab:loop --max-iterations 5" \
+          claude -p "/moai:loop --max-iterations 5" \
             --allowedTools "Read,Write,Edit,Bash" \
             --output-format json
         env:
-          ABYZ-LAB_LOOP_ACTIVE: "true"
+          MOAI_LOOP_ACTIVE: "true"
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
 
       - name: Check Results
         run: |
-          python .abyz-lab/scripts/check_ralph_results.py
+          python .moai/scripts/check_ralph_results.py
 ```
 
 **Advanced CI/CD Integration:**
@@ -799,18 +799,18 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          go install github.com/modu-ai/abyz-lab-adk/cmd/abyz-lab@latest
-          abyz-lab init
+          go install github.com/modu-ai/moai-adk/cmd/moai@latest
+          moai init
 
       - name: Run ${{ matrix.check }} Check
         run: |
           case "${{ matrix.check }}" in
             lsp)
-              claude -p "/abyz-lab:fix --severity error" \
+              claude -p "/moai:fix --severity error" \
                 --allowedTools "Read,Write,Edit"
               ;;
             ast-grep)
-              abyz-lab ast-grep scan --security
+              moai ast-grep scan --security
               ;;
             tests)
               pytest tests/ -v
@@ -826,7 +826,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.check }}-results
-          path: .abyz-lab/reports/${{ matrix.check }}
+          path: .moai/reports/${{ matrix.check }}
 ```
 
 ### Pre-commit Hook Integration
@@ -840,15 +840,15 @@ jobs:
 echo "Running Ralph pre-commit checks..."
 
 # Run LSP diagnostics
-abyz-lab lsp diagnose --changed-files
+moai lsp diagnose --changed-files
 
 if [ $? -ne 0 ]; then
-    echo "❌ LSP errors found. Run '/abyz-lab:fix' to resolve."
+    echo "❌ LSP errors found. Run '/moai:fix' to resolve."
     exit 1
 fi
 
 # Run AST-grep security scan
-abyz-lab ast-grep scan --security --changed-files
+moai ast-grep scan --security --changed-files
 
 if [ $? -ne 0 ]; then
     echo "❌ Security issues found. Review and fix."
@@ -868,17 +868,17 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install ABYZ-Lab-ADK
-RUN go install github.com/modu-ai/abyz-lab-adk/cmd/abyz-lab@latest
+# Install MoAI-ADK
+RUN go install github.com/modu-ai/moai-adk/cmd/moai@latest
 
 # Copy project
 COPY . .
 
-# Initialize ABYZ-Lab-ADK
-RUN abyz-lab init
+# Initialize MoAI-ADK
+RUN moai init
 
 # Run Ralph quality check
-RUN claude -p "/abyz-lab:loop --max-iterations 3" \
+RUN claude -p "/moai:loop --max-iterations 3" \
     --allowedTools "Read,Write,Edit" \
     --output-format json || exit 1
 
@@ -896,12 +896,12 @@ CMD ["python", "app.py"]
 
 ```
 my-project/
-├── .abyz-lab/
+├── .moai/
 │   ├── config/
 │   │   └── sections/
 │   │       └── ralph.yaml
 │   ├── cache/
-│   │   └── .abyz-lab_loop_state.json
+│   │   └── .moai_loop_state.json
 │   └── ast-grep/
 │       ├── security/
 │       │   ├── sql-injection.yml
@@ -912,7 +912,7 @@ my-project/
 │           └── best-practices.yml
 ├── .claude/
 │   ├── hooks/
-│   │   └── abyz-lab/
+│   │   └── moai/
 │   │       ├── post_tool__lsp_diagnostic
 │   │       └── stop__loop_controller
 │   └── settings.json
@@ -942,8 +942,8 @@ ralph:
     security_scan: true
     quality_scan: true
     custom_rules:
-      - .abyz-lab/ast-grep/security/**/*.yml
-      - .abyz-lab/ast-grep/quality/**/*.yml
+      - .moai/ast-grep/security/**/*.yml
+      - .moai/ast-grep/quality/**/*.yml
 
   loop:
     max_iterations: 10
@@ -968,21 +968,21 @@ ralph:
 
 ```bash
 # 1. Start development
-/abyz-lab:1-plan "User authentication system"
+/moai:1-plan "User authentication system"
 
 # 2. Implement with Ralph loop
-/abyz-lab:loop
+/moai:loop
 
 # (Ralph automatically fixes LSP errors during implementation)
 
 # 3. Verify quality
-/abyz-lab:fix --severity warning
+/moai:fix --severity warning
 
 # 4. Run security scan
-abyz-lab ast-grep scan --security
+moai ast-grep scan --security
 
 # 5. Sync documentation
-/abyz-lab:3-sync
+/moai:3-sync
 ```
 
 ---
@@ -995,13 +995,13 @@ abyz-lab ast-grep scan --security
 
 ```bash
 # View LSP logs
-cat .abyz-lab/logs/lsp_diagnostic.log
+cat .moai/logs/lsp_diagnostic.log
 
 # Test LSP connection
-abyz-lab lsp test-connection python
+moai lsp test-connection python
 
 # View diagnostics directly
-abyz-lab lsp diagnose src/auth.py
+moai lsp diagnose src/auth.py
 ```
 
 **Common LSP Errors:**
@@ -1025,13 +1025,13 @@ Solution: Verify .lsp.json configuration format
 
 ```bash
 # View current state
-cat .abyz-lab/cache/.abyz-lab_loop_state.json
+cat .moai/cache/.moai_loop_state.json
 
 # Reset loop state
-rm .abyz-lab/cache/.abyz-lab_loop_state.json
+rm .moai/cache/.moai_loop_state.json
 
 # View loop logs
-cat .abyz-lab/logs/loop_controller.log
+cat .moai/logs/loop_controller.log
 ```
 
 **Common Loop Issues:**
@@ -1040,7 +1040,7 @@ cat .abyz-lab/logs/loop_controller.log
 Issue: Loop not starting
 Check:
   - ralph.enabled: true in config
-  - ABYZ-LAB_DISABLE_LOOP_CONTROLLER not set
+  - MOAI_DISABLE_LOOP_CONTROLLER not set
   - State file writable
 
 Issue: Loop stuck

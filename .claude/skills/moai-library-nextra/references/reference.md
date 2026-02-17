@@ -1,4 +1,4 @@
-# abyz-lab-library-nextra Reference
+# moai-library-nextra Reference
 
 ## API Reference
 
@@ -361,10 +361,10 @@ Solutions:
 
 ### Related Skills
 
-- `abyz-lab-docs-generation`: Automated documentation generation
-- `abyz-lab-workflow-docs`: Documentation workflow management
-- `abyz-lab-domain-frontend`: Frontend development patterns
-- `abyz-lab-library-mermaid`: Diagram integration
+- `moai-docs-generation`: Automated documentation generation
+- `moai-workflow-docs`: Documentation workflow management
+- `moai-domain-frontend`: Frontend development patterns
+- `moai-library-mermaid`: Diagram integration
 
 ### Complementary Tools
 

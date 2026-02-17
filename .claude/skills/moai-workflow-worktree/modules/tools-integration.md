@@ -1,6 +1,6 @@
 # Tools Integration Module
 
-Purpose: Integration patterns for abyz-lab-worktree with development tools, IDEs, terminals, CI/CD pipelines, and monitoring systems.
+Purpose: Integration patterns for moai-worktree with development tools, IDEs, terminals, CI/CD pipelines, and monitoring systems.
 
 Version: 1.0.0
 Last Updated: 2026-01-06
@@ -43,8 +43,8 @@ Worktree-Specific Settings:
 - Test runner configurations
 
 Task Generation Per Worktree:
-- Run Tests: Execute /abyz-lab:2-run for the SPEC
-- Sync Worktree: Run abyz-lab-worktree sync command
+- Run Tests: Execute /moai:2-run for the SPEC
+- Sync Worktree: Run moai-worktree sync command
 - Switch to Worktree: Change active directory
 
 ### JetBrains IDE Integration
@@ -64,7 +64,7 @@ Add to .bashrc or .zshrc for improved worktree experience.
 
 Completion Support:
 - Tab completion for worktree IDs using registry data
-- Command option completion for all abyz-lab-worktree subcommands
+- Command option completion for all moai-worktree subcommands
 
 Prompt Customization:
 - Detect if current directory is within a worktree
@@ -72,7 +72,7 @@ Prompt Customization:
 - Color coding for worktree status
 
 Navigation Aliases:
-- mw: Short alias for abyz-lab-worktree
+- mw: Short alias for moai-worktree
 - mwl: List worktrees
 - mws: Switch to worktree
 - mwg: Navigate with eval pattern
@@ -81,7 +81,7 @@ Navigation Aliases:
 
 Quick Functions:
 - mwnew: Create and switch to new worktree in one command
-- mwdev: Switch to worktree and start development with /abyz-lab:2-run
+- mwdev: Switch to worktree and start development with /moai:2-run
 - mwpush: Sync worktree and push to remote branch
 
 ---

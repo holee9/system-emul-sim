@@ -14,24 +14,24 @@ tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, Skill, m
 model: inherit
 permissionMode: default
 memory: project
-skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-context, abyz-lab-foundation-quality, abyz-lab-workflow-ddd, abyz-lab-workflow-tdd, abyz-lab-workflow-testing, abyz-lab-tool-ast-grep
+skills: moai-foundation-claude, moai-foundation-core, moai-foundation-context, moai-foundation-quality, moai-workflow-ddd, moai-workflow-tdd, moai-workflow-testing, moai-tool-ast-grep
 hooks:
   PreToolUse:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" ddd-pre-transformation"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" ddd-pre-transformation"
           timeout: 5
   PostToolUse:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" ddd-post-transformation"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" ddd-post-transformation"
           timeout: 10
   SubagentStop:
     - hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" ddd-completion"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" ddd-completion"
           timeout: 10
 ---
 
@@ -60,8 +60,8 @@ output_format: Refactored code with identical behavior, preserved tests, charact
 checkpoint_strategy:
   enabled: true
   interval: every_transformation
-  # CRITICAL: Always use project root for .abyz-lab to prevent duplicate .abyz-lab in subfolders
-  location: $CLAUDE_PROJECT_DIR/.abyz-lab/memory/checkpoints/ddd/
+  # CRITICAL: Always use project root for .moai to prevent duplicate .moai in subfolders
+  location: $CLAUDE_PROJECT_DIR/.moai/memory/checkpoints/ddd/
   resume_capability: true
 
 memory_management:
@@ -223,12 +223,12 @@ Always in English (regardless of conversation_language):
 
 Skills Pre-loaded:
 
-- Skills from YAML frontmatter: abyz-lab-workflow-ddd, abyz-lab-tool-ast-grep, abyz-lab-workflow-testing
+- Skills from YAML frontmatter: moai-workflow-ddd, moai-tool-ast-grep, moai-workflow-testing
 
 Example:
 
 - Receive (Korean): "Refactor SPEC-REFACTOR-001 to improve module separation"
-- Skills pre-loaded: abyz-lab-workflow-ddd (DDD methodology), abyz-lab-tool-ast-grep (structural analysis), abyz-lab-workflow-testing (characterization tests)
+- Skills pre-loaded: moai-workflow-ddd (DDD methodology), moai-tool-ast-grep (structural analysis), moai-workflow-testing (characterization tests)
 - Write code in English with English comments
 - Provide status updates to user in their language
 
@@ -238,15 +238,15 @@ Example:
 
 Automatic Core Skills (from YAML frontmatter):
 
-- abyz-lab-foundation-claude: Core execution rules and agent delegation patterns
-- abyz-lab-workflow-ddd: DDD methodology and ANALYZE-PRESERVE-IMPROVE cycle
-- abyz-lab-tool-ast-grep: AST-based structural analysis and code transformation
-- abyz-lab-workflow-testing: Characterization tests and behavior verification
+- moai-foundation-claude: Core execution rules and agent delegation patterns
+- moai-workflow-ddd: DDD methodology and ANALYZE-PRESERVE-IMPROVE cycle
+- moai-tool-ast-grep: AST-based structural analysis and code transformation
+- moai-workflow-testing: Characterization tests and behavior verification
 
 Conditional Skills (auto-loaded by Alfred when needed):
 
-- abyz-lab-workflow-project: Project management and configuration patterns
-- abyz-lab-foundation-quality: Quality validation and metrics analysis
+- moai-workflow-project: Project management and configuration patterns
+- moai-foundation-quality: Quality validation and metrics analysis
 
 ---
 
@@ -627,7 +627,7 @@ To prevent V8 heap memory overflow during long-running refactoring sessions, thi
 
 **Checkpoint Strategy**:
 - Checkpoint after every transformation completion
-- Checkpoint location: `.abyz-lab/memory/checkpoints/ddd/`
+- Checkpoint location: `.moai/memory/checkpoints/ddd/`
 - Auto-checkpoint on memory pressure detection
 
 **Checkpoint Content**:
@@ -657,10 +657,10 @@ To prevent V8 heap memory overflow during long-running refactoring sessions, thi
 **Usage**:
 ```bash
 # Normal execution (auto-checkpointing)
-/abyz-lab:2-run SPEC-001
+/moai:2-run SPEC-001
 
 # Resume from checkpoint after crash
-/abyz-lab:2-run SPEC-001 --resume latest
+/moai:2-run SPEC-001 --resume latest
 ```
 
 ## Error Handling

@@ -6,7 +6,7 @@ version: 1.1.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
-author: ABYZ-Lab Agent (manager-spec)
+author: MoAI Agent (manager-spec)
 priority: critical
 ---
 
@@ -14,7 +14,7 @@ priority: critical
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-spec) | Initial SPEC creation for M0 milestone P0 decisions |
+| 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial SPEC creation for M0 milestone P0 decisions |
 
 ---
 
@@ -555,9 +555,9 @@ This SPEC aligns with the following project documents:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-spec) | Initial SPEC creation for M0 milestone P0 decisions |
-| 1.1.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-003: Added Inter-Layer Command Protocol section (magic 0xBEEFCAFE/0xCAFEBEEF, frame format, protocol rules). MAJOR-004: Fixed performance tier naming conflict — renamed "Target" (2048×2048@30fps) to "Mid-B", established "Target (Final Goal)" as 3072×3072@15fps, documented Maximum tier as infeasible. Updated REQ-ARCH-006/007/008 and AC-001/002 accordingly. |
-| 1.2.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-007: Added Host Link Required column to bandwidth table showing 10 GbE is required for Mid-B tier and above. Updated REQ-ARCH-009 to explicitly state 1 GbE supports Minimum and Mid-A tiers only. Added note that 1 GbE effective throughput (~0.94 Gbps) is insufficient for Mid-B (2.01 Gbps) and higher. |
+| 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial SPEC creation for M0 milestone P0 decisions |
+| 1.1.0 | 2026-02-17 | MoAI Agent | MAJOR-003: Added Inter-Layer Command Protocol section (magic 0xBEEFCAFE/0xCAFEBEEF, frame format, protocol rules). MAJOR-004: Fixed performance tier naming conflict — renamed "Target" (2048×2048@30fps) to "Mid-B", established "Target (Final Goal)" as 3072×3072@15fps, documented Maximum tier as infeasible. Updated REQ-ARCH-006/007/008 and AC-001/002 accordingly. |
+| 1.2.0 | 2026-02-17 | MoAI Agent | MAJOR-007: Added Host Link Required column to bandwidth table showing 10 GbE is required for Mid-B tier and above. Updated REQ-ARCH-009 to explicitly state 1 GbE supports Minimum and Mid-A tiers only. Added note that 1 GbE effective throughput (~0.94 Gbps) is insufficient for Mid-B (2.01 Gbps) and higher. |
 
 ---
 

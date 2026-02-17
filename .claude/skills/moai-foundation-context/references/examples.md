@@ -252,7 +252,7 @@ class SessionState:
 class SessionManager:
     """Manages session state with persistence and recovery."""
 
-    def __init__(self, storage_path: str = ".abyz-lab/sessions"):
+    def __init__(self, storage_path: str = ".moai/sessions"):
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.current_session: Optional[SessionState] = None
@@ -387,7 +387,7 @@ class SessionManager:
             "phase": self.current_session.work_state.phase.value,
             "reload_files": [
                 "CLAUDE.md",
-                f".abyz-lab/specs/{self.current_session.work_state.current_spec}.md"
+                f".moai/specs/{self.current_session.work_state.current_spec}.md"
             ]
         }
 
@@ -699,8 +699,8 @@ task_ctx = TaskContext(
     completed_steps=["requirement_analysis", "spec_creation", "architecture_design"],
     next_step="write_tests",
     key_artifacts={
-        "spec_document": ".abyz-lab/specs/SPEC-001.md",
-        "architecture": ".abyz-lab/architecture/SPEC-001.mermaid"
+        "spec_document": ".moai/specs/SPEC-001.md",
+        "architecture": ".moai/architecture/SPEC-001.mermaid"
     }
 )
 
@@ -784,7 +784,7 @@ class ClearStrategy:
             "phase": session.work_state.phase.value,
             "reload_sequence": [
                 "CLAUDE.md",
-                f".abyz-lab/specs/{session.work_state.current_spec}.md",
+                f".moai/specs/{session.work_state.current_spec}.md",
                 "src/main.py"  # Current working file
             ],
             "preserved_decisions": session.work_state.artifacts.get("decisions", [])

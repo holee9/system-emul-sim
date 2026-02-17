@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-r
+name: moai-lang-r
 description: >
   R 4.4+ development specialist covering tidyverse, ggplot2, Shiny, and data
   science patterns. Use when developing data analysis pipelines,
@@ -16,13 +16,13 @@ metadata:
   modularized: "true"
   tags: "language, r, tidyverse, ggplot2, shiny, dplyr, data-science"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["R", "tidyverse", "ggplot2", "Shiny", "dplyr", "data science", ".R", ".Rmd", ".qmd", "DESCRIPTION", "renv.lock"]
   languages: ["r"]
@@ -152,11 +152,11 @@ See:
 
 ## Works Well With
 
-- abyz-lab-lang-python for Python and R interoperability with reticulate
-- abyz-lab-domain-database for SQL patterns and database optimization
-- abyz-lab-workflow-testing for DDD and testing strategies
-- abyz-lab-essentials-debug for AI-powered debugging
-- abyz-lab-foundation-quality for TRUST 5 quality principles
+- moai-lang-python for Python and R interoperability with reticulate
+- moai-domain-database for SQL patterns and database optimization
+- moai-workflow-testing for DDD and testing strategies
+- moai-essentials-debug for AI-powered debugging
+- moai-foundation-quality for TRUST 5 quality principles
 
 ---
 

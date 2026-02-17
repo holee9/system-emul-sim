@@ -497,7 +497,7 @@ This implementation plan aligns with:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-spec) | Initial implementation plan for SPEC-ARCH-001 |
+| 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial implementation plan for SPEC-ARCH-001 |
 
 ---
 

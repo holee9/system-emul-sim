@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-framework-electron
+name: moai-framework-electron
 description: >
   Electron 33+ desktop app development specialist covering Main/Renderer
   process architecture, IPC communication, auto-update, packaging with
@@ -20,7 +20,7 @@ metadata:
   modularized: "false"
   tags: "electron, desktop, cross-platform, nodejs, chromium, ipc, auto-update, electron-builder, electron-forge"
   context7-libraries: "/electron/electron, /electron/forge, /electron-userland/electron-builder"
-  related-skills: "abyz-lab-lang-typescript, abyz-lab-domain-frontend, abyz-lab-lang-javascript"
+  related-skills: "moai-lang-typescript, moai-domain-frontend, moai-lang-javascript"
 ---
 
 # Electron 33+ Desktop Development
@@ -229,11 +229,11 @@ Performance Optimization:
 
 ## Works Well With
 
-- abyz-lab-lang-typescript - TypeScript patterns for type-safe Electron development
-- abyz-lab-domain-frontend - React, Vue, or Svelte renderer development
-- abyz-lab-lang-javascript - Node.js patterns for main process
-- abyz-lab-domain-backend - Backend API integration
-- abyz-lab-workflow-testing - Testing strategies for desktop apps
+- moai-lang-typescript - TypeScript patterns for type-safe Electron development
+- moai-domain-frontend - React, Vue, or Svelte renderer development
+- moai-lang-javascript - Node.js patterns for main process
+- moai-domain-backend - Backend API integration
+- moai-workflow-testing - Testing strategies for desktop apps
 
 ---
 

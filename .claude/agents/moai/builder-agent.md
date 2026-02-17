@@ -12,7 +12,7 @@ tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task
 model: inherit
 permissionMode: bypassPermissions
 memory: user
-skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-workflow-project
+skills: moai-foundation-claude, moai-foundation-core, moai-workflow-project
 ---
 
 # Agent Creation Specialist
@@ -60,8 +60,8 @@ Domain Assessment:
 - Define success criteria and quality metrics
 - [HARD] Use AskUserQuestion to ask for agent name before creating any agent
 - Provide suggested names based on agent purpose
-- If `--abyz-lab` flag is present in the request, create in `.claude/agents/abyz-lab/` directory
-- If no `--abyz-lab` flag, create in `.claude/agents/` directory (root level)
+- If `--moai` flag is present in the request, create in `.claude/agents/moai/` directory
+- If no `--moai` flag, create in `.claude/agents/` directory (root level)
 
 Integration Planning:
 
@@ -90,7 +90,7 @@ Writing Style Requirements:
 - Specific, measurable criteria
 - No ambiguous or vague instructions
 - Clear decision-making guidelines
-- Narrative text format for all workflow descriptions per @.claude/rules/abyz-lab/development/coding-standards.md
+- Narrative text format for all workflow descriptions per @.claude/rules/moai/development/coding-standards.md
 
 ### Phase 3: Frontmatter Configuration
 
@@ -213,14 +213,14 @@ Use cases: Long-running research, iterative improvements, multi-step workflows s
 
 ### Directory Rules
 
-[HARD] Default directory is `.claude/agents/` (root level). All user-created agents go in root level unless `--abyz-lab` flag is explicitly provided.
+[HARD] Default directory is `.claude/agents/` (root level). All user-created agents go in root level unless `--moai` flag is explicitly provided.
 
 - Default: `.claude/agents/<agent-name>.md` (user custom agents)
-- With `--abyz-lab` flag: `.claude/agents/abyz-lab/<agent-name>.md` (ABYZ-Lab-ADK official agents)
+- With `--moai` flag: `.claude/agents/moai/<agent-name>.md` (MoAI-ADK official agents)
 
-The `.claude/agents/abyz-lab/` namespace is reserved for ABYZ-Lab-ADK system agents. Only create agents in `abyz-lab/` subdirectory when:
-- The `--abyz-lab` flag is present in the user request
-- The user explicitly requests "admin mode", "system agent", or "ABYZ-Lab-ADK development"
+The `.claude/agents/moai/` namespace is reserved for MoAI-ADK system agents. Only create agents in `moai/` subdirectory when:
+- The `--moai` flag is present in the user request
+- The user explicitly requests "admin mode", "system agent", or "MoAI-ADK development"
 
 [HARD] Always ask user for agent name before creating, using AskUserQuestion. Provide 2-3 suggested names.
 

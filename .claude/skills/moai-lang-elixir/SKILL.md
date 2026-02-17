@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-elixir
+name: moai-lang-elixir
 description: >
   Elixir 1.17+ development specialist covering Phoenix 1.7, LiveView, Ecto,
   and OTP patterns. Use when developing real-time applications, distributed
@@ -16,13 +16,13 @@ metadata:
   modularized: "true"
   tags: "language, elixir, phoenix, liveview, ecto, otp, genserver"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["Elixir", "Phoenix", "LiveView", "Ecto", "OTP", "GenServer", ".ex", ".exs", "mix.exs"]
   languages: ["elixir"]
@@ -114,11 +114,11 @@ See:
 
 ## Works Well With
 
-- `abyz-lab-domain-backend` - REST API and microservices architecture
-- `abyz-lab-domain-database` - SQL patterns and query optimization
-- `abyz-lab-workflow-testing` - DDD and testing strategies
-- `abyz-lab-essentials-debug` - AI-powered debugging
-- `abyz-lab-platform-deploy` - Deployment and infrastructure
+- `moai-domain-backend` - REST API and microservices architecture
+- `moai-domain-database` - SQL patterns and query optimization
+- `moai-workflow-testing` - DDD and testing strategies
+- `moai-essentials-debug` - AI-powered debugging
+- `moai-platform-deploy` - Deployment and infrastructure
 
 ---
 

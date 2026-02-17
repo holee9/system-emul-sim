@@ -42,12 +42,12 @@ Phase 2 - Initialize Each Environment:
 
 Phase 3 - Parallel Development:
 - Work on each SPEC in separate terminal sessions
-- Run /abyz-lab:2-run for DDD implementation
+- Run /moai:2-run for DDD implementation
 - Switch between worktrees as needed
 
 Phase 4 - Integration:
 - Sync all worktrees before integration
-- Run /abyz-lab:3-sync for documentation updates
+- Run /moai:3-sync for documentation updates
 - Create PRs from each worktree branch
 
 ### Best Practices

@@ -463,7 +463,7 @@ This implementation plan aligns with:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (spec-fpga) | Initial implementation plan for SPEC-FPGA-001 |
+| 1.0.0 | 2026-02-17 | MoAI Agent (spec-fpga) | Initial implementation plan for SPEC-FPGA-001 |
 
 ---
 

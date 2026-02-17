@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-jit-docs/advanced-patterns
+name: moai-workflow-jit-docs/advanced-patterns
 description: Advanced JIT documentation patterns, intelligent doc discovery, lazy loading, and content optimization
 ---
 

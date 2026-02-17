@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-rust
+name: moai-lang-rust
 description: >
   Rust 1.92+ development specialist covering Axum, Tokio, SQLx, and memory-safe systems programming. Use when building high-performance, memory-safe applications or WebAssembly.
 license: Apache-2.0
@@ -14,13 +14,13 @@ metadata:
   modularized: "false"
   tags: "language, rust, axum, tokio, sqlx, serde, wasm, cargo"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["Rust", "Axum", "Tokio", "SQLx", "serde", ".rs", "Cargo.toml", "async", "await", "lifetime", "trait", "ownership", "borrowing", "performance", "optimization", "clippy", "memory safety"]
   languages: ["rust"]
@@ -140,10 +140,10 @@ Library Documentation Access:
 
 ## Works Well With
 
-- `abyz-lab-lang-go` - Go systems programming patterns
-- `abyz-lab-domain-backend` - REST API architecture and microservices patterns
-- `abyz-lab-foundation-quality` - Security hardening for Rust applications
-- `abyz-lab-workflow-testing` - Test-driven development workflows
+- `moai-lang-go` - Go systems programming patterns
+- `moai-domain-backend` - REST API architecture and microservices patterns
+- `moai-foundation-quality` - Security hardening for Rust applications
+- `moai-workflow-testing` - Test-driven development workflows
 
 ---
 

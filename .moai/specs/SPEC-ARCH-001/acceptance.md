@@ -355,7 +355,7 @@ And M0.5 PoC milestone shall be rescheduled to W8 (if SoC board delayed)
 **Unified (U)**:
 - Consistent terminology across SPEC documents (performance tier, D-PHY, LUT)
 - Naming conventions aligned with project standards (FPGA, SoC, Host)
-- Document structure follows ABYZ-Lab-ADK SPEC template (spec.md, plan.md, acceptance.md)
+- Document structure follows MoAI-ADK SPEC template (spec.md, plan.md, acceptance.md)
 - Cross-references to project documents (CHEATSHEET.md, detector_config.yaml)
 
 **Secured (S)**:
@@ -457,7 +457,7 @@ And M0.5 PoC milestone shall be rescheduled to W8 (if SoC board delayed)
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-spec) | Initial acceptance criteria for SPEC-ARCH-001 |
+| 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial acceptance criteria for SPEC-ARCH-001 |
 
 ---
 

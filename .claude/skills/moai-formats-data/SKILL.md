@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-formats-data
+name: moai-formats-data
 description: >
   Data format specialist covering TOON encoding, JSON/YAML optimization,
   serialization patterns, and data validation for modern applications. Use when
@@ -16,9 +16,9 @@ metadata:
   updated: "2026-01-11"
   modularized: "true"
   tags: "formats, data, toon, serialization, validation, optimization"
-  author: "ABYZ-Lab-ADK Team"
+  author: "MoAI-ADK Team"
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["serialization", "data format", "json", "yaml", "toon", "validation", "schema", "optimization"]
 ---
@@ -133,11 +133,11 @@ See modules/json-optimization.md for streaming JSON processing, memory-efficient
 
 ## Works Well With
 
-- abyz-lab-domain-backend - Backend data serialization and API responses
-- abyz-lab-domain-database - Database data format optimization
-- abyz-lab-foundation-core - MCP data serialization and transmission patterns
-- abyz-lab-workflow-docs - Documentation data formatting
-- abyz-lab-foundation-context - Context optimization for token budgets
+- moai-domain-backend - Backend data serialization and API responses
+- moai-domain-database - Database data format optimization
+- moai-foundation-core - MCP data serialization and transmission patterns
+- moai-workflow-docs - Documentation data formatting
+- moai-foundation-context - Context optimization for token budgets
 
 ---
 
@@ -190,4 +190,4 @@ For working code examples, see [examples.md](examples.md).
 
 Status: Production Ready
 Last Updated: 2026-01-11
-Maintained by: ABYZ-Lab-ADK Data Team
+Maintained by: MoAI-ADK Data Team

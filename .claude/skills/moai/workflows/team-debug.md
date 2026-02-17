@@ -8,7 +8,7 @@ Flow: TeamCreate -> Hypothesis Assignment -> Parallel Investigation -> Evidence 
 
 - workflow.team.enabled: true
 - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-- Triggered by: /abyz-lab fix --team OR auto-detected when issue has multiple potential root causes
+- Triggered by: /moai fix --team OR auto-detected when issue has multiple potential root causes
 
 ## Phase 0: Issue Analysis
 
@@ -16,7 +16,7 @@ Flow: TeamCreate -> Hypothesis Assignment -> Parallel Investigation -> Evidence 
 2. Formulate 2-3 competing hypotheses
 3. Create team:
    ```
-   TeamCreate(team_name: "abyz-lab-debug-{issue-slug}")
+   TeamCreate(team_name: "moai-debug-{issue-slug}")
    ```
 4. Create investigation tasks:
    ```
@@ -47,7 +47,7 @@ Teammates work independently (all haiku, fast and cheap):
 - Checks logs, tests, configuration
 - Reports findings with confidence level (high/medium/low)
 
-ABYZ-Lab monitors:
+MoAI monitors:
 - Receive findings as teammates complete
 - If one hypothesis gets high confidence early, may redirect others
 

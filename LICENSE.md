@@ -2,7 +2,7 @@
 
 ## Proprietary License
 
-Copyright (c) 2026 ABYZ-Lab. All rights reserved.
+Copyright (c) 2026 MoAI. All rights reserved.
 
 This software and associated documentation files (the "Software") are proprietary
 and confidential. Unauthorized copying, distribution, modification, or use of this
@@ -90,6 +90,6 @@ For licensing inquiries, contact the project maintainer.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial license document |
+| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial license document |
 
 ---

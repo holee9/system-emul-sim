@@ -1,7 +1,7 @@
 ---
 name: publishing-guide
 description: Chrome Web Store submission, review process, updates, and distribution
-parent-skill: abyz-lab-platform-chrome-extension
+parent-skill: moai-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

@@ -1,6 +1,6 @@
 ---
 paths:
-  - "**/.abyz-lab/config/**"
+  - "**/.moai/config/**"
   - "**/.mcp.json"
   - "**/.claude/settings.json"
   - "**/.claude/settings.local.json"
@@ -8,7 +8,7 @@ paths:
 
 # Settings Management
 
-Claude Code and ABYZ-Lab configuration management rules.
+Claude Code and MoAI configuration management rules.
 
 ## Configuration Files
 
@@ -28,9 +28,9 @@ Claude Code and ABYZ-Lab configuration management rules.
 - mcpServers: Server command and arguments
 - Environment variables for servers
 
-### ABYZ-Lab Configuration
+### MoAI Configuration
 
-`.abyz-lab/config/` - ABYZ-Lab-specific settings:
+`.moai/config/` - MoAI-specific settings:
 
 - config.yaml: Main configuration
 - sections/quality.yaml: Quality gates, coverage targets
@@ -46,12 +46,12 @@ Hooks support environment variables and must be quoted to handle spaces:
   "hooks": {
     "SessionStart": [{
       "type": "command",
-      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-session-start.sh\"",
+      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-session-start.sh\"",
       "timeout": 5
     }],
     "PreToolUse": [{
       "matcher": "Write|Edit|Bash",
-      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-pre-tool.sh\"",
+      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-pre-tool.sh\"",
       "timeout": 5
     }]
   }
@@ -68,7 +68,7 @@ StatusLine does NOT support environment variables. Use relative paths from proje
 {
   "statusLine": {
     "type": "command",
-    "command": ".abyz-lab/status_line.sh"
+    "command": ".moai/status_line.sh"
   }
 }
 ```
@@ -120,7 +120,7 @@ This env var must be set for Claude Code to expose the Teams API.
 
 ### Workflow Configuration
 
-Team behavior is controlled by the `workflow.team` section in `.abyz-lab/config/sections/workflow.yaml`:
+Team behavior is controlled by the `workflow.team` section in `.moai/config/sections/workflow.yaml`:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
@@ -151,8 +151,8 @@ When `workflow.execution_mode` is `auto`, these thresholds determine when team m
 - Template sources (.tmpl files) belong in `internal/template/templates/` only
 - Local projects should contain rendered results, not template sources
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Skill("abyz-lab-workflow-project") for project setup
-- Skill("abyz-lab-foundation-core") for quality framework
+- Skill("moai-workflow-project") for project setup
+- Skill("moai-foundation-core") for quality framework
 - See hooks-system.md for detailed hook configuration patterns

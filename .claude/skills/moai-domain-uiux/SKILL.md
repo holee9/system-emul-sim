@@ -1,13 +1,13 @@
 ---
-name: abyz-lab-domain-uiux
+name: moai-domain-uiux
 description: >
   UI/UX design systems specialist covering accessibility, icons, theming,
   design tokens, and user experience patterns.
   Use when user asks about design systems, WCAG accessibility compliance, ARIA patterns,
   icon libraries, dark mode theming, design tokens, or user experience research.
   Do NOT use for React component coding or frontend implementation
-  (use abyz-lab-domain-frontend instead) or shadcn/ui specifics
-  (use abyz-lab-library-shadcn instead).
+  (use moai-domain-frontend instead) or shadcn/ui specifics
+  (use moai-library-shadcn instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -20,7 +20,7 @@ metadata:
   modularized: "true"
   tags: "domain, uiux, design-systems, accessibility, components, icons, theming"
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords:
     - UI/UX
@@ -207,10 +207,10 @@ Include loading states for all asynchronous operations. Loading states provide f
 
 Skills:
 
-- abyz-lab-lang-typescript - TypeScript and JavaScript best practices
-- abyz-lab-foundation-core - TRUST 5 quality validation
-- abyz-lab-library-nextra - Documentation generation
-- abyz-lab-library-shadcn - shadcn/ui specialized patterns
+- moai-lang-typescript - TypeScript and JavaScript best practices
+- moai-foundation-core - TRUST 5 quality validation
+- moai-library-nextra - Documentation generation
+- moai-library-shadcn - shadcn/ui specialized patterns
 
 Agents:
 
@@ -221,8 +221,8 @@ Agents:
 
 Commands:
 
-- /abyz-lab:2-run - DDD implementation cycle
-- /abyz-lab:3-sync - Documentation generation
+- /moai:2-run - DDD implementation cycle
+- /moai:3-sync - Documentation generation
 
 ---
 

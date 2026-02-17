@@ -1,12 +1,12 @@
 ---
-name: abyz-lab-foundation-thinking
+name: moai-foundation-thinking
 description: >
   Structured thinking toolkit combining Critical Evaluation, Diverge-Converge
   Brainstorming, and Deep Questioning frameworks for creative problem-solving
   and rigorous analysis. Use when generating ideas, evaluating proposals,
   questioning assumptions, or exploring solution spaces systematically.
-  Do NOT use for architecture decisions (use abyz-lab-foundation-philosopher instead)
-  or code quality validation (use abyz-lab-foundation-quality instead).
+  Do NOT use for architecture decisions (use moai-foundation-philosopher instead)
+  or code quality validation (use moai-foundation-quality instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Grep Glob
@@ -18,15 +18,15 @@ metadata:
   updated: "2026-02-10"
   modularized: "true"
   tags: "foundation, critical-thinking, brainstorming, ideation, evaluation, creative-thinking, diverge-converge"
-  related-skills: "abyz-lab-foundation-philosopher"
+  related-skills: "moai-foundation-philosopher"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords:
     - "brainstorm"
@@ -55,7 +55,7 @@ triggers:
     - "plan"
 ---
 
-# ABYZ-Lab Foundation Thinking
+# MoAI Foundation Thinking
 
 Structured thinking toolkit for creative problem-solving and rigorous analysis. Integrates three complementary frameworks that cover the full spectrum from idea generation to critical evaluation.
 
@@ -192,14 +192,14 @@ Architecture change: All three frameworks in full
 
 ---
 
-## Integration with ABYZ-Lab Workflow
+## Integration with MoAI Workflow
 
-SPEC Phase (/abyz-lab plan):
+SPEC Phase (/moai plan):
 - Apply Deep Questioning during requirements gathering
 - Use Diverge-Converge for solution approach selection
 - Apply Critical Evaluation to finalize SPEC document
 
-Run Phase (/abyz-lab run):
+Run Phase (/moai run):
 - Use Critical Evaluation when reviewing implementation options
 - Apply Deep Questioning when encountering unexpected complexity
 
@@ -219,13 +219,13 @@ Agents:
 - team-researcher: Comprehensive research methodology
 
 Skills:
-- abyz-lab-foundation-philosopher: Complementary (Philosopher = strategic decisions, Thinking = creative analysis)
-- abyz-lab-foundation-core: Integration with SPEC workflow
-- abyz-lab-workflow-spec: Requirement documentation support
+- moai-foundation-philosopher: Complementary (Philosopher = strategic decisions, Thinking = creative analysis)
+- moai-foundation-core: Integration with SPEC workflow
+- moai-workflow-spec: Requirement documentation support
 
 Commands:
-- /abyz-lab plan: Apply thinking frameworks during specification
-- /abyz-lab run: Reference during implementation decisions
+- /moai plan: Apply thinking frameworks during specification
+- /moai run: Reference during implementation decisions
 
 ---
 

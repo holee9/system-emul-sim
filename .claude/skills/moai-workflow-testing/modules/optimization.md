@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-testing/optimization
+name: moai-workflow-testing/optimization
 description: Performance optimization, parallel execution, and resource management for Playwright testing
 ---
 

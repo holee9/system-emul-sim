@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-library-mermaid/optimization
+name: moai-library-mermaid/optimization
 description: Performance optimization, rendering strategies, and SVG generation for Mermaid diagrams
 ---
 

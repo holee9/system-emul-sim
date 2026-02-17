@@ -259,7 +259,7 @@ Create and Switch:
 
 Develop in Worktree:
 - Switch to specified worktree
-- Start /abyz-lab:2-run
+- Start /moai:2-run
 
 Push from Worktree:
 - Sync worktree

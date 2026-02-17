@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-run
+name: moai-workflow-run
 description: >
   DDD/TDD/Hybrid implementation workflow for SPEC requirements. Second step
   of the Plan-Run-Sync workflow. Routes to manager-ddd or manager-tdd based
@@ -14,13 +14,13 @@ metadata:
   updated: "2026-02-07"
   tags: "run, implementation, ddd, tdd, hybrid, spec"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["run", "implement", "build", "create", "develop", "code"]
   agents: ["manager-ddd", "manager-tdd", "manager-strategy", "manager-quality", "manager-git"]
@@ -41,25 +41,25 @@ This is the second step of the Plan-Run-Sync workflow.
 
 ## Scope
 
-- Implements Step 3 of ABYZ-Lab's 4-step workflow (Task Execution)
-- Receives SPEC documents created by /abyz-lab plan
-- Hands off to /abyz-lab sync for documentation and PR
+- Implements Step 3 of MoAI's 4-step workflow (Task Execution)
+- Receives SPEC documents created by /moai plan
+- Hands off to /moai sync for documentation and PR
 
 ## Input
 
 - $ARGUMENTS: SPEC-ID to implement (e.g., SPEC-AUTH-001)
-- Resume: Re-running /abyz-lab run SPEC-XXX resumes from last successful phase checkpoint
+- Resume: Re-running /moai run SPEC-XXX resumes from last successful phase checkpoint
 - --team: Enable team-based implementation (see team-run.md for parallel implementation team)
 
 ## Context Loading
 
 Before execution, load these essential files:
 
-- .abyz-lab/config/config.yaml (git strategy, automation settings)
-- .abyz-lab/config/sections/quality.yaml (coverage targets, TRUST 5 settings)
-- .abyz-lab/config/sections/git-strategy.yaml (auto_branch, branch creation policy)
-- .abyz-lab/config/sections/language.yaml (git_commit_messages setting)
-- .abyz-lab/specs/SPEC-{ID}/ directory (spec.md, plan.md, acceptance.md)
+- .moai/config/config.yaml (git strategy, automation settings)
+- .moai/config/sections/quality.yaml (coverage targets, TRUST 5 settings)
+- .moai/config/sections/git-strategy.yaml (auto_branch, branch creation policy)
+- .moai/config/sections/language.yaml (git_commit_messages setting)
+- .moai/specs/SPEC-{ID}/ directory (spec.md, plan.md, acceptance.md)
 
 Pre-execution commands: git status, git branch, git log, git diff.
 
@@ -132,7 +132,7 @@ Output: Task list with coverage_verified flag set to true.
 
 ### Development Mode Routing
 
-Before Phase 2, determine the development methodology by reading `.abyz-lab/config/sections/quality.yaml`:
+Before Phase 2, determine the development methodology by reading `.moai/config/sections/quality.yaml`:
 
 **If development_mode is "ddd":**
 - Route all tasks to manager-ddd subagent
@@ -187,7 +187,7 @@ The manager-ddd subagent must track deviations from the original SPEC plan durin
 - new_dependencies: Any new libraries, packages, or external dependencies introduced
 - new_directories: Any new directory structures created
 
-This divergence data is consumed by /abyz-lab sync for SPEC document updates and project document synchronization.
+This divergence data is consumed by /moai sync for SPEC document updates and project document synchronization.
 
 #### Phase 2B: TDD Implementation (for tdd mode or new code in hybrid mode)
 
@@ -221,7 +221,7 @@ The manager-tdd subagent must track deviations from the original SPEC plan durin
 - new_dependencies: Any new libraries, packages, or external dependencies introduced
 - new_directories: Any new directory structures created
 
-This divergence data is consumed by /abyz-lab sync for SPEC document updates and project document synchronization.
+This divergence data is consumed by /moai sync for SPEC document updates and project document synchronization.
 
 ### Phase 2.5: Quality Validation
 
@@ -360,8 +360,8 @@ Display implementation summary:
 
 Options:
 
-- Sync Documentation (recommended): Execute /abyz-lab sync to synchronize docs and create PR
-- Implement Another Feature: Return to /abyz-lab plan for additional SPEC
+- Sync Documentation (recommended): Execute /moai sync to synchronize docs and create PR
+- Implement Another Feature: Return to /moai plan for additional SPEC
 - Review Results: Examine implementation and test coverage locally
 - Finish: Session complete
 
@@ -388,7 +388,7 @@ Context flows forward through every phase:
 - Phase 1 to Phase 2: Execution plan with architecture decisions guides implementation
 - Phase 2 to Phase 2.5: Implementation code plus planning context enables context-aware validation
 - Phase 2.5 to Phase 3: Quality findings enable semantically meaningful commit messages
-- Phase 2 to /abyz-lab sync: Implementation divergence report enables accurate SPEC and project document updates
+- Phase 2 to /moai sync: Implementation divergence report enables accurate SPEC and project document updates
 
 Benefits: No re-analysis between phases. Architectural decisions propagate naturally. Commits explain both what changed and why. Divergence tracking ensures sync phase can accurately update SPEC and project documents.
 
@@ -414,4 +414,4 @@ All of the following must be verified:
 
 Version: 2.1.0
 Updated: 2026-02-13
-Source: Extracted from .claude/commands/abyz-lab/2-run.md v5.0.0. Added implementation divergence tracking, development_mode routing (ddd/tdd/hybrid), team mode support, LSP quality gates, extended quality checks (code complexity, dead code, side effects, code reuse), plan proportionality validation, and post-implementation review loop.
+Source: Extracted from .claude/commands/moai/2-run.md v5.0.0. Added implementation divergence tracking, development_mode routing (ddd/tdd/hybrid), team mode support, LSP quality gates, extended quality checks (code complexity, dead code, side effects, code reuse), plan proportionality validation, and post-implementation review loop.

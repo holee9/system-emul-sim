@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-cpp
+name: moai-lang-cpp
 description: >
   Modern C++ (C++23/C++20) development specialist covering RAII, smart pointers, concepts, ranges, modules, and CMake. Use when developing high-performance applications, games, system software, or embedded systems.
 license: Apache-2.0
@@ -14,13 +14,13 @@ metadata:
   modularized: "true"
   tags: "language, cpp, c++23, c++20, cmake, raii, smart-pointers, concepts"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["C++", "cpp", "CMake", "RAII", "smart pointer", "concept", "range", ".cpp", ".hpp", "CMakeLists.txt", "vcpkg", "conan"]
   languages: ["cpp", "c++"]
@@ -120,11 +120,11 @@ See:
 
 ## Works Well With
 
-- `abyz-lab-lang-rust` - Systems programming comparison and interop
-- `abyz-lab-domain-backend` - Backend service architecture
-- `abyz-lab-workflow-testing` - DDD and testing strategies
-- `abyz-lab-essentials-debug` - Debugging and profiling
-- `abyz-lab-foundation-quality` - TRUST 5 quality principles
+- `moai-lang-rust` - Systems programming comparison and interop
+- `moai-domain-backend` - Backend service architecture
+- `moai-workflow-testing` - DDD and testing strategies
+- `moai-essentials-debug` - Debugging and profiling
+- `moai-foundation-quality` - TRUST 5 quality principles
 
 ---
 

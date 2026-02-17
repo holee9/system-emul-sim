@@ -1,6 +1,6 @@
 ---
 name: framework-core-configuration
-parent: abyz-lab-library-nextra
+parent: moai-library-nextra
 description: Nextra framework setup and theme configuration
 ---
 

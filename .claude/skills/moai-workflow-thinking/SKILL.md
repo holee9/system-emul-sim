@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-thinking
+name: moai-workflow-thinking
 description: >
   Sequential Thinking MCP and UltraThink mode for deep analysis, complex
   problem decomposition, and structured reasoning workflows.
@@ -16,13 +16,13 @@ metadata:
   status: "active"
   modularized: "false"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level_1_tokens: 100
   level_2_tokens: 3000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords:
     - sequential thinking

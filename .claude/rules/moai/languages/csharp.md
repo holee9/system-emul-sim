@@ -49,7 +49,7 @@ Version: C# 12 / .NET 8
 - Use FluentAssertions for readable assertions
 - Use Testcontainers for integration tests
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-csharp") for detailed patterns
+- Use Skill("moai-lang-csharp") for detailed patterns
 - Follow TRUST 5 quality gates

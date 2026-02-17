@@ -1,4 +1,4 @@
-# abyz-lab-workflow-project Reference
+# moai-workflow-project Reference
 
 Progressive Disclosure Level 2: Extended documentation for advanced users and integrators.
 
@@ -99,13 +99,13 @@ Supported Languages with Token Impact:
 ### Pattern 1: SPEC-Driven Documentation Workflow
 
 ```python
-# Integration with /abyz-lab:1-plan and /abyz-lab:3-sync
-from abyz-lab_workflow_project import MoaiMenuProject
+# Integration with /moai:1-plan and /moai:3-sync
+from moai_workflow_project import MoaiMenuProject
 
 # Initialize project system
 project = MoaiMenuProject("/path/to/project")
 
-# After /abyz-lab:1-plan generates SPEC
+# After /moai:1-plan generates SPEC
 spec_data = load_spec("SPEC-001")
 
 # Generate documentation from SPEC
@@ -122,7 +122,7 @@ docs_result = project.generate_documentation_from_spec(spec_data)
 
 ```python
 # Integration with GitHub Actions or similar
-from abyz-lab_workflow_project import MoaiMenuProject
+from moai_workflow_project import MoaiMenuProject
 
 def ci_documentation_check(project_path: str) -> dict:
     """Run documentation validation in CI pipeline."""
@@ -147,7 +147,7 @@ def ci_documentation_check(project_path: str) -> dict:
 
 ```python
 # Share optimized templates across projects
-from abyz-lab_workflow_project import TemplateOptimizer
+from moai_workflow_project import TemplateOptimizer
 
 # Optimize master templates
 master_optimizer = TemplateOptimizer("/templates/master")
@@ -165,7 +165,7 @@ for project_path in project_list:
 ### Pattern 4: Language-Aware Agent Delegation
 
 ```python
-# Integrate with ABYZ-Lab's delegation patterns
+# Integrate with MoAI's delegation patterns
 def delegate_with_language_context(task: str, language: str):
     """Delegate task with proper language context."""
     project = MoaiMenuProject(".")
@@ -231,9 +231,9 @@ print(f"Warnings: {status.warnings}")
 
 ### Log Locations
 
-- Project logs: `.abyz-lab/logs/project.log`
-- Template optimization logs: `.abyz-lab/logs/template-optimizer.log`
-- Language initialization logs: `.abyz-lab/logs/language-init.log`
+- Project logs: `.moai/logs/project.log`
+- Template optimization logs: `.moai/logs/template-optimizer.log`
+- Language initialization logs: `.moai/logs/language-init.log`
 
 ---
 
@@ -241,17 +241,17 @@ print(f"Warnings: {status.warnings}")
 
 ### Official Documentation
 
-- ABYZ-Lab-ADK Documentation: https://github.com/abyz-lab-adk/docs
+- MoAI-ADK Documentation: https://github.com/moai-adk/docs
 - Claude Code Skills Guide: https://docs.anthropic.com/claude-code/skills
-- SPEC-First DDD Methodology: See `abyz-lab-foundation-core/modules/spec-first-ddd.md`
+- SPEC-First DDD Methodology: See `moai-foundation-core/modules/spec-first-ddd.md`
 
 ### Related Skills
 
-- abyz-lab-foundation-core - Core execution patterns and SPEC workflow
-- abyz-lab-foundation-claude - Claude Code integration patterns
-- abyz-lab-workflow-docs - Unified documentation management
-- abyz-lab-workflow-templates - Template optimization strategies
-- abyz-lab-library-nextra - Advanced documentation architecture
+- moai-foundation-core - Core execution patterns and SPEC workflow
+- moai-foundation-claude - Claude Code integration patterns
+- moai-workflow-docs - Unified documentation management
+- moai-workflow-templates - Template optimization strategies
+- moai-library-nextra - Advanced documentation architecture
 
 ### Template Resources
 

@@ -43,8 +43,8 @@
 - Threshold Tuning: Sensitivity optimization
 - Baseline Management: Version control integration
 
-## ABYZ-Lab-ADK Integration
-### ABYZ-Lab Workflow
+## MoAI-ADK Integration
+### MoAI Workflow
 - 4-Step Process: Plan, Generate, Execute, Analyze
 - Agent Coordination: Multi-agent test orchestration
 - Context Sharing: Knowledge base integration

@@ -6,7 +6,7 @@ version: 1.0.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
-author: ABYZ-Lab Agent (architect)
+author: MoAI Agent (architect)
 priority: high
 milestone: M2
 ---
@@ -15,7 +15,7 @@ milestone: M2
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial SPEC creation for Host SDK requirements |
+| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial SPEC creation for Host SDK requirements |
 
 ---
 
@@ -527,9 +527,9 @@ public interface IDetectorClient : IAsyncDisposable
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial SPEC creation for Host SDK requirements |
+| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial SPEC creation for Host SDK requirements |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed CRIT-007: AC-008 expanded with field-by-field CRC scope and offset reference; Protocol Constraints updated with Frame Header CRC row and algorithm details |
-| 1.1.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-007: Expanded Platform Constraints table to explicitly list 10 GbE as required for Mid-B tier and above. Added note that 1 GbE (~0.94 Gbps effective) supports only Minimum and Mid-A tiers. Added requirement for SDK to warn when network interface cannot sustain configured tier data rate. |
+| 1.1.0 | 2026-02-17 | MoAI Agent | MAJOR-007: Expanded Platform Constraints table to explicitly list 10 GbE as required for Mid-B tier and above. Added note that 1 GbE (~0.94 Gbps effective) supports only Minimum and Mid-A tiers. Added requirement for SDK to warn when network interface cannot sustain configured tier data rate. |
 
 ---
 

@@ -5,7 +5,7 @@ paths:
 
 # Agent Authoring
 
-Guidelines for creating custom agents in ABYZ-Lab-ADK.
+Guidelines for creating custom agents in MoAI-ADK.
 
 ## Agent Definition Location
 
@@ -13,7 +13,7 @@ Custom agents are defined in `.claude/agents/*.md` or `.claude/agents/**/*.md` (
 
 Directory convention:
 - User custom agents: `.claude/agents/<agent-name>.md` (root level)
-- ABYZ-Lab-ADK system agents: `.claude/agents/abyz-lab/<agent-name>.md` (abyz-lab subdirectory)
+- MoAI-ADK system agents: `.claude/agents/moai/<agent-name>.md` (moai subdirectory)
 
 ## Supported Frontmatter Fields
 
@@ -51,7 +51,7 @@ The `tools` field supports `Task(worker, researcher)` syntax to restrict which s
 
 - Only applies to agents running as the main thread via `claude --agent`
 - Has no effect on subagent definitions (subagents cannot spawn other subagents)
-- ABYZ-Lab agents run as subagents, so this restriction is not currently applicable
+- MoAI agents run as subagents, so this restriction is not currently applicable
 - Useful for creating coordinator agents that run as the main thread
 
 ## Permission Modes
@@ -107,7 +107,7 @@ Domain-specific implementation:
 
 ### Builder Agents (3)
 
-Create new ABYZ-Lab components:
+Create new MoAI components:
 
 - builder-agent: New agent definitions
 - builder-skill: New skill creation
@@ -170,9 +170,9 @@ For team mode invocation:
 - TeamDelete after all teammates shut down
 - See team-plan.md and team-run.md for complete workflow examples
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
 - Use builder-agent subagent for creation
-- Skill("abyz-lab-foundation-claude") for patterns
+- Skill("moai-foundation-claude") for patterns
 - Follow skill-authoring.md for YAML schema
 - See @hooks-system.md for agent hook configuration

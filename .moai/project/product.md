@@ -12,7 +12,7 @@
 - When actual code structure emerges
 - At M0 milestone completion (Week 1)
 - When technology choices are finalized
-- Run `/abyz-lab project --refresh` to regenerate from code
+- Run `/moai project --refresh` to regenerate from code
 
 ---
 
@@ -281,7 +281,7 @@ At Week 1 (M0 milestone), the following decisions must be finalized:
 
 ### Development Methodology: Hybrid (TDD + DDD)
 
-**Configured in**: `.abyz-lab/config/sections/quality.yaml` → `development_mode: "hybrid"`
+**Configured in**: `.moai/config/sections/quality.yaml` → `development_mode: "hybrid"`
 
 **New Code (TDD - RED-GREEN-REFACTOR)**:
 - Simulators (PanelSimulator, FpgaSimulator, McuSimulator, HostSimulator)
@@ -419,4 +419,4 @@ At Week 1 (M0 milestone), the following decisions must be finalized:
 
 **Document End**
 
-*This is a pre-implementation baseline document. Run `/abyz-lab project --refresh` after code repositories are cloned to regenerate from actual implementation.*
+*This is a pre-implementation baseline document. Run `/moai project --refresh` after code repositories are cloned to regenerate from actual implementation.*

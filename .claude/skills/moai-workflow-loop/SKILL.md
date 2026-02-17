@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-loop
+name: moai-workflow-loop
 description: >
   Ralph Engine - Automated feedback loop with LSP diagnostics and AST-grep
   integration for continuous code quality improvement. Use when implementing
@@ -38,9 +38,9 @@ Key Components:
 
 Commands:
 
-- /abyz-lab: One-click Plan-Run-Sync automation (default)
-- /abyz-lab loop: Start feedback loop
-- /abyz-lab fix: One-time auto-fix
+- /moai: One-click Plan-Run-Sync automation (default)
+- /moai loop: Start feedback loop
+- /moai fix: One-time auto-fix
 
 When to Use:
 
@@ -53,7 +53,7 @@ When to Use:
 
 ### Architecture Overview
 
-The Ralph Engine follows a layered architecture. User commands such as /abyz-lab:loop, /abyz-lab:fix, and /abyz-lab enter the Command Layer. The Command Layer invokes the Hook System, which contains the PostToolUse Hook for LSP diagnostics and the Stop Hook for loop control. The Hook System connects to Backend Services including the LSP Client (ABYZ-LabLSPClient), AST-grep Scanner, and Test Runner. Backend Services feed into Completion Check which evaluates whether errors are zero, tests pass, and coverage is met. Based on the Completion Check result, the system either continues the loop or completes.
+The Ralph Engine follows a layered architecture. User commands such as /moai:loop, /moai:fix, and /moai enter the Command Layer. The Command Layer invokes the Hook System, which contains the PostToolUse Hook for LSP diagnostics and the Stop Hook for loop control. The Hook System connects to Backend Services including the LSP Client (MoAILSPClient), AST-grep Scanner, and Test Runner. Backend Services feed into Completion Check which evaluates whether errors are zero, tests pass, and coverage is met. Based on the Completion Check result, the system either continues the loop or completes.
 
 ### Configuration
 
@@ -83,7 +83,7 @@ Exit code 0 indicates no action needed. Exit code 2 indicates attention needed d
 
 #### Stop Hook for Loop Controller
 
-The Stop hook is triggered after each Claude response. The hook reads the loop state file located at .abyz-lab/cache/.abyz-lab_loop_state.json. This state contains active status (true or false), current iteration number, max_iterations limit, last_error_count from previous iteration, and completion_reason when finished.
+The Stop hook is triggered after each Claude response. The hook reads the loop state file located at .moai/cache/.moai_loop_state.json. This state contains active status (true or false), current iteration number, max_iterations limit, last_error_count from previous iteration, and completion_reason when finished.
 
 The hook returns output with hookSpecificOutput containing hookEventName (Stop) and additionalContext reporting loop status. For example, it might report Ralph Loop CONTINUE at Iteration 3 of 10 with 2 Errors, and next actions to fix the remaining errors.
 
@@ -91,7 +91,7 @@ Exit code 0 indicates loop complete or inactive. Exit code 1 indicates continue 
 
 ### LSP Client Usage
 
-The Go LSP client is integrated into the hook system. LSP diagnostics are automatically collected via the post-tool hook (abyz-lab hook post-tool-use).
+The Go LSP client is integrated into the hook system. LSP diagnostics are automatically collected via the post-tool hook (moai hook post-tool-use).
 
 To get diagnostics for a file, call the get_diagnostics method asynchronously with the file path.
 
@@ -117,7 +117,7 @@ Extend the loop controller with custom conditions by implementing a check functi
 
 ### Integration with CI/CD
 
-For GitHub Actions integration, create a workflow step that runs Claude with the /abyz-lab:loop command and max-iterations flag. Set the ABYZ-LAB_LOOP_ACTIVE environment variable to true to enable loop mode.
+For GitHub Actions integration, create a workflow step that runs Claude with the /moai:loop command and max-iterations flag. Set the MOAI_LOOP_ACTIVE environment variable to true to enable loop mode.
 
 ### Graceful Degradation
 
@@ -127,25 +127,25 @@ When LSP is unavailable, the system falls back to linter-based diagnostics using
 
 ### Loop Not Starting
 
-Check that ralph.enabled is set to true in configuration. Verify ABYZ-LAB_DISABLE_LOOP_CONTROLLER environment variable is not set. Ensure the state file location is writable.
+Check that ralph.enabled is set to true in configuration. Verify MOAI_DISABLE_LOOP_CONTROLLER environment variable is not set. Ensure the state file location is writable.
 
 ### LSP Diagnostics Missing
 
-Check LSP server configuration in .lsp.json file. Verify the language server is installed for your language. Check that ABYZ-LAB_DISABLE_LSP_DIAGNOSTIC environment variable is not set.
+Check LSP server configuration in .lsp.json file. Verify the language server is installed for your language. Check that MOAI_DISABLE_LSP_DIAGNOSTIC environment variable is not set.
 
 ### Loop Stuck
 
-Review the max_iterations setting to ensure it allows sufficient iterations. Review completion conditions to verify they are achievable. Send any message to interrupt the loop, or delete the state file (.abyz-lab/cache/.abyz-lab_loop_state.json) to reset.
+Review the max_iterations setting to ensure it allows sufficient iterations. Review completion conditions to verify they are achievable. Send any message to interrupt the loop, or delete the state file (.moai/cache/.moai_loop_state.json) to reset.
 
 ## Works Well With
 
 Skills:
 
-- abyz-lab-foundation-quality: TRUST 5 validation
-- abyz-lab-tool-ast-grep: Security scanning patterns
-- abyz-lab-workflow-testing: DDD integration
-- abyz-lab-lang-python: Python-specific patterns
-- abyz-lab-lang-typescript: TypeScript patterns
+- moai-foundation-quality: TRUST 5 validation
+- moai-tool-ast-grep: Security scanning patterns
+- moai-workflow-testing: DDD integration
+- moai-lang-python: Python-specific patterns
+- moai-lang-typescript: TypeScript patterns
 
 Agents:
 
@@ -155,32 +155,32 @@ Agents:
 
 Commands:
 
-- /abyz-lab:2-run: DDD implementation
-- /abyz-lab:3-sync: Documentation sync
+- /moai:2-run: DDD implementation
+- /moai:3-sync: Documentation sync
 
 ## Reference
 
 ### Environment Variables
 
-ABYZ-LAB_DISABLE_LSP_DIAGNOSTIC disables the LSP hook when set.
+MOAI_DISABLE_LSP_DIAGNOSTIC disables the LSP hook when set.
 
-ABYZ-LAB_DISABLE_LOOP_CONTROLLER disables the loop hook when set.
+MOAI_DISABLE_LOOP_CONTROLLER disables the loop hook when set.
 
-ABYZ-LAB_LOOP_ACTIVE indicates whether the loop is currently active.
+MOAI_LOOP_ACTIVE indicates whether the loop is currently active.
 
-ABYZ-LAB_LOOP_ITERATION contains the current iteration number.
+MOAI_LOOP_ITERATION contains the current iteration number.
 
 CLAUDE_PROJECT_DIR contains the project root path.
 
 ### File Locations
 
-Configuration is stored at .abyz-lab/config/sections/ralph.yaml.
+Configuration is stored at .moai/config/sections/ralph.yaml.
 
-Loop state is stored at .abyz-lab/cache/.abyz-lab_loop_state.json.
+Loop state is stored at .moai/cache/.moai_loop_state.json.
 
-The LSP hook is located at .claude/hooks/abyz-lab/post_tool__lsp_diagnostic.
+The LSP hook is located at .claude/hooks/moai/post_tool__lsp_diagnostic.
 
-The loop hook is located at .claude/hooks/abyz-lab/stop__loop_controller.
+The loop hook is located at .claude/hooks/moai/stop__loop_controller.
 
 ### Supported Languages
 
@@ -192,4 +192,4 @@ Version: 1.2.0
 Last Updated: 2026-01-11
 Status: Active
 Integration: Claude Code Hooks, LSP Protocol, AST-grep
-Skill Name: abyz-lab-workflow-loop (formerly abyz-lab-ralph)
+Skill Name: moai-workflow-loop (formerly moai-ralph)

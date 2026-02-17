@@ -7,7 +7,7 @@ Intelligent template merging that preserves user customizations while applying u
 ```
 6-Phase Template Optimization:
  Phase 1: Backup Discovery & Analysis
- Scan .abyz-lab-backups/ directory
+ Scan .moai-backups/ directory
  Analyze backup metadata
  Select most recent backup
  Phase 2: Template Comparison

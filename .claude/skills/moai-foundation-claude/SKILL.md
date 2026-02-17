@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-foundation-claude
+name: moai-foundation-claude
 description: >
   Canonical Claude Code authoring kit covering Skills, sub-agents, plugins, slash commands,
   hooks, memory, settings, sandboxing, headless mode, and advanced agent patterns.
@@ -15,15 +15,15 @@ metadata:
   updated: "2026-01-11"
   modularized: "false"
   tags: "foundation, claude-code, skills, sub-agents, plugins, slash-commands, hooks, memory, settings, sandboxing, headless, agent-patterns"
-  aliases: "abyz-lab-foundation-claude"
+  aliases: "moai-foundation-claude"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords:
     - "skill"
@@ -190,7 +190,7 @@ When using Explore agent or direct exploration tools (Grep, Glob, Read), apply t
 
 **AST-Grep Priority**
 - Use structural search (ast-grep) before text-based search (Grep)
-- Load abyz-lab-tool-ast-grep skill for complex pattern matching
+- Load moai-tool-ast-grep skill for complex pattern matching
 - Example: `sg -p 'class $X extends Service' --lang python` is faster than `grep -r "class.*extends.*Service"`
 
 **Search Scope Limitation**
@@ -215,13 +215,13 @@ Phase 3 Code: Implement iteratively, verify each step, handle edges
 
 Phase 4 Commit: Descriptive messages, logical groupings, clean history
 
-## ABYZ-Lab-ADK Integration
+## MoAI-ADK Integration
 
 ### Core Skills
 
-- abyz-lab-foundation-claude: This authoring kit
-- abyz-lab-foundation-core: SPEC system and workflows
-- abyz-lab-foundation-philosopher: Strategic thinking
+- moai-foundation-claude: This authoring kit
+- moai-foundation-core: SPEC system and workflows
+- moai-foundation-philosopher: Strategic thinking
 
 ### Essential Sub-agents
 

@@ -1,6 +1,6 @@
 # Patterns
 
-> **Module**: abyz-lab-foundation-core/patterns
+> **Module**: moai-foundation-core/patterns
 > **Last Updated**: 2026-01-06
 
 ---

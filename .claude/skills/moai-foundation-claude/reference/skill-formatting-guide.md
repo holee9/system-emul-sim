@@ -109,9 +109,9 @@ Format: kebab-case (lowercase, numbers, hyphens only)
 Length: Maximum 64 characters
 Pattern: `[prefix]-[domain]-[function]`
 Examples:
-- `abyz-lab-cc-commands`
-- `abyz-lab-lang-python`
-- `abyz-lab-domain-backend`
+- `moai-cc-commands`
+- `moai-lang-python`
+- `moai-domain-backend`
 - `MyAwesomeSkill` (uppercase, spaces)
 - `skill_v2` (underscore)
 - `this-name-is-way-too-long-and-exceeds-the-sixty-four-character-limit`

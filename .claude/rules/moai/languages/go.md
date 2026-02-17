@@ -49,7 +49,7 @@ Version: Go 1.23+
 - Mock external dependencies with interfaces
 - Use t.Parallel() for independent tests
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-go") for detailed patterns
+- Use Skill("moai-lang-go") for detailed patterns
 - Follow TRUST 5 quality gates

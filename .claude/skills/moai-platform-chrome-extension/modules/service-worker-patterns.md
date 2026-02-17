@@ -1,7 +1,7 @@
 ---
 name: service-worker-patterns
 description: Service worker lifecycle, event registration, state management, and debugging patterns
-parent-skill: abyz-lab-platform-chrome-extension
+parent-skill: moai-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

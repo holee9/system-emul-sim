@@ -1,7 +1,7 @@
 ---
 name: security-csp
 description: Content Security Policy, permissions model, input validation, and secure coding
-parent-skill: abyz-lab-platform-chrome-extension
+parent-skill: moai-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

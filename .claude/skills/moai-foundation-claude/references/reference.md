@@ -1,4 +1,4 @@
-# abyz-lab-foundation-claude Reference
+# moai-foundation-claude Reference
 
 ## API Reference
 
@@ -198,10 +198,10 @@ Solutions:
 
 ### Related Skills
 
-- `abyz-lab-foundation-core`: Core execution patterns and SPEC workflow
-- `abyz-lab-foundation-context`: Token budget and session management
-- `abyz-lab-workflow-project`: Project initialization and configuration
-- `abyz-lab-docs-generation`: Documentation automation
+- `moai-foundation-core`: Core execution patterns and SPEC workflow
+- `moai-foundation-context`: Token budget and session management
+- `moai-workflow-project`: Project initialization and configuration
+- `moai-docs-generation`: Documentation automation
 
 ---
 

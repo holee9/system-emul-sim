@@ -11,18 +11,18 @@ description: |
 tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, TodoWrite, Task, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: inherit
 permissionMode: acceptEdits
-skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-docs-generation, abyz-lab-workflow-jit-docs, abyz-lab-workflow-templates, abyz-lab-library-mermaid, abyz-lab-library-nextra, abyz-lab-formats-data, abyz-lab-foundation-context
+skills: moai-foundation-claude, moai-foundation-core, moai-docs-generation, moai-workflow-jit-docs, moai-workflow-templates, moai-library-mermaid, moai-library-nextra, moai-formats-data, moai-foundation-context
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" docs-verification"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" docs-verification"
           timeout: 10
   SubagentStop:
     - hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" docs-completion"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" docs-completion"
           timeout: 10
 ---
 
@@ -44,8 +44,8 @@ output_format: Professional documentation with Nextra framework setup, MDX conte
 checkpoint_strategy:
   enabled: true
   interval: every_phase
-  # CRITICAL: Always use project root for .abyz-lab to prevent duplicate .abyz-lab in subfolders
-  location: $CLAUDE_PROJECT_DIR/.abyz-lab/memory/checkpoints/docs/
+  # CRITICAL: Always use project root for .moai to prevent duplicate .moai in subfolders
+  location: $CLAUDE_PROJECT_DIR/.moai/memory/checkpoints/docs/
   resume_capability: true
 
 memory_management:
@@ -57,7 +57,7 @@ memory_management:
 
 ## Essential Reference
 
-IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: 8-Step User Request Analysis Process
 - Rule 3: Behavioral Constraints (Never execute directly, always delegate)
@@ -186,7 +186,7 @@ To prevent V8 heap memory overflow during large documentation generation session
 
 **Checkpoint Strategy**:
 - Checkpoint after each phase completion (Source Analysis, Architecture Design, Content Generation, Quality Assurance)
-- Checkpoint location: `.abyz-lab/memory/checkpoints/docs/`
+- Checkpoint location: `.moai/memory/checkpoints/docs/`
 - Auto-checkpoint on memory pressure detection
 
 **Checkpoint Content**:
@@ -216,10 +216,10 @@ To prevent V8 heap memory overflow during large documentation generation session
 **Usage**:
 ```bash
 # Normal execution (auto-checkpointing)
-/abyz-lab sync SPEC-AUTH-001
+/moai sync SPEC-AUTH-001
 
 # Resume from checkpoint after crash
-/abyz-lab sync SPEC-AUTH-001 --resume latest
+/moai sync SPEC-AUTH-001 --resume latest
 ```
 
 ---
@@ -230,20 +230,20 @@ To prevent V8 heap memory overflow during large documentation generation session
 
 Core documentation skills (auto-loaded):
 
-- abyz-lab-foundation-core: SPEC-first DDD, TRUST 5 framework, execution rules
-- abyz-lab-workflow-docs: Documentation workflow, validation scripts
-- abyz-lab-library-mermaid: Mermaid diagram creation and validation
-- abyz-lab-foundation-claude: Claude Code authoring patterns, skills/agents/commands
-- abyz-lab-library-nextra: Nextra framework setup and optimization
+- moai-foundation-core: SPEC-first DDD, TRUST 5 framework, execution rules
+- moai-workflow-docs: Documentation workflow, validation scripts
+- moai-library-mermaid: Mermaid diagram creation and validation
+- moai-foundation-claude: Claude Code authoring patterns, skills/agents/commands
+- moai-library-nextra: Nextra framework setup and optimization
 
-# Conditional skills (auto-loaded by ABYZ-Lab when needed)
+# Conditional skills (auto-loaded by MoAI when needed)
 
 conditional_skills = [
-"abyz-lab-domain-uiux", # WCAG compliance, accessibility patterns, Pencil MCP integration
-"abyz-lab-lang-python", # Python documentation patterns
-"abyz-lab-lang-typescript", # TypeScript documentation patterns
-"abyz-lab-workflow-project", # Project documentation management
-"abyz-lab-ai-nano-banana" # AI content generation
+"moai-domain-uiux", # WCAG compliance, accessibility patterns, Pencil MCP integration
+"moai-lang-python", # Python documentation patterns
+"moai-lang-typescript", # TypeScript documentation patterns
+"moai-workflow-project", # Project documentation management
+"moai-ai-nano-banana" # AI content generation
 ]
 
 ````
@@ -448,16 +448,16 @@ Execute thorough documentation validation across all quality dimensions:
 
 ## Integration Points
 
-### 1. ABYZ-Lab-ADK Ecosystem Integration
+### 1. MoAI-ADK Ecosystem Integration
 
-**ABYZ-Lab-ADK Component Integration Workflow:**
+**MoAI-ADK Component Integration Workflow:**
 
-Coordinate documentation workflows with existing ABYZ-Lab-ADK components:
+Coordinate documentation workflows with existing MoAI-ADK components:
 
 **Core Integration Points:**
 - **Self-Reference**: Handle documentation workflows internally within this agent
 - **Quality Gate Coordination**: Collaborate with manager-quality agent for validation
-- **Documentation Synchronization**: Sync Nextra docs with .abyz-lab/docs/ directory structure
+- **Documentation Synchronization**: Sync Nextra docs with .moai/docs/ directory structure
 
 **Integration Process:**
 
@@ -465,7 +465,7 @@ Coordinate documentation workflows with existing ABYZ-Lab-ADK components:
 2. **Quality Assurance Coordination**: Use manager-quality subagent for comprehensive validation
 3. **Documentation Synchronization**:
    - Source: Nextra documentation structure
-   - Target: .abyz-lab/docs/ directory
+   - Target: .moai/docs/ directory
    - Format: Nextra-compatible structure
 4. **System-Wide Consistency**: Ensure documentation aligns with project standards and formats
 
@@ -504,15 +504,15 @@ run: npm ci
 
 - name: Generate documentation from source
 run: |
-npx @abyz-lab/nextra-expert generate \\
+npx @moai/nextra-expert generate \\
 --source ./src \\
 --output ./docs \\
 --config .nextra/config.json
 
 - name: Validate markdown and Mermaid
 run: |
-npx @abyz-lab/docs-linter validate ./docs
-npx @abyz-lab/mermaid-validator check ./docs
+npx @moai/docs-linter validate ./docs
+npx @moai/mermaid-validator check ./docs
 
 - name: Test documentation build
 run: npm run build:docs
@@ -542,10 +542,10 @@ working-directory: ./docs
 
 **Basic Documentation Generation Workflow:**
 
-Use ABYZ-Lab delegation to generate comprehensive documentation:
+Use MoAI delegation to generate comprehensive documentation:
 
 ```bash
-# Delegation instruction for ABYZ-Lab
+# Delegation instruction for MoAI
 "Use the manager-docs subagent to generate professional Nextra documentation from the @src/ directory.
 
 Requirements:
@@ -565,10 +565,10 @@ Config: .nextra/theme.config.tsx"
 
 **Advanced Custom Documentation Workflow:**
 
-Use ABYZ-Lab delegation for specialized documentation requirements:
+Use MoAI delegation for specialized documentation requirements:
 
 ```bash
-# Delegation instruction for ABYZ-Lab
+# Delegation instruction for MoAI
 "Use the manager-docs subagent to create specialized documentation with custom requirements:
 
 Target Audience: Intermediate developers

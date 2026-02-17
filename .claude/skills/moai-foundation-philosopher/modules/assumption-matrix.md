@@ -77,4 +77,4 @@ When surfacing assumptions, use AskUserQuestion to:
 ---
 
 Version: 1.0.0
-Parent Skill: abyz-lab-foundation-philosopher
+Parent Skill: moai-foundation-philosopher

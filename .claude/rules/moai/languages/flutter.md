@@ -50,7 +50,7 @@ Version: Flutter 3.24+ / Dart 3.5+
 - Use golden tests for UI verification
 - Use integration_test for E2E
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-flutter") for detailed patterns
+- Use Skill("moai-lang-flutter") for detailed patterns
 - Follow TRUST 5 quality gates

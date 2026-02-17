@@ -1,6 +1,6 @@
 ---
 name: configuration
-parent: abyz-lab-library-nextra
+parent: moai-library-nextra
 description: Complete Nextra theme.config.tsx reference and configuration patterns
 ---
 

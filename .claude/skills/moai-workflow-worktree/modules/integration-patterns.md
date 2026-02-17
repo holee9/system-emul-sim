@@ -1,6 +1,6 @@
 # Integration Patterns Module
 
-Purpose: Overview of integration patterns for abyz-lab-worktree with ABYZ-Lab-ADK workflow, development tools, and external systems.
+Purpose: Overview of integration patterns for moai-worktree with MoAI-ADK workflow, development tools, and external systems.
 
 Version: 2.0.0
 Last Updated: 2026-01-06
@@ -10,14 +10,14 @@ Last Updated: 2026-01-06
 ## Quick Reference (30 seconds)
 
 Integration Points:
-- ABYZ-Lab-ADK Workflow: Seamless integration with /abyz-lab:1-plan, /abyz-lab:2-run, /abyz-lab:3-sync
+- MoAI-ADK Workflow: Seamless integration with /moai:1-plan, /moai:2-run, /moai:3-sync
 - Development Tools: IDEs, editors, terminal emulators, and development servers
 - Git Workflows: Branch management, CI/CD pipelines, and code review processes
 - Team Collaboration: Shared worktrees, code sharing, and coordination patterns
 
 Core Integration Pattern:
 
-The basic integration workflow follows three phases. During the Plan Phase, the /abyz-lab:1-plan command auto-creates a worktree for the SPEC. During the Development Phase, use the abyz-lab-worktree go command to navigate to the isolated environment and run /abyz-lab:2-run for DDD implementation. During the Sync Phase, use abyz-lab-worktree sync to update the worktree and /abyz-lab:3-sync for documentation synchronization.
+The basic integration workflow follows three phases. During the Plan Phase, the /moai:1-plan command auto-creates a worktree for the SPEC. During the Development Phase, use the moai-worktree go command to navigate to the isolated environment and run /moai:2-run for DDD implementation. During the Sync Phase, use moai-worktree sync to update the worktree and /moai:3-sync for documentation synchronization.
 
 ---
 
@@ -25,10 +25,10 @@ The basic integration workflow follows three phases. During the Plan Phase, the 
 
 This integration patterns module is organized into focused sub-modules for progressive disclosure:
 
-ABYZ-Lab-ADK Integration: Refer to abyz-lab-adk-integration.md
-- Plan Phase integration with /abyz-lab:1-plan
-- Development Phase integration with /abyz-lab:2-run
-- Sync Phase integration with /abyz-lab:3-sync
+MoAI-ADK Integration: Refer to moai-adk-integration.md
+- Plan Phase integration with /moai:1-plan
+- Development Phase integration with /moai:2-run
+- Sync Phase integration with /moai:3-sync
 - Automated cleanup workflows
 
 Tools and External Integration: Refer to tools-integration.md
@@ -41,23 +41,23 @@ Tools and External Integration: Refer to tools-integration.md
 
 ## Integration Overview
 
-### ABYZ-Lab-ADK Workflow Integration
+### MoAI-ADK Workflow Integration
 
-The worktree system integrates deeply with the ABYZ-Lab Plan-Run-Sync workflow:
+The worktree system integrates deeply with the MoAI Plan-Run-Sync workflow:
 
-Plan Phase (/abyz-lab:1-plan):
+Plan Phase (/moai:1-plan):
 - Automatic worktree creation after SPEC generation
 - Template-based environment setup
 - Branch naming conventions applied automatically
 - Worktree-specific configuration files created
 
-Development Phase (/abyz-lab:2-run):
+Development Phase (/moai:2-run):
 - DDD execution in isolated worktree context
 - Independent dependency management
 - Automatic registry updates for access tracking
 - Development server isolation per worktree
 
-Sync Phase (/abyz-lab:3-sync):
+Sync Phase (/moai:3-sync):
 - Worktree synchronization with base branch
 - Conflict detection and resolution
 - Documentation updates from worktree changes
@@ -68,7 +68,7 @@ Cleanup Phase:
 - Archive support for completed work
 - Registry maintenance and integrity checks
 
-Detailed Reference: Refer to abyz-lab-adk-integration.md for complete workflow patterns
+Detailed Reference: Refer to moai-adk-integration.md for complete workflow patterns
 
 ---
 
@@ -115,22 +115,22 @@ Detailed Reference: Refer to tools-integration.md for external system patterns
 
 ## Quick Decision Guide
 
-For automatic SPEC worktree creation, integrate with /abyz-lab:1-plan by configuring auto-creation in worktree settings. Refer to abyz-lab-adk-integration.md for implementation details.
+For automatic SPEC worktree creation, integrate with /moai:1-plan by configuring auto-creation in worktree settings. Refer to moai-adk-integration.md for implementation details.
 
 For IDE integration with worktrees, use VS Code multi-root workspace generation with dynamic worktree folder updates. Refer to tools-integration.md for configuration.
 
 For CI/CD pipeline integration, implement GitHub Actions workflows with SPEC-aware testing patterns. Refer to tools-integration.md for workflow templates.
 
-For team collaboration with shared registries, configure team registry settings with developer-specific worktree prefixes. Refer to abyz-lab-adk-integration.md for coordination patterns.
+For team collaboration with shared registries, configure team registry settings with developer-specific worktree prefixes. Refer to moai-adk-integration.md for coordination patterns.
 
 ---
 
 ## Sub-Module References
 
-ABYZ-Lab-ADK Integration (abyz-lab-adk-integration.md):
-- Complete /abyz-lab:1-plan integration patterns
-- DDD-aware /abyz-lab:2-run integration
-- Sync Phase automation with /abyz-lab:3-sync
+MoAI-ADK Integration (moai-adk-integration.md):
+- Complete /moai:1-plan integration patterns
+- DDD-aware /moai:2-run integration
+- Sync Phase automation with /moai:3-sync
 - Post-PR cleanup workflows
 - Team collaboration patterns
 

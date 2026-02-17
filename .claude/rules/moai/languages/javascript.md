@@ -50,7 +50,7 @@ Version: ES2024+ / Node.js 22 LTS
 - Mock modules with vi.mock() or jest.mock()
 - Use msw for HTTP mocking
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-javascript") for detailed patterns
+- Use Skill("moai-lang-javascript") for detailed patterns
 - Follow TRUST 5 quality gates

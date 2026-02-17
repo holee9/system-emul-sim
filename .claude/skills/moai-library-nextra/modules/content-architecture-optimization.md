@@ -1,6 +1,6 @@
 ---
 name: content-architecture-optimization
-parent: abyz-lab-library-nextra
+parent: moai-library-nextra
 description: Content structure and performance optimization
 ---
 

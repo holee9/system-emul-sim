@@ -818,10 +818,10 @@ var client = new DetectorClient(options);
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-docs) | Complete API reference with IDetectorClient, data models, DeviceInfo, DetectorStatus, FpgaStatus, AcquisitionParams, NuGet configuration, DiscoverDevicesAsync |
+| 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Complete API reference with IDetectorClient, data models, DeviceInfo, DetectorStatus, FpgaStatus, AcquisitionParams, NuGet configuration, DiscoverDevicesAsync |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed: API inconsistencies between Section 3 (StartScanAsync/StopScanAsync/GetFrameAsync) and Section 5.1 IDetectorClient interface (StartAcquisitionAsync/StopAcquisitionAsync/CaptureFrameAsync); aligned ErrorEventArgs -> DetectorErrorEventArgs, ConnectionChangedEventArgs -> ConnectionStateChangedEventArgs across all sections |
-| 1.0.3 | 2026-02-17 | ABYZ-Lab Agent (chief-architect) | MINOR-2: Renamed Frame.TimestampUs → Frame.TimestampNs for nanosecond precision consistency with host-sdk-design.md. |
-| 1.0.2 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-002: Fixed 7 API signature mismatches vs SPEC-SDK-001: (1) DisconnectAsync added CancellationToken; (2) ConfigureAsync added CancellationToken; (3) StartAcquisitionAsync changed AcquisitionParams -> ScanMode mode; (4) StopAcquisitionAsync added CancellationToken; (5) CaptureFrameAsync added TimeSpan timeout parameter; (6) SaveFrameAsync added CancellationToken; (7) FrameReceived event changed FrameReceivedEventArgs -> FrameEventArgs. Section 5.1 complete interface and all code examples updated to match. |
+| 1.0.3 | 2026-02-17 | MoAI Agent (chief-architect) | MINOR-2: Renamed Frame.TimestampUs → Frame.TimestampNs for nanosecond precision consistency with host-sdk-design.md. |
+| 1.0.2 | 2026-02-17 | MoAI Agent | MAJOR-002: Fixed 7 API signature mismatches vs SPEC-SDK-001: (1) DisconnectAsync added CancellationToken; (2) ConfigureAsync added CancellationToken; (3) StartAcquisitionAsync changed AcquisitionParams -> ScanMode mode; (4) StopAcquisitionAsync added CancellationToken; (5) CaptureFrameAsync added TimeSpan timeout parameter; (6) SaveFrameAsync added CancellationToken; (7) FrameReceived event changed FrameReceivedEventArgs -> FrameEventArgs. Section 5.1 complete interface and all code examples updated to match. |
 
 ---
 

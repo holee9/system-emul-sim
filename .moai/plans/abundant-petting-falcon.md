@@ -14,7 +14,7 @@
 
 ### 팀 1 — FPGA 리뷰팀
 **검토 대상:**
-- `.abyz-lab/specs/SPEC-FPGA-001/spec.md`
+- `.moai/specs/SPEC-FPGA-001/spec.md`
 - `docs/architecture/fpga-design.md`
 - `docs/api/csi2-packet-format.md`
 - `docs/api/spi-register-map.md`
@@ -27,7 +27,7 @@
 
 ### 팀 2 — FW 리뷰팀
 **검토 대상:**
-- `.abyz-lab/specs/SPEC-FW-001/spec.md`
+- `.moai/specs/SPEC-FW-001/spec.md`
 - `docs/architecture/soc-firmware-design.md`
 - `docs/api/spi-register-map.md`
 
@@ -39,7 +39,7 @@
 
 ### 팀 3 — SDK 리뷰팀
 **검토 대상:**
-- `.abyz-lab/specs/SPEC-SDK-001/spec.md`
+- `.moai/specs/SPEC-SDK-001/spec.md`
 - `docs/architecture/host-sdk-design.md`
 - `docs/api/host-sdk-api.md`
 - `docs/api/ethernet-protocol.md`
@@ -52,9 +52,9 @@
 
 ### 팀 4 — SIM/Test 리뷰팀
 **검토 대상:**
-- `.abyz-lab/specs/SPEC-SIM-001/spec.md`
-- `.abyz-lab/specs/SPEC-POC-001/spec.md`
-- `.abyz-lab/specs/SPEC-TOOLS-001/spec.md`
+- `.moai/specs/SPEC-SIM-001/spec.md`
+- `.moai/specs/SPEC-POC-001/spec.md`
+- `.moai/specs/SPEC-TOOLS-001/spec.md`
 - `docs/testing/unit-test-plan.md`
 - `docs/testing/integration-test-plan.md`
 - `docs/testing/verification-strategy.md`
@@ -67,7 +67,7 @@
 
 ### 팀 5 — ARCH 교차검증팀
 **검토 대상:**
-- `.abyz-lab/specs/SPEC-ARCH-001/spec.md`
+- `.moai/specs/SPEC-ARCH-001/spec.md`
 - `docs/architecture/system-architecture.md`
 - 모든 SPEC 요약 (인터페이스 경계 중심)
 

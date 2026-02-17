@@ -1,19 +1,19 @@
-# Implementation Plan: ABYZ-Lab Project Documentation Generation
+# Implementation Plan: MoAI Project Documentation Generation
 
 ## Context
 
 ### Problem
-The X-ray Detector Panel System project has comprehensive planning documentation (28-week development plan, README, technical specifications) but lacks ABYZ-Lab-native project documentation. Without `.abyz-lab/project/product.md`, `.abyz-lab/project/structure.md`, and `.abyz-lab/project/tech.md`, the ABYZ-Lab system cannot effectively support SPEC creation, quality gates, or workflow tracking for this project.
+The X-ray Detector Panel System project has comprehensive planning documentation (28-week development plan, README, technical specifications) but lacks MoAI-native project documentation. Without `.moai/project/product.md`, `.moai/project/structure.md`, and `.moai/project/tech.md`, the MoAI system cannot effectively support SPEC creation, quality gates, or workflow tracking for this project.
 
 ### What Prompted This
-The user requested project documentation generation via `/abyz-lab project` command. Analysis revealed:
+The user requested project documentation generation via `/moai project` command. Analysis revealed:
 - **Existing assets**: Comprehensive `X-ray_Detector_Optimal_Project_Plan.md` (598 lines), detailed README.md, configuration files
 - **Current state**: No source code files exist (*.py, *.ts, *.go, etc.) - documentation-only phase
 - **Project phase**: M0 preparation (Week 1 milestone) - pre-implementation
 - **Architecture**: 6 separate Gitea repositories (fpga/, fw/, sdk/, tools/, config/, docs/) NOT yet cloned
 
 ### Intended Outcome
-Generate three ABYZ-Lab project documentation files that:
+Generate three MoAI project documentation files that:
 1. **product.md**: Define project identity, mission, performance tiers, core features, use cases
 2. **structure.md**: Document planned multi-repository architecture, SW modules, FPGA blocks
 3. **tech.md**: Catalog complete technology stack, toolchain, development methodology
@@ -25,11 +25,11 @@ All files will explicitly mark this as **pre-implementation baseline** documenta
 ## Recommended Approach: Hybrid Documentation Strategy
 
 ### Core Strategy
-Generate initial ABYZ-Lab project documentation from existing comprehensive plan documents NOW (Option C from Plan agent analysis), with explicit markers indicating pre-implementation status. This provides immediate value while allowing incremental updates when code appears.
+Generate initial MoAI project documentation from existing comprehensive plan documents NOW (Option C from Plan agent analysis), with explicit markers indicating pre-implementation status. This provides immediate value while allowing incremental updates when code appears.
 
 ### Why This Approach
 - **Rich source material exists**: X-ray_Detector_Optimal_Project_Plan.md contains detailed architecture, module structure, technology decisions, timeline
-- **Immediate value delivery**: Enables ABYZ-Lab workflows (SPEC creation, quality tracking) from Day 1
+- **Immediate value delivery**: Enables MoAI workflows (SPEC creation, quality tracking) from Day 1
 - **Update-friendly**: Clear markers and triggers allow documentation evolution as code emerges
 - **Risk-mitigated**: Explicit disclaimers prevent confusion about implementation status
 
@@ -46,9 +46,9 @@ Generate initial ABYZ-Lab project documentation from existing comprehensive plan
 
 **1.2 Configuration Analysis**
 Read the following configuration files to understand project settings:
-- `.abyz-lab/config/sections/quality.yaml` - Development methodology (Hybrid TDD/DDD), coverage targets (85%+)
-- `.abyz-lab/config/sections/workflow.yaml` - Team settings, workflow modes
-- `.abyz-lab/config/sections/language.yaml` - Language preferences (English for docs)
+- `.moai/config/sections/quality.yaml` - Development methodology (Hybrid TDD/DDD), coverage targets (85%+)
+- `.moai/config/sections/workflow.yaml` - Team settings, workflow modes
+- `.moai/config/sections/language.yaml` - Language preferences (English for docs)
 - `C:\Users\user\.claude\projects\D--workspace-github-system-emul-sim\memory\MEMORY.md` - Project constraints, user preferences
 
 **1.3 Key Insights Extraction**
@@ -87,14 +87,14 @@ From project plan and README, extract:
 
 ### Step 2: Content Synthesis & Documentation Generation (WRITE)
 
-**2.1 Create .abyz-lab/project/ Directory**
+**2.1 Create .moai/project/ Directory**
 ```bash
-mkdir -p .abyz-lab/project
+mkdir -p .moai/project
 ```
 
 **2.2 Generate product.md**
 
-Create `.abyz-lab/project/product.md` with these sections:
+Create `.moai/project/product.md` with these sections:
 
 **Header & Metadata**:
 ```markdown
@@ -112,7 +112,7 @@ Create `.abyz-lab/project/product.md` with these sections:
 - When actual code structure emerges
 - At M0 milestone completion (Week 1)
 - When technology choices are finalized
-- Run `/abyz-lab project --refresh` to regenerate from code
+- Run `/moai project --refresh` to regenerate from code
 ```
 
 **Content Sections** (synthesize from project plan + README):
@@ -129,7 +129,7 @@ Create `.abyz-lab/project/product.md` with these sections:
 
 **2.3 Generate structure.md**
 
-Create `.abyz-lab/project/structure.md` with these sections:
+Create `.moai/project/structure.md` with these sections:
 
 **Header & Metadata**:
 ```markdown
@@ -144,7 +144,7 @@ Create `.abyz-lab/project/structure.md` with these sections:
 
 **Current Directory Status**:
 - 📄 Documentation: README.md, project plans, guides
-- ⚙️ Configuration: .abyz-lab/ configuration files
+- ⚙️ Configuration: .moai/ configuration files
 - ❌ Source Code: None (pre-implementation phase)
 
 **Update Triggers**:
@@ -164,7 +164,7 @@ Create `.abyz-lab/project/structure.md` with these sections:
 
 **2.4 Generate tech.md**
 
-Create `.abyz-lab/project/tech.md` with these sections:
+Create `.moai/project/tech.md` with these sections:
 
 **Header & Metadata**:
 ```markdown
@@ -212,7 +212,7 @@ Create `.abyz-lab/project/tech.md` with these sections:
    - Build Automation: dotnet CLI, Vivado batch scripts, CMake
 
 5. **Development Methodology**:
-   - Mode: Hybrid (from `.abyz-lab/config/sections/quality.yaml`)
+   - Mode: Hybrid (from `.moai/config/sections/quality.yaml`)
    - New code: TDD (RED-GREEN-REFACTOR) - simulators, SDK, tools
    - Existing code: DDD (ANALYZE-PRESERVE-IMPROVE) - FPGA RTL, firmware HAL
    - Coverage targets: RTL ≥95% line/≥90% branch/100% FSM, SW 80-90% per module, overall 85%+
@@ -387,9 +387,9 @@ Each file includes explicit update triggers:
 **How to update**:
 ```bash
 # Refresh documentation after code appears
-/abyz-lab project --refresh
+/moai project --refresh
 
-# Or manually edit files in .abyz-lab/project/
+# Or manually edit files in .moai/project/
 ```
 
 **4.2 Integration Roadmap**
@@ -414,7 +414,7 @@ Add to structure.md:
 
 2. **Verify structure**:
    ```bash
-   /abyz-lab project --refresh
+   /moai project --refresh
    # Regenerate documentation from actual code
    ```
 
@@ -424,7 +424,7 @@ Add to structure.md:
    - Document rationale for any changes
 
 4. **Activate workspace**:
-   - Configure .abyz-lab/config/sections/workflow.yaml for multi-repo workflow
+   - Configure .moai/config/sections/workflow.yaml for multi-repo workflow
    - Set up CI/CD pipelines (n8n + Gitea webhooks)
    - Initialize git submodules if using monorepo approach
 ```
@@ -436,16 +436,16 @@ Add to structure.md:
 **Primary Information Sources** (READ):
 - `D:\workspace-github\system-emul-sim\X-ray_Detector_Optimal_Project_Plan.md` - Authoritative technical plan (598 lines)
 - `D:\workspace-github\system-emul-sim\README.md` - User-facing overview
-- `D:\workspace-github\system-emul-sim\.abyz-lab\config\sections\quality.yaml` - Development methodology
+- `D:\workspace-github\system-emul-sim\.moai\config\sections\quality.yaml` - Development methodology
 - `C:\Users\user\.claude\projects\D--workspace-github-system-emul-sim\memory\MEMORY.md` - Project constraints and preferences
 
 **Files to Create** (WRITE):
-- `.abyz-lab/project/product.md` - Project identity, mission, features (~800-1200 lines expected)
-- `.abyz-lab/project/structure.md` - Repository and module organization (~600-900 lines expected)
-- `.abyz-lab/project/tech.md` - Technology stack and toolchain (~700-1000 lines expected)
+- `.moai/project/product.md` - Project identity, mission, features (~800-1200 lines expected)
+- `.moai/project/structure.md` - Repository and module organization (~600-900 lines expected)
+- `.moai/project/tech.md` - Technology stack and toolchain (~700-1000 lines expected)
 
 **Existing Utilities to Reuse**:
-- ABYZ-Lab manager-docs agent: Delegate actual Markdown generation with structured prompts
+- MoAI manager-docs agent: Delegate actual Markdown generation with structured prompts
 - Progressive disclosure system: Level 1 metadata already defined for project workflow
 - TRUST 5 framework: Reference from quality.yaml for quality strategy section
 
@@ -457,7 +457,7 @@ Add to structure.md:
 
 **Step 1: File Existence Check**
 ```bash
-ls -la .abyz-lab/project/
+ls -la .moai/project/
 # Expected: product.md, structure.md, tech.md
 ```
 
@@ -483,15 +483,15 @@ Compare across files:
 - [ ] Development methodology aligned in product.md and tech.md
 - [ ] Timeline (28 weeks) consistent across files
 
-**Step 5: ABYZ-Lab Workflow Integration Test**
-After generation, test ABYZ-Lab command integration:
+**Step 5: MoAI Workflow Integration Test**
+After generation, test MoAI command integration:
 ```bash
 # Test 1: SPEC creation should now work
-/abyz-lab plan "Implement CSI-2 TX module"
+/moai plan "Implement CSI-2 TX module"
 # Expected: SPEC document creation proceeds (product.md provides context)
 
 # Test 2: Quality validation should reference methodology
-# (Implicitly tested when running /abyz-lab run on any SPEC)
+# (Implicitly tested when running /moai run on any SPEC)
 ```
 
 **Step 6: User Review Confirmation**
@@ -516,7 +516,7 @@ Documentation generation is successful when:
 4. **Actionability**: User can proceed with M0 decisions, procurement, and SPEC creation using this documentation
 5. **Consistency**: No contradictions between product.md, structure.md, and tech.md
 6. **Updatability**: Clear process documented for refreshing documentation when code appears
-7. **ABYZ-Lab Integration**: `/abyz-lab plan` and other workflows can now leverage project context
+7. **MoAI Integration**: `/moai plan` and other workflows can now leverage project context
 
 ---
 
@@ -525,7 +525,7 @@ Documentation generation is successful when:
 **Risk 1: Plan vs. Reality Divergence**
 - Mitigation: Explicit "Pre-implementation Baseline" status badges, update triggers, versioning
 - Detection: User reviews structure.md when repos are cloned
-- Recovery: `/abyz-lab project --refresh` regenerates from actual code
+- Recovery: `/moai project --refresh` regenerates from actual code
 
 **Risk 2: FPGA Constraint Inaccuracy**
 - Mitigation: Triple-check device specs against Plan agent report and project plan
@@ -538,7 +538,7 @@ Documentation generation is successful when:
 - Recovery: Clear integration roadmap guides user to clone repos
 
 **Risk 4: Outdated Documentation After M0**
-- Mitigation: Update triggers, "Last Updated" timestamps, reference to `/abyz-lab project --refresh`
+- Mitigation: Update triggers, "Last Updated" timestamps, reference to `/moai project --refresh`
 - Detection: User notices discrepancies post-M0
 - Recovery: Re-run project workflow to regenerate
 
@@ -548,7 +548,7 @@ Documentation generation is successful when:
 
 **What this plan will do:**
 1. Extract comprehensive technical information from existing project plan and README
-2. Generate three ABYZ-Lab project documentation files with pre-implementation disclaimers
+2. Generate three MoAI project documentation files with pre-implementation disclaimers
 3. Include explicit update triggers and integration roadmap
 4. Validate accuracy against critical constraints (FPGA, performance, structure)
 5. Provide clear guidance for future updates when code repositories are cloned
@@ -561,7 +561,7 @@ Documentation generation is successful when:
 
 **Delegation Strategy:**
 - Use **manager-docs agent** for Markdown file generation (Phase 3, Steps 2.2-2.4)
-- ABYZ-Lab orchestrator handles: information extraction (Step 1), validation (Step 3), user interaction
+- MoAI orchestrator handles: information extraction (Step 1), validation (Step 3), user interaction
 
 **Estimated Duration:**
 - Information extraction: Already complete (Explore agent + Plan agent)
@@ -577,12 +577,12 @@ Documentation generation is successful when:
 After documentation generation succeeds, recommend to user via AskUserQuestion:
 
 **Option A: Start SPEC Creation (Recommended)**
-- Command: `/abyz-lab plan "Implement CSI-2 TX module for FPGA"`
+- Command: `/moai plan "Implement CSI-2 TX module for FPGA"`
 - Benefit: Immediately leverage new project documentation for feature planning
 - Timeline: First SPEC ready in ~10-15 minutes
 
 **Option B: Review Documentation**
-- Action: Open .abyz-lab/project/*.md files for review and manual editing
+- Action: Open .moai/project/*.md files for review and manual editing
 - Benefit: Verify accuracy before committing to version control
 - Timeline: ~10 minutes review
 

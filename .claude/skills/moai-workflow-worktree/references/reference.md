@@ -1,6 +1,6 @@
-# ABYZ-Lab Worktree Reference
+# MoAI Worktree Reference
 
-Purpose: External resources, documentation, and additional learning materials for abyz-lab-worktree skill.
+Purpose: External resources, documentation, and additional learning materials for moai-worktree skill.
 
 Version: 1.0.0
 Last Updated: 2025-11-29
@@ -29,14 +29,14 @@ Last Updated: 2025-11-29
  - Extension management across worktrees
 
 - Click Framework: [https://click.palletsprojects.com/](https://click.palletsprojects.com/)
- - Command-line interface framework used by abyz-lab-worktree
+ - Command-line interface framework used by moai-worktree
  - Advanced CLI patterns and argument parsing
  - Custom command development
 
 ### Python Development Resources
 
 - Rich Library: [https://rich.readthedocs.io/](https://rich.readthedocs.io/)
- - Terminal output formatting used by abyz-lab-worktree
+ - Terminal output formatting used by moai-worktree
  - Tables, progress bars, and syntax highlighting
  - Advanced terminal UI patterns
 
@@ -49,18 +49,18 @@ Last Updated: 2025-11-29
 
 ## Related Skills and Integrations
 
-### ABYZ-Lab-ADK Skills
+### MoAI-ADK Skills
 
-- abyz-lab-foundation-core: Foundation principles and delegation patterns
- - Reference: [abyz-lab-foundation-core modules](abyz-lab-foundation-core/modules/)
+- moai-foundation-core: Foundation principles and delegation patterns
+ - Reference: [moai-foundation-core modules](moai-foundation-core/modules/)
  - Integration: Worktree creation follows foundation delegation patterns
 
-- abyz-lab-workflow-project: Project management and configuration
- - Reference: [abyz-lab-workflow-project modules](abyz-lab-workflow-project/modules/)
+- moai-workflow-project: Project management and configuration
+ - Reference: [moai-workflow-project modules](moai-workflow-project/modules/)
  - Integration: Project setup with worktree support
 
-- abyz-lab-foundation-claude: Claude Code execution patterns
- - Reference: [abyz-lab-foundation-claude modules](abyz-lab-foundation-claude/modules/)
+- moai-foundation-claude: Claude Code execution patterns
+ - Reference: [moai-foundation-claude modules](moai-foundation-claude/modules/)
  - Integration: Command and agent execution patterns
 
 ### Complementary Tools
@@ -128,17 +128,17 @@ Last Updated: 2025-11-29
 
 1. Shallow Worktrees: For fast prototyping and testing
  ```bash
- abyz-lab-worktree new SPEC-PROTO-001 "Prototype" --shallow --depth 1
+ moai-worktree new SPEC-PROTO-001 "Prototype" --shallow --depth 1
  ```
 
 2. Selective Synchronization: Sync only essential files
  ```bash
- abyz-lab-worktree sync SPEC-001 --include "src/" --exclude "node_modules/"
+ moai-worktree sync SPEC-001 --include "src/" --exclude "node_modules/"
  ```
 
 3. Background Operations: Non-blocking worktree operations
  ```bash
- abyz-lab-worktree sync --all --background
+ moai-worktree sync --all --background
  ```
 
 ---
@@ -198,21 +198,21 @@ jobs:
  with:
  fetch-depth: 0
 
- - name: Setup abyz-lab-worktree
+ - name: Setup moai-worktree
  run: |
- go install github.com/modu-ai/abyz-lab-adk/cmd/abyz-lab@latest
+ go install github.com/modu-ai/moai-adk/cmd/moai@latest
  echo "Setting up worktree environment..."
 
  - name: Test Worktree Operations
  run: |
  # Test worktree creation
- abyz-lab-worktree new test-spec "Test Worktree"
+ moai-worktree new test-spec "Test Worktree"
 
  # Test worktree synchronization
- abyz-lab-worktree sync test-spec
+ moai-worktree sync test-spec
 
  # Test worktree cleanup
- abyz-lab-worktree remove test-spec
+ moai-worktree remove test-spec
 ```
 
 #### Jenkins Pipeline
@@ -226,8 +226,8 @@ pipeline {
  stage('Setup') {
  steps {
  sh '''
- go install github.com/modu-ai/abyz-lab-adk/cmd/abyz-lab@latest
- abyz-lab-worktree config set worktree_root $WORKSPACE/worktrees
+ go install github.com/modu-ai/moai-adk/cmd/moai@latest
+ moai-worktree config set worktree_root $WORKSPACE/worktrees
  '''
  }
  }
@@ -237,8 +237,8 @@ pipeline {
  stage('Auth Worktree') {
  steps {
  sh '''
- abyz-lab-worktree new SPEC-AUTH-001 "Authentication Worktree"
- cd $(abyz-lab-worktree go SPEC-AUTH-001)
+ moai-worktree new SPEC-AUTH-001 "Authentication Worktree"
+ cd $(moai-worktree go SPEC-AUTH-001)
  npm test
  '''
  }
@@ -247,8 +247,8 @@ pipeline {
  stage('Payment Worktree') {
  steps {
  sh '''
- abyz-lab-worktree new SPEC-PAY-001 "Payment Worktree"
- cd $(abyz-lab-worktree go SPEC-PAY-001)
+ moai-worktree new SPEC-PAY-001 "Payment Worktree"
+ cd $(moai-worktree go SPEC-PAY-001)
  npm test
  '''
  }
@@ -259,7 +259,7 @@ pipeline {
  stage('Cleanup') {
  steps {
  sh '''
- abyz-lab-worktree clean --force
+ moai-worktree clean --force
  rm -rf $WORKSPACE/worktrees
  '''
  }
@@ -302,7 +302,7 @@ pipeline {
 
 ### Current Version (1.0.0)
 - Initial release with core worktree management features
-- Integration with ABYZ-Lab-ADK workflow commands
+- Integration with MoAI-ADK workflow commands
 - Comprehensive documentation and examples
 
 ### Future Roadmap
@@ -336,10 +336,10 @@ pipeline {
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/abyz-lab-adk.git
+git clone https://github.com/your-org/moai-adk.git
 
 # Set up development environment
-cd abyz-lab-adk
+cd moai-adk
 pip install -e .
 pip install -r requirements-dev.txt
 
@@ -354,4 +354,4 @@ mkdocs build
 
 Version: 1.0.0
 Last Updated: 2025-11-29
-Reference: External resources and additional learning materials for abyz-lab-worktree
+Reference: External resources and additional learning materials for moai-worktree

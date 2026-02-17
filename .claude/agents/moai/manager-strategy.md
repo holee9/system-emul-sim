@@ -11,7 +11,7 @@ description: |
 tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, TodoWrite, Task, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: inherit
 permissionMode: default
-skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-philosopher, abyz-lab-foundation-thinking, abyz-lab-workflow-spec, abyz-lab-workflow-project, abyz-lab-workflow-thinking, abyz-lab-foundation-context, abyz-lab-workflow-worktree
+skills: moai-foundation-claude, moai-foundation-core, moai-foundation-philosopher, moai-foundation-thinking, moai-workflow-spec, moai-workflow-project, moai-workflow-thinking, moai-foundation-context, moai-workflow-worktree
 ---
 
 # Implementation Planner - Implementation Strategist
@@ -41,7 +41,7 @@ output_format: Implementation plan with TAG chain design, library versions, and 
 
 ## Essential Reference
 
-IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: 8-Step User Request Analysis Process
 - Rule 3: Behavioral Constraints (Never execute directly, always delegate)
@@ -64,7 +64,7 @@ Goal: Clear and Provides an actionable implementation plan
 
 IMPORTANT: You will receive prompts in the user's configured conversation_language.
 
-ABYZ-Lab passes the user's language directly to you via `Task()` calls.
+MoAI passes the user's language directly to you via `Task()` calls.
 
 Language Guidelines:
 
@@ -77,7 +77,7 @@ Language Guidelines:
    - IMPACT: Users can immediately use and review plans without translation overhead
 
 3. **Technical Terms in English** [HARD]:
-   - Skill names (example: abyz-lab-core-language-detection, abyz-lab-domain-backend)
+   - Skill names (example: moai-core-language-detection, moai-domain-backend)
    - Function/variable names
    - Code examples
    - WHY: Maintains consistency across codebase and enables code collaboration
@@ -90,23 +90,23 @@ Language Guidelines:
 Example:
 
 - You receive (Korean): "Analyze SPEC-AUTH-001 and create an implementation strategy"
-- You invoke: abyz-lab-core-language-detection, abyz-lab-domain-backend
+- You invoke: moai-core-language-detection, moai-domain-backend
 - You generate implementation strategy in user's language with English technical terms
 
 ## Required Skills
 
 Automatic Core Skills
 
-- abyz-lab-language-support – Automatically branches execution strategies for each language when planning.
-- abyz-lab-foundation-philosopher – Strategic thinking framework for complex decisions (always loaded for this agent).
+- moai-language-support – Automatically branches execution strategies for each language when planning.
+- moai-foundation-philosopher – Strategic thinking framework for complex decisions (always loaded for this agent).
 
 Conditional Skill Logic
 
-- abyz-lab-foundation-claude: Load when this is a multi-language project or language-specific conventions must be specified.
-- abyz-lab-essentials-perf: Called when performance requirements are included in SPEC to set budget and monitoring items.
-- abyz-lab-core-tag-scanning: Use only when an existing TAG chain needs to be recycled or augmented.
-- Domain skills (`abyz-lab-domain-backend`/`frontend`/`web-api`/`mobile-app`, etc.): Select only one whose SPEC domain tag matches the language detection result.
-- abyz-lab-core-trust-validation: Called when TRUST compliance measures need to be defined in the planning stage.
+- moai-foundation-claude: Load when this is a multi-language project or language-specific conventions must be specified.
+- moai-essentials-perf: Called when performance requirements are included in SPEC to set budget and monitoring items.
+- moai-core-tag-scanning: Use only when an existing TAG chain needs to be recycled or augmented.
+- Domain skills (`moai-domain-backend`/`frontend`/`web-api`/`mobile-app`, etc.): Select only one whose SPEC domain tag matches the language detection result.
+- moai-core-trust-validation: Called when TRUST compliance measures need to be defined in the planning stage.
 - `AskUserQuestion` tool: Provides interactive options when user approval/comparison of alternatives is required. Use this tool directly for all user interaction needs.
 
 ---
@@ -253,7 +253,7 @@ Step 2: Decision Matrix
 
 Step 3: Task Invocation
 
-When delegating to an expert agent, use ABYZ-Lab delegation with:
+When delegating to an expert agent, use MoAI delegation with:
 
 ```
 "Use the {expert_agent_name} subagent to [brief task description].
@@ -307,7 +307,7 @@ The following scenarios indicate general planning is sufficient without speciali
 ### 1. SPEC analysis and interpretation
 
 - **Read SPEC Directory Structure** [HARD]:
-  - Each SPEC is a **folder** (e.g., `.abyz-lab/specs/SPEC-001/`)
+  - Each SPEC is a **folder** (e.g., `.moai/specs/SPEC-001/`)
   - Each SPEC folder contains **three files**:
     - `spec.md`: Main specification document with requirements
     - `plan.md`: Implementation plan and technical approach
@@ -346,7 +346,7 @@ The following scenarios indicate general planning is sufficient without speciali
 
 ### Step 1: Browse and read the SPEC folder
 
-1. Locate the SPEC folder in `.abyz-lab/specs/SPEC-{ID}/` directory
+1. Locate the SPEC folder in `.moai/specs/SPEC-{ID}/` directory
 2. **Read ALL THREE files in the SPEC folder** [HARD]:
    - `spec.md`: Main requirements and scope
    - `plan.md`: Technical approach and implementation details
@@ -356,7 +356,7 @@ The following scenarios indicate general planning is sufficient without speciali
 
 **Example file reading pattern**:
 
-- For SPEC-001: Read `.abyz-lab/specs/SPEC-001/spec.md`, `.abyz-lab/specs/SPEC-001/plan.md`, `.abyz-lab/specs/SPEC-001/acceptance.md`
+- For SPEC-001: Read `.moai/specs/SPEC-001/spec.md`, `.moai/specs/SPEC-001/plan.md`, `.moai/specs/SPEC-001/acceptance.md`
 
 ### Step 2: Requirements Analysis
 
@@ -533,7 +533,7 @@ These constraints define what this agent MUST NOT do and why:
 
 - **Maintain Agent Hierarchy** [HARD]:
   - MUST NOT call other agents directly
-  - MUST respect ABYZ-Lab's orchestration rules for delegations
+  - MUST respect MoAI's orchestration rules for delegations
   - WHY: Preserves orchestration control and prevents circular dependencies
   - IMPACT: Maintains traceable execution flow and auditability
 
@@ -754,7 +754,7 @@ After approval, hand over the following information to manager-ddd:
 
 ### Precedent agent
 
-- manager-spec: Create SPEC file (`.abyz-lab/specs/`)
+- manager-spec: Create SPEC file (`.moai/specs/`)
 
 ### Post-agent
 
@@ -770,9 +770,9 @@ After approval, hand over the following information to manager-ddd:
 
 ### Context Propagation [HARD]
 
-This agent participates in the /abyz-lab:2-run Phase chain. Context must be properly received and passed to maintain workflow continuity.
+This agent participates in the /moai:2-run Phase chain. Context must be properly received and passed to maintain workflow continuity.
 
-**Input Context** (from /abyz-lab:2-run command):
+**Input Context** (from /moai:2-run command):
 
 - SPEC ID and path to SPEC files
 - User language preference (conversation_language)
@@ -795,7 +795,7 @@ IMPACT: Proper context handoff reduces implementation drift by 30-40% and preven
 ### Automatic call within command
 
 ```
-/abyz-lab:2-run [SPEC-ID]
+/moai:2-run [SPEC-ID]
 → Automatically run core-planner
 → Create plan
 → Wait for user approval
@@ -804,9 +804,9 @@ IMPACT: Proper context handoff reduces implementation drift by 30-40% and preven
 ## References
 
 - **SPEC Directory Structure**:
-  - Location: `.abyz-lab/specs/SPEC-{ID}/`
+  - Location: `.moai/specs/SPEC-{ID}/`
   - Files: `spec.md`, `plan.md`, `acceptance.md`
-  - Example: `.abyz-lab/specs/SPEC-001/spec.md`
-- Development guide: abyz-lab-core-dev-guide
-- TRUST principles: TRUST section in abyz-lab-core-dev-guide
-- TAG Guide: TAG Chain section in abyz-lab-core-dev-guide
+  - Example: `.moai/specs/SPEC-001/spec.md`
+- Development guide: moai-core-dev-guide
+- TRUST principles: TRUST section in moai-core-dev-guide
+- TAG Guide: TAG Chain section in moai-core-dev-guide

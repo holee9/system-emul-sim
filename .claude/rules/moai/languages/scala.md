@@ -49,7 +49,7 @@ Version: Scala 3.4+
 - Use mock libraries sparingly
 - Test effect types properly
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-scala") for detailed patterns
+- Use Skill("moai-lang-scala") for detailed patterns
 - Follow TRUST 5 quality gates

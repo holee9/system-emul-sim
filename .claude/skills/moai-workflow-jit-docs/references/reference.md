@@ -1,4 +1,4 @@
-# abyz-lab-workflow-jit-docs Reference
+# moai-workflow-jit-docs Reference
 
 ## API Reference
 
@@ -80,8 +80,8 @@ Quality Scoring:
 ### Source Configuration
 
 Local Documentation Paths:
-- `.abyz-lab/docs/`: Project-specific documentation
-- `.abyz-lab/specs/`: Requirements and specifications
+- `.moai/docs/`: Project-specific documentation
+- `.moai/specs/`: Requirements and specifications
 - `README.md`: General project information
 - `CHANGELOG.md`: Version history
 - `docs/`: Comprehensive documentation directory
@@ -282,10 +282,10 @@ Low-Quality Sources:
 
 ### Related Skills
 
-- `abyz-lab-docs-generation`: Generate documentation
-- `abyz-lab-workflow-docs`: Documentation workflows
-- `abyz-lab-library-nextra`: Nextra documentation sites
-- `abyz-lab-foundation-context`: Token budget management
+- `moai-docs-generation`: Generate documentation
+- `moai-workflow-docs`: Documentation workflows
+- `moai-library-nextra`: Nextra documentation sites
+- `moai-foundation-context`: Token budget management
 
 ### Performance Optimization
 

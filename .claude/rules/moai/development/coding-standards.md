@@ -1,13 +1,13 @@
 ---
 paths:
   - ".claude/**/*"
-  - ".abyz-lab/**/*"
+  - ".moai/**/*"
   - "CLAUDE.md"
 ---
 
 # Coding Standards
 
-ABYZ-Lab-specific coding standards. General coding conventions are not included as Claude already knows them.
+MoAI-specific coding standards. General coding conventions are not included as Claude already knows them.
 
 ## Language Policy
 
@@ -17,7 +17,7 @@ All instruction documents must be in English:
 - Slash commands (.claude/commands/**/*.md)
 - Skill definitions (.claude/skills/**/*.md)
 - Hook scripts (.claude/hooks/**/*.py, *.sh)
-- Configuration files (.abyz-lab/config/**/*.yaml)
+- Configuration files (.moai/config/**/*.yaml)
 
 User-facing documentation may use multiple languages:
 - README.md, CHANGELOG.md
@@ -28,7 +28,7 @@ User-facing documentation may use multiple languages:
 CLAUDE.md must not exceed 40,000 characters.
 
 When approaching limit:
-- Move detailed content to .claude/rules/abyz-lab/
+- Move detailed content to .claude/rules/moai/
 - Use @import references
 - Keep only core identity and hard rules in CLAUDE.md
 

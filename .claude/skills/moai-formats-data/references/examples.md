@@ -28,7 +28,7 @@ json_output = json.dumps(user_data)
 
 **Output**:
 ```python
-from abyz-lab_formats_data import TOONEncoder
+from moai_formats_data import TOONEncoder
 from datetime import datetime
 
 class TOONEncoder:
@@ -140,7 +140,7 @@ with open('large_dataset.json', 'r') as f:
 
 **Output**:
 ```python
-from abyz-lab_formats_data import JSONOptimizer, StreamProcessor
+from moai_formats_data import JSONOptimizer, StreamProcessor
 import orjson
 from typing import Iterator, Dict, Any, Callable
 from pathlib import Path
@@ -268,7 +268,7 @@ print(f"Total balance: {total}")
 
 **Output**:
 ```python
-from abyz-lab_formats_data import DataValidator, SchemaEvolution
+from moai_formats_data import DataValidator, SchemaEvolution
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 import re

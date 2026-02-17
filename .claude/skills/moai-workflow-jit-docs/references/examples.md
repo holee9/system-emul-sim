@@ -14,7 +14,7 @@
 user_query = "FastAPI에서 JWT 인증을 어떻게 구현하나요?"
 
 # JIT 스킬 호출
-Skill("abyz-lab-workflow-jit-docs")
+Skill("moai-workflow-jit-docs")
 ```
 
 **Output**:
@@ -45,7 +45,7 @@ docs_loaded = [
     },
     {
         "source": "Project Local",
-        "title": ".abyz-lab/docs/authentication-patterns.md",
+        "title": ".moai/docs/authentication-patterns.md",
         "relevance": 0.88
     },
     {

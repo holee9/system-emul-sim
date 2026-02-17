@@ -8,7 +8,7 @@ Generate documentation in multiple formats using established tools: static site 
 
 ### Nextra (Next.js)
 
-Reference Skill("abyz-lab-library-nextra") for comprehensive patterns.
+Reference Skill("moai-library-nextra") for comprehensive patterns.
 
 Key features:
 - MDX support for React components in Markdown

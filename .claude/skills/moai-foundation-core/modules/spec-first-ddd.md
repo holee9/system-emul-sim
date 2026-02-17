@@ -9,15 +9,15 @@ Last Updated: 2026-01-17
 
 ## Quick Reference (30 seconds)
 
-SPEC-First DDD is ABYZ-Lab-ADK's development methodology combining:
+SPEC-First DDD is MoAI-ADK's development methodology combining:
 
-1. SPEC Generation - EARS format requirements (/abyz-lab:1-plan)
-2. Domain-Driven Development - ANALYZE-PRESERVE-IMPROVE (/abyz-lab:2-run)
-3. Documentation Sync - Auto-generated docs (/abyz-lab:3-sync)
+1. SPEC Generation - EARS format requirements (/moai:1-plan)
+2. Domain-Driven Development - ANALYZE-PRESERVE-IMPROVE (/moai:2-run)
+3. Documentation Sync - Auto-generated docs (/moai:3-sync)
 
 Three-Phase Workflow:
 ```
-Phase 1: SPEC → spec-builder → .abyz-lab/specs/SPEC-XXX/spec.md
+Phase 1: SPEC → spec-builder → .moai/specs/SPEC-XXX/spec.md
 Phase 2: DDD  → ddd-implementer → Code + Tests (≥85% coverage)
 Phase 3: Docs → docs-manager → API docs + diagrams
 ```
@@ -48,10 +48,10 @@ Purpose: Define clear, testable requirements in EARS format before coding.
 Workflow:
 ```bash
 # 1. Generate SPEC
-/abyz-lab:1-plan "Implement user authentication with JWT tokens"
+/moai:1-plan "Implement user authentication with JWT tokens"
 
 # 2. spec-builder creates:
-.abyz-lab/specs/SPEC-001/
+.moai/specs/SPEC-001/
     spec.md           # EARS format requirements
     acceptance.md     # Acceptance criteria
     complexity.yaml   # Complexity analysis
@@ -133,10 +133,10 @@ pytest tests/auth/test_registration.py --cov=src/auth/registration --cov-report=
 Workflow:
 ```bash
 # 1. Generate documentation
-/abyz-lab:3-sync SPEC-001
+/moai:3-sync SPEC-001
 
 # 2. docs-manager creates:
-.abyz-lab/specs/SPEC-001/
+.moai/specs/SPEC-001/
     docs/
         api.md           # API reference
         architecture.md  # Architecture diagram
@@ -164,12 +164,12 @@ Agents:
 - docs-manager - Documentation generation
 
 Skills:
-- abyz-lab-workflow-testing - Test frameworks
+- moai-workflow-testing - Test frameworks
 
 Commands:
-- /abyz-lab:1-plan - SPEC generation (Phase 1)
-- /abyz-lab:2-run - DDD implementation (Phase 2)
-- /abyz-lab:3-sync - Documentation sync (Phase 3)
+- /moai:1-plan - SPEC generation (Phase 1)
+- /moai:2-run - DDD implementation (Phase 2)
+- /moai:3-sync - Documentation sync (Phase 3)
 - /clear - Token optimization between phases
 
 ---

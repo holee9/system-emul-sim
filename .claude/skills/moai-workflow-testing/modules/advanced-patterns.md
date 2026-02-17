@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-testing/advanced-patterns
+name: moai-workflow-testing/advanced-patterns
 description: Advanced Playwright patterns for enterprise web testing, visual regression, E2E orchestration
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-workflow-feedback
+name: moai-workflow-feedback
 description: >
   Collects user feedback, bug reports, or feature suggestions and creates
   GitHub issues automatically via the manager-quality agent. Supports bug
@@ -15,13 +15,13 @@ metadata:
   updated: "2026-02-07"
   tags: "feedback, bug-report, feature-request, github-issues, quality"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["feedback", "bug", "issue", "suggestion", "report", "feature request"]
   agents: ["manager-quality"]
@@ -86,14 +86,14 @@ Pass to manager-quality:
 
 ### Issue Creation Command
 
-The manager-quality agent executes: gh issue create --repo modu-ai/abyz-lab-adk
+The manager-quality agent executes: gh issue create --repo modu-ai/moai-adk
 
 Issue body uses a consistent template including:
 
 - Feedback type header
 - Description content
 - Priority level
-- Environment information (ABYZ-Lab version, OS)
+- Environment information (MoAI version, OS)
 
 ### Result Reporting
 
@@ -122,7 +122,7 @@ Use AskUserQuestion after successful submission:
 
 This workflow uses simple sequential execution (no parallelism needed):
 
-- Phase 1 collects all user input at ABYZ-Lab orchestrator level
+- Phase 1 collects all user input at MoAI orchestrator level
 - Phase 2 delegates to manager-quality with complete context
 - Single agent handles the entire submission process
 - Typical execution completes in under 30 seconds
@@ -133,7 +133,7 @@ Resume support: Not applicable (atomic operation).
 
 ## Agent Chain Summary
 
-- Phase 1: ABYZ-Lab orchestrator (AskUserQuestion for feedback collection)
+- Phase 1: MoAI orchestrator (AskUserQuestion for feedback collection)
 - Phase 2: manager-quality subagent (GitHub issue creation via gh CLI)
 
 ---

@@ -1,12 +1,12 @@
 ---
-name: abyz-lab-foundation-philosopher
+name: moai-foundation-philosopher
 description: >
   Strategic thinking framework integrating First Principles Analysis, Stanford Design
   Thinking, and MIT Systems Engineering for deeper problem-solving.
   Use when performing architecture decisions, technology selection trade-offs,
   root cause analysis, cognitive bias detection, or first principles decomposition.
-  Do NOT use for code quality validation (use abyz-lab-foundation-quality instead)
-  or implementation workflows (use abyz-lab-workflow-ddd instead).
+  Do NOT use for code quality validation (use moai-foundation-quality instead)
+  or implementation workflows (use moai-workflow-ddd instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
 allowed-tools: Read Grep Glob mcp__context7__resolve-library-id mcp__context7__get-library-docs
@@ -19,13 +19,13 @@ metadata:
   modularized: "true"
   tags: "foundation, strategic-thinking, first-principles, trade-off-analysis, cognitive-bias, decision-making"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords:
     - "architecture"
@@ -57,7 +57,7 @@ triggers:
     - "plan"
 ---
 
-# ABYZ-Lab Foundation Philosopher
+# MoAI Foundation Philosopher
 
 Strategic thinking framework that promotes deeper analysis over quick calculations. Integrates three proven methodologies for systematic problem-solving.
 
@@ -238,10 +238,10 @@ IMPACT: Bias checking prevents 20-30% of flawed technical decisions.
 
 ## Advanced Implementation (10+ minutes)
 
-### Integration with ABYZ-Lab Workflow
+### Integration with MoAI Workflow
 
 SPEC Phase Integration:
-- Apply Assumption Audit during /abyz-lab:1-plan
+- Apply Assumption Audit during /moai:1-plan
 - Document assumptions in spec.md Problem Analysis section
 - Include alternative approaches considered in plan.md
 - Define validation criteria in acceptance.md
@@ -318,14 +318,14 @@ Agents:
 - manager-quality: Code review bias checking
 
 Skills:
-- abyz-lab-foundation-core: Integration with TRUST 5 and SPEC workflow
-- abyz-lab-workflow-spec: Assumption documentation in SPEC format
-- abyz-lab-domain-backend: Technology-specific trade-off criteria
-- abyz-lab-domain-frontend: UI/UX decision frameworks
+- moai-foundation-core: Integration with TRUST 5 and SPEC workflow
+- moai-workflow-spec: Assumption documentation in SPEC format
+- moai-domain-backend: Technology-specific trade-off criteria
+- moai-domain-frontend: UI/UX decision frameworks
 
 Commands:
-- /abyz-lab:1-plan: Apply Philosopher Framework during specification
-- /abyz-lab:2-run: Reference documented trade-offs during implementation
+- /moai:1-plan: Apply Philosopher Framework during specification
+- /moai:2-run: Reference documented trade-offs during implementation
 
 ---
 

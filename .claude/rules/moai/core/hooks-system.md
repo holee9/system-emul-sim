@@ -113,38 +113,38 @@ Define hooks in `.claude/settings.json`:
   "hooks": {
     "SessionStart": [{
       "type": "command",
-      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-session-start.sh\"",
+      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-session-start.sh\"",
       "timeout": 5
     }],
     "PreCompact": [{
-      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-compact.sh\"",
+      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-compact.sh\"",
       "timeout": 5
     }],
     "PreToolUse": [{
       "matcher": "Write|Edit|Bash",
-      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-pre-tool.sh\"",
+      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-pre-tool.sh\"",
       "timeout": 5
     }],
     "PostToolUse": [{
       "matcher": "Write|Edit",
-      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-post-tool.sh\"",
+      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-post-tool.sh\"",
       "timeout": 60
     }],
     "Stop": [{
-      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-stop.sh\"",
+      "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-stop.sh\"",
       "timeout": 5
     }],
     "TeammateIdle": [{
       "hooks": [{
         "type": "command",
-        "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\"",
+        "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\"",
         "timeout": 10
       }]
     }],
     "TaskCompleted": [{
       "hooks": [{
         "type": "command",
-        "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\"",
+        "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\"",
         "timeout": 10
       }]
     }]
@@ -158,34 +158,34 @@ Hooks support `$CLAUDE_PROJECT_DIR` and `$HOME` environment variables:
 
 ```json
 {
-  "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/hook.sh\""
+  "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/hook.sh\""
 }
 ```
 
 **Important**: Quote the entire path to handle project folders with spaces:
-- Correct: `"\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/hook.sh\""`
-- Wrong: `"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/hook.sh"`
+- Correct: `"\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/hook.sh\""`
+- Wrong: `"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/hook.sh"`
 
 For StatusLine path configuration, see @settings-management.md (StatusLine does NOT support environment variables).
 
 ## Hook Wrappers
 
-ABYZ-Lab-ADK generates hook wrapper scripts during `abyz-lab init` that:
+MoAI-ADK generates hook wrapper scripts during `moai init` that:
 
 1. Read stdin JSON from Claude Code
-2. Forward it to the abyz-lab binary via `abyz-lab hook <event>` command
-3. Support multiple abyz-lab binary locations:
-   - `abyz-lab` command in PATH
+2. Forward it to the moai binary via `moai hook <event>` command
+3. Support multiple moai binary locations:
+   - `moai` command in PATH
    - Detected Go bin path from initialization
-   - Default `~/go/bin/abyz-lab`
+   - Default `~/go/bin/moai`
 
 Wrapper scripts are located at:
-- `.claude/hooks/abyz-lab/handle-session-start.sh`
-- `.claude/hooks/abyz-lab/handle-compact.sh`
-- `.claude/hooks/abyz-lab/handle-pre-tool.sh`
-- `.claude/hooks/abyz-lab/handle-post-tool.sh`
-- `.claude/hooks/abyz-lab/handle-stop.sh`
-- `.claude/hooks/abyz-lab/handle-agent-hook.sh`: TeammateIdle, TaskCompleted events (team mode)
+- `.claude/hooks/moai/handle-session-start.sh`
+- `.claude/hooks/moai/handle-compact.sh`
+- `.claude/hooks/moai/handle-pre-tool.sh`
+- `.claude/hooks/moai/handle-post-tool.sh`
+- `.claude/hooks/moai/handle-stop.sh`
+- `.claude/hooks/moai/handle-agent-hook.sh`: TeammateIdle, TaskCompleted events (team mode)
 
 ## Rules
 
@@ -213,9 +213,9 @@ Wrapper scripts are located at:
 - Do not store secrets in hook scripts
 - Agent hooks (type: "agent") have read-only tool access (Read, Grep, Glob)
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Skill("abyz-lab-foundation-claude") for detailed patterns
+- Skill("moai-foundation-claude") for detailed patterns
 - Hook scripts must follow coding-standards.md
 - Hook wrappers are managed by `internal/hook/` package
 - TeammateIdle and TaskCompleted hooks are critical for Agent Teams quality enforcement

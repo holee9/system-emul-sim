@@ -6,7 +6,7 @@ version: 1.2.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
-author: ABYZ-Lab Agent (analyst)
+author: MoAI Agent (analyst)
 priority: high
 milestone: M3
 gate_week: W16
@@ -16,7 +16,7 @@ gate_week: W16
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for SoC firmware |
+| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for SoC firmware |
 | 1.1.0 | 2026-02-17 | spec-fw agent | Completed missing sections, added 10 requirements, created acceptance.md and plan.md, approved |
 
 ---
@@ -754,11 +754,11 @@ int gpio_get_status_input(uint8_t pin, bool *state);
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for SoC firmware |
+| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for SoC firmware |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed REQ-FW-001: Linux 5.15+ corrected to Linux 6.6.52 (Variscite BSP imx-6.6.52-2.2.0-v1.3, Yocto Scarthgap 5.0 LTS) |
 | 1.1.0 | 2026-02-17 | spec-fw agent | Added Security (REQ-FW-100-102), Diagnostics (REQ-FW-110-112), Daemon Lifecycle (REQ-FW-120-121), Configuration Validation (REQ-FW-130-131) sections. Fixed AC-FW-003 magic number to 0xD7E01234. Created acceptance.md and plan.md. Status: approved |
-| 1.2.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-003: Added Command Protocol section (REQ-FW-025–028) covering magic values 0xBEEFCAFE/0xCAFEBEEF, frame format, sequence replay protection. Renumbered subsequent sections (4→6 through 14→16) to accommodate new section 4. |
-| 1.3.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-008: Added BMI160 IMU HAL section (REQ-FW-140~142, AC-FW-009) - IN SCOPE Phase 3 (W23-W28). MAJOR-009: Added PCA9534 GPIO HAL section (REQ-FW-150~152, AC-FW-010) - IN SCOPE Phase 2 (W9-W22). Updated Scope table, Definitions, Development Methodology, Dependencies, Risks (R-FW-004~005). |
+| 1.2.0 | 2026-02-17 | MoAI Agent | MAJOR-003: Added Command Protocol section (REQ-FW-025–028) covering magic values 0xBEEFCAFE/0xCAFEBEEF, frame format, sequence replay protection. Renumbered subsequent sections (4→6 through 14→16) to accommodate new section 4. |
+| 1.3.0 | 2026-02-17 | MoAI Agent | MAJOR-008: Added BMI160 IMU HAL section (REQ-FW-140~142, AC-FW-009) - IN SCOPE Phase 3 (W23-W28). MAJOR-009: Added PCA9534 GPIO HAL section (REQ-FW-150~152, AC-FW-010) - IN SCOPE Phase 2 (W9-W22). Updated Scope table, Definitions, Development Methodology, Dependencies, Risks (R-FW-004~005). |
 
 ---
 

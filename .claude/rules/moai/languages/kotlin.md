@@ -49,7 +49,7 @@ Version: Kotlin 2.0+
 - Use Kotest for property-based testing
 - Use Testcontainers for integration tests
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-kotlin") for detailed patterns
+- Use Skill("moai-lang-kotlin") for detailed patterns
 - Follow TRUST 5 quality gates

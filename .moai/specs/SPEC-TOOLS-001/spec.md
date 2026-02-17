@@ -6,7 +6,7 @@ version: 1.0.0
 status: approved
 created: 2026-02-17
 updated: 2026-02-17
-author: ABYZ-Lab Agent (analyst)
+author: MoAI Agent (analyst)
 priority: medium
 milestone: M5
 gate_week: W23
@@ -16,7 +16,7 @@ gate_week: W23
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for development tools |
+| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for development tools |
 
 ---
 
@@ -493,7 +493,7 @@ All tools are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per quality.y
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for development tools |
+| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial SPEC creation for development tools |
 
 ---
 

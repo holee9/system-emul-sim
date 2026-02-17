@@ -50,7 +50,7 @@ Version: Ruby 3.3+
 - Use VCR for HTTP recording
 - Use database_cleaner for isolation
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-ruby") for detailed patterns
+- Use Skill("moai-lang-ruby") for detailed patterns
 - Follow TRUST 5 quality gates

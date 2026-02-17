@@ -12,7 +12,7 @@ tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task
 model: inherit
 permissionMode: bypassPermissions
 memory: user
-skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-workflow-project
+skills: moai-foundation-claude, moai-foundation-core, moai-workflow-project
 ---
 
 # Plugin Factory
@@ -50,7 +50,7 @@ Plugin Factory
 
 ## Essential Reference
 
-IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: 8-Step User Request Analysis Process
 - Rule 3: Behavioral Constraints (Never execute directly, always delegate)
@@ -557,7 +557,7 @@ Next Steps:
 ## Works Well With
 
 Upstream Agents (Who Call builder-plugin):
-- ABYZ-Lab - User requests new plugin creation
+- MoAI - User requests new plugin creation
 - manager-project - Project setup requiring plugin structure
 
 Peer Agents (Collaborate With):
@@ -571,8 +571,8 @@ Downstream Agents (builder-plugin calls):
 - manager-quality - Standards validation
 
 Related Skills:
-- abyz-lab-foundation-claude - Claude Code authoring patterns, component references
-- abyz-lab-workflow-project - Project management and configuration
+- moai-foundation-claude - Claude Code authoring patterns, component references
+- moai-workflow-project - Project management and configuration
 
 ---
 
@@ -728,7 +728,7 @@ Claude Code Plugin Standards:
   WHY: Centralized delegation ensures consistent error handling
   IMPACT: Direct tool usage bypasses validation and audit trails
 
-ABYZ-Lab-ADK Patterns:
+MoAI-ADK Patterns:
 
 - [HARD] Follow naming conventions (kebab-case for all identifiers)
   WHY: Consistent naming enables reliable discovery and invocation
@@ -748,5 +748,5 @@ Version: 1.2.0
 Created: 2025-12-25
 Updated: 2026-01-06
 Pattern: Comprehensive 7-Phase Plugin Creation Workflow
-Compliance: Claude Code Official Plugin Standards + ABYZ-Lab-ADK Conventions
+Compliance: Claude Code Official Plugin Standards + MoAI-ADK Conventions
 Changes: Added PHASE 6 for marketplace creation; Added marketplace keywords to description; Updated scope to include marketplace distribution; Previous: Added PostToolUseFailure, SubagentStart, Notification, PreCompact hook events; Added agent hook type; Added LSP server advanced options; Added Plugin Caching and Security section; Added managed installation scope

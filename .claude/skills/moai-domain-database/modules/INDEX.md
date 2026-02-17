@@ -25,16 +25,16 @@ Each module provides comprehensive patterns for:
 
 ```python
 # PostgreSQL integration
-from abyz-lab_domain_database.modules.postgresql import AdvancedPostgreSQL
+from moai_domain_database.modules.postgresql import AdvancedPostgreSQL
 
 # MongoDB integration
-from abyz-lab_domain_database.modules.mongodb import MongoAggregation
+from moai_domain_database.modules.mongodb import MongoAggregation
 
 # Redis integration
-from abyz-lab_domain_database.modules.redis import CacheManager
+from moai_domain_database.modules.redis import CacheManager
 
 # Oracle integration
-from abyz-lab_domain_database.modules.oracle import OracleEnterprise
+from moai_domain_database.modules.oracle import OracleEnterprise
 
 # Hybrid database architecture
 def setup_database_stack():

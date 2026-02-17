@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-library-mermaid
+name: moai-library-mermaid
 description: >
   Enterprise Mermaid diagramming skill for Claude Code using MCP Playwright. Use when
   creating architecture diagrams, flowcharts, sequence diagrams, or visual documentation.
@@ -15,7 +15,7 @@ metadata:
   updated: "2026-01-11"
   tags: "library, mermaid, diagrams, flowchart, sequence, visualization, documentation"
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["diagram", "flowchart", "sequence", "architecture", "mermaid", "visualization", "chart", "graph"]
 ---
@@ -26,7 +26,7 @@ Mermaid Diagram Expert v7.1.0 - Pure skill-based Mermaid rendering for Claude Co
 
 This skill provides complete Mermaid 11.12.2 syntax for all 21 diagram types, MCP Playwright integration for rendering SVG and PNG outputs, ready-to-use examples and reference documentation, and enterprise diagram patterns with best practices.
 
-To invoke this skill, use the standard skill invocation pattern with the skill name abyz-lab-library-mermaid.
+To invoke this skill, use the standard skill invocation pattern with the skill name moai-library-mermaid.
 
 ### Supported Diagram Types
 
@@ -90,13 +90,13 @@ Organization practices recommend grouping related diagrams in directories, using
 
 ## Advanced Patterns
 
-### Integration with ABYZ-Lab-ADK
+### Integration with MoAI-ADK
 
 This skill is designed for use within Claude Code during various development phases:
 
-During the architecture phase with the abyz-lab:1-plan command, create system design diagrams to visualize proposed solutions and component relationships.
+During the architecture phase with the moai:1-plan command, create system design diagrams to visualize proposed solutions and component relationships.
 
-During the documentation phase with the abyz-lab:3-sync command, generate visual documentation including flowcharts, sequence diagrams, and architecture overviews.
+During the documentation phase with the moai:3-sync command, generate visual documentation including flowcharts, sequence diagrams, and architecture overviews.
 
 During code review phases, use diagrams to communicate system design visually and highlight areas of concern or proposed changes.
 
@@ -132,8 +132,8 @@ This skill integrates with several agents and other skills:
 
 Agents that work well with this skill include workflow-docs for documentation with diagrams, workflow-spec for SPEC diagrams and requirements visualization, and design-uiux for architecture visualization and interface documentation.
 
-Skills that complement this skill include abyz-lab-docs-generation for comprehensive documentation generation, abyz-lab-workflow-docs for diagram validation and documentation workflows, and abyz-lab-library-nextra for architecture documentation sites.
+Skills that complement this skill include moai-docs-generation for comprehensive documentation generation, moai-workflow-docs for diagram validation and documentation workflows, and moai-library-nextra for architecture documentation sites.
 
-Commands that utilize this skill include abyz-lab:3-sync for documentation with embedded diagrams and abyz-lab:1-plan for SPEC creation with visual architecture diagrams.
+Commands that utilize this skill include moai:3-sync for documentation with embedded diagrams and moai:1-plan for SPEC creation with visual architecture diagrams.
 
 Focus: Pure skill-based Mermaid rendering with MCP Playwright integration

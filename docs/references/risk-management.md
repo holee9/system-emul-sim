@@ -3,7 +3,7 @@
 **Document Version**: 1.0.0
 **Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
-**Author**: ABYZ-Lab Documentation Agent
+**Author**: MoAI Documentation Agent
 **Framework**: ISO 14971 (Medical Device Risk Management)
 
 ---
@@ -603,6 +603,6 @@ No additional corrections required in this review cycle. The previous review (ma
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Documentation Agent | Initial document creation |
+| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
 | 1.0.1 | 2026-02-17 | manager-quality | Approved with corrections. R-002 bandwidth claim corrected (400M supports up to 2048x2048@15fps, not 30fps). |
 | 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No additional technical corrections. Added Review Notes and Revision History. |

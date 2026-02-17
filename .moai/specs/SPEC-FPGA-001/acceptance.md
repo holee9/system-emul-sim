@@ -706,7 +706,7 @@ And the new lane speed shall be verified via throughput measurement
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (spec-fpga) | Initial acceptance criteria for SPEC-FPGA-001 |
+| 1.0.0 | 2026-02-17 | MoAI Agent (spec-fpga) | Initial acceptance criteria for SPEC-FPGA-001 |
 
 ---
 

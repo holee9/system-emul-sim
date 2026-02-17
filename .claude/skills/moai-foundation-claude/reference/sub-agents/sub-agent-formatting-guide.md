@@ -126,7 +126,7 @@ Required Components:
 3. "CRITICAL: This agent MUST be invoked via Task(subagent_type='...')" clause
 
 Examples:
-- `Use PROACTIVELY for backend architecture, API design, server implementation, database integration, or microservices architecture. Called from /abyz-lab:1-plan and task delegation workflows. CRITICAL: This agent MUST be invoked via Task(subagent_type='code-backend') - NEVER executed directly.`
+- `Use PROACTIVELY for backend architecture, API design, server implementation, database integration, or microservices architecture. Called from /moai:1-plan and task delegation workflows. CRITICAL: This agent MUST be invoked via Task(subagent_type='code-backend') - NEVER executed directly.`
 - `Backend development agent` (too vague, missing required clauses)
 - `Helps with backend stuff` (unprofessional, missing trigger scenarios)
 
@@ -198,10 +198,10 @@ Loading: Skills available automatically, no explicit invocation needed
 Examples:
 ```yaml
 # Load language and domain skills
-skills: abyz-lab-lang-python, abyz-lab-domain-backend, abyz-lab-context7-integration
+skills: moai-lang-python, moai-domain-backend, moai-context7-integration
 
 # Load quality and documentation skills
-skills: abyz-lab-foundation-quality, abyz-lab-docs-generation, abyz-lab-cc-claude-code
+skills: moai-foundation-quality, moai-docs-generation, moai-cc-claude-code
 ```
 
 ---
@@ -334,10 +334,10 @@ Examples: `code-backend`, `code-frontend`, `data-database`
 ```yaml
 ---
 name: code-backend
-description: Use PROACTIVELY for backend architecture, API design, server implementation, database integration, or microservices architecture. Called from /abyz-lab:1-plan and task delegation workflows.
+description: Use PROACTIVELY for backend architecture, API design, server implementation, database integration, or microservices architecture. Called from /moai:1-plan and task delegation workflows.
 tools: Read, Write, Edit, Bash, WebFetch, Grep, Glob, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
-skills: abyz-lab-domain-backend, abyz-lab-essentials-perf, abyz-lab-context7-integration
+skills: moai-domain-backend, moai-essentials-perf, moai-context7-integration
 ---
 
 # Backend Expert 
@@ -360,10 +360,10 @@ Examples: `format-expert`, `support-debug`, `workflow-docs`
 ```yaml
 ---
 name: format-expert
-description: Use PROACTIVELY for code formatting, style consistency, linting configuration, and automated code quality improvements. Called from /abyz-lab:2-run quality gates and task delegation workflows.
+description: Use PROACTIVELY for code formatting, style consistency, linting configuration, and automated code quality improvements. Called from /moai:2-run quality gates and task delegation workflows.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: haiku
-skills: abyz-lab-code-quality, abyz-lab-cc-configuration
+skills: moai-code-quality, moai-cc-configuration
 ---
 
 # Code Format Expert
@@ -386,10 +386,10 @@ Examples: `workflow-ddd`, `agent-factory`, `skill-factory`
 ```yaml
 ---
 name: workflow-ddd
-description: Execute ANALYZE-PRESERVE-IMPROVE DDD cycle for implementing features with behavior preservation. Called from /abyz-lab:2-run SPEC implementation and task delegation workflows.
+description: Execute ANALYZE-PRESERVE-IMPROVE DDD cycle for implementing features with behavior preservation. Called from /moai:2-run SPEC implementation and task delegation workflows.
 tools: Read, Write, Edit, Bash, Grep, Glob, MultiEdit, TodoWrite
 model: sonnet
-skills: abyz-lab-lang-python, abyz-lab-domain-testing, abyz-lab-foundation-quality
+skills: moai-lang-python, moai-domain-testing, moai-foundation-quality
 ---
 
 # DDD Implementation Expert
@@ -412,10 +412,10 @@ Examples: `core-quality`, `security-expert`, `core-quality`
 ```yaml
 ---
 name: core-quality
-description: Validate code quality against TRUST 5 framework (Testable, Readable, Unified, Secured, Trackable). Called from /abyz-lab:2-run quality validation and task delegation workflows.
+description: Validate code quality against TRUST 5 framework (Testable, Readable, Unified, Secured, Trackable). Called from /moai:2-run quality validation and task delegation workflows.
 tools: Read, Grep, Glob, Bash, Write, Edit
 model: sonnet
-skills: abyz-lab-foundation-trust, abyz-lab-code-quality, abyz-lab-security-expert
+skills: moai-foundation-trust, moai-code-quality, moai-security-expert
 ---
 
 # Quality Gate Validator
@@ -888,10 +888,10 @@ Multi-capability Design:
 ```yaml
 ---
 name: full-stack-developer
-description: Use PROACTIVELY for complete application development including frontend, backend, database, and deployment. Called from /abyz-lab:2-run comprehensive implementation and task delegation workflows.
+description: Use PROACTIVELY for complete application development including frontend, backend, database, and deployment. Called from /moai:2-run comprehensive implementation and task delegation workflows.
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, MultiEdit, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
-skills: abyz-lab-domain-backend, abyz-lab-domain-frontend, abyz-lab-domain-database, abyz-lab-devops-expert, abyz-lab-security-expert
+skills: moai-domain-backend, moai-domain-frontend, moai-domain-database, moai-devops-expert, moai-security-expert
 ---
 
 # Full-Stack Developer

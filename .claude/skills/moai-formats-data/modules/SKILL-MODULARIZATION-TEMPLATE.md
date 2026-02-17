@@ -23,7 +23,7 @@ Typical candidates:
 
 Identify distinct technical areas:
 ```python
-# Example for abyz-lab-formats-data:
+# Example for moai-formats-data:
 technical_areas = [
  "TOON encoding implementation",
  "JSON/YAML optimization",
@@ -50,7 +50,7 @@ category: library|domain|integration|workflow
 tags: [3-7 relevant tags]
 updated: YYYY-MM-DD
 status: active|development|deprecated
-author: ABYZ-Lab-ADK Team
+author: MoAI-ADK Team
 ---
 ```
 
@@ -176,7 +176,7 @@ Content quality:
 Main SKILL.md (490 lines):
 ```markdown
 ---
-name: abyz-lab-formats-data
+name: moai-formats-data
 # ... YAML metadata
 ---
 

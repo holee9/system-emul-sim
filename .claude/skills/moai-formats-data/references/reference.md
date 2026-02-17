@@ -8,7 +8,7 @@ Token-Optimized Object Notation encoder for LLM communication.
 
 Initialization:
 ```python
-from abyz-lab_formats_data import TOONEncoder
+from moai_formats_data import TOONEncoder
 
 encoder = TOONEncoder(
     use_type_markers=True,      # Enable type prefix markers
@@ -73,7 +73,7 @@ High-performance JSON processing with orjson.
 
 Initialization:
 ```python
-from abyz-lab_formats_data import JSONOptimizer
+from moai_formats_data import JSONOptimizer
 
 optimizer = JSONOptimizer(
     use_orjson=True,            # Use orjson for performance
@@ -128,7 +128,7 @@ Schema validation with custom rules.
 
 Initialization:
 ```python
-from abyz-lab_formats_data import DataValidator
+from moai_formats_data import DataValidator
 
 validator = DataValidator(
     strict_mode=False,          # Fail on unknown fields
@@ -209,7 +209,7 @@ schema = validator.create_schema({
 Optimized YAML processing.
 
 ```python
-from abyz-lab_formats_data import YAMLOptimizer
+from moai_formats_data import YAMLOptimizer
 
 yaml_optimizer = YAMLOptimizer(
     use_c_loader=True,          # Use LibYAML C extension
@@ -236,7 +236,7 @@ yaml_str = yaml_optimizer.dump_fast(data)
 Memory-efficient large file processing.
 
 ```python
-from abyz-lab_formats_data import StreamProcessor
+from moai_formats_data import StreamProcessor
 
 processor = StreamProcessor(
     chunk_size=8192,            # Read buffer size
@@ -353,7 +353,7 @@ performance:
 ### LLM Data Optimization
 
 ```python
-from abyz-lab_formats_data import TOONEncoder, DataValidator
+from moai_formats_data import TOONEncoder, DataValidator
 
 class LLMDataPreparer:
     def __init__(self, max_tokens: int = 4000):
@@ -393,7 +393,7 @@ class LLMDataPreparer:
 
 ```python
 from fastapi import FastAPI
-from abyz-lab_formats_data import TOONEncoder, JSONOptimizer
+from moai_formats_data import TOONEncoder, JSONOptimizer
 
 app = FastAPI()
 encoder = TOONEncoder()
@@ -433,7 +433,7 @@ async def process_users(request: Request):
 ### Database Integration
 
 ```python
-from abyz-lab_formats_data import JSONOptimizer, DataValidator
+from moai_formats_data import JSONOptimizer, DataValidator
 
 class DatabaseCache:
     def __init__(self, redis_client):

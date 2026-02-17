@@ -715,7 +715,7 @@ MISO  ---( don't care )         | D15..D8 | D7..D0  |---
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (manager-docs) | Complete register map with all address blocks, C code examples, timing diagrams |
+| 1.0.0 | 2026-02-17 | MoAI Agent (manager-docs) | Complete register map with all address blocks, C code examples, timing diagrams |
 
 ---
 

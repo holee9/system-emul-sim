@@ -47,7 +47,7 @@ Project Root/
  commands.md # Command references and patterns
  delegation-patterns.md # Agent delegation strategies
  token-optimization.md # Token budget management
- .abyz-lab/
+ .moai/
  config/ # Configuration management
  config.json # Project settings
  cache/ # Memory cache and optimization
@@ -179,19 +179,19 @@ Command References (`memory/commands.md`):
 ```markdown
 # Command Reference Guide
 
-## Core ABYZ-Lab Commands
+## Core MoAI Commands
 
-- /abyz-lab:0-project: Initialize project structure
-- /abyz-lab:1-plan: Generate SPEC document
-- /abyz-lab:2-run: Execute DDD implementation
-- /abyz-lab:3-sync: Generate documentation
-- /abyz-lab:9-feedback: Collect improvement feedback
+- /moai:0-project: Initialize project structure
+- /moai:1-plan: Generate SPEC document
+- /moai:2-run: Execute DDD implementation
+- /moai:3-sync: Generate documentation
+- /moai:9-feedback: Collect improvement feedback
 
 ## Command Execution Rules
 
-- After /abyz-lab:1-plan: Execute /clear (mandatory)
+- After /moai:1-plan: Execute /clear (mandatory)
 - Token threshold: Execute /clear at >150K tokens
-- Error handling: Use /abyz-lab:9-feedback for all issues
+- Error handling: Use /moai:9-feedback for all issues
 ```
 
 ## Memory Management Strategies
@@ -202,11 +202,11 @@ Project Bootstrap:
 
 ```bash
 # Initialize project memory structure
-/abyz-lab:0-project
+/moai:0-project
 
 # Creates:
-# - .abyz-lab/config/config.yaml
-# - .abyz-lab/memory/ directory
+# - .moai/config/config.yaml
+# - .moai/memory/ directory
 # - CLAUDE.md template
 # - Memory structure files
 ```
@@ -216,8 +216,8 @@ Manual Memory Setup:
 ```bash
 # Create memory directory structure
 mkdir -p .claude/memory
-mkdir -p .abyz-lab/config
-mkdir -p .abyz-lab/cache
+mkdir -p .moai/config
+mkdir -p .moai/cache
 
 # Create initial memory files
 touch .claude/memory/agents.md
@@ -308,7 +308,7 @@ class AgentMemory:
  essential_files = [
  ".claude/memory/execution-rules.md",
  ".claude/memory/agents.md",
- ".abyz-lab/config/config.yaml"
+ ".moai/config/config.yaml"
  ]
 
  for file_path in essential_files:

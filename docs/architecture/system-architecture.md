@@ -476,8 +476,8 @@ Panel Scan FSM
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent | Initial draft based on verified HW (400M/800M CSI-2) |
-| 1.0.1 | 2026-02-17 | ABYZ-Lab Agent (chief-architect) | CRITICAL-2: Renamed performance tiers throughout — Intermediate-A → Mid-A, Intermediate-B → Mid-B, Target (Final) → Target (Final Goal) (§4.1, §4.2, §6.2, §7.1). Also aligned §5.2 SPI Register Map DEVICE_ID from 0xA735 to 0xD7E0_0001 (full 32-bit). |
+| 1.0.0 | 2026-02-17 | MoAI Agent | Initial draft based on verified HW (400M/800M CSI-2) |
+| 1.0.1 | 2026-02-17 | MoAI Agent (chief-architect) | CRITICAL-2: Renamed performance tiers throughout — Intermediate-A → Mid-A, Intermediate-B → Mid-B, Target (Final) → Target (Final Goal) (§4.1, §4.2, §6.2, §7.1). Also aligned §5.2 SPI Register Map DEVICE_ID from 0xA735 to 0xD7E0_0001 (full 32-bit). |
 
 ---
 
@@ -510,4 +510,4 @@ Panel Scan FSM
 - The 10 GbE NIC on VAR-SOM-MX8M-PLUS is labeled "TBD (chip TBD)" in Section 2.2 - this is acknowledged as a W15-W18 validation item, which is acceptable for Phase 1 documentation.
 - Section 8.2 mentions compression as FPGA or SoC implementation - the choice can be deferred to SPEC-SIM-001 phase.
 
-🗿 ABYZ-Lab <email@mo.ai.kr>
+🗿 MoAI <email@mo.ai.kr>

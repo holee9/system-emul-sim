@@ -742,6 +742,6 @@ IT-08 (Simultaneous Connections) -- independent, run anytime
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab | Initial integration test plan |
+| 1.0.0 | 2026-02-17 | MoAI | Initial integration test plan |
 | 1.1.0 | 2026-02-17 | spec-fpga (doc-approval-sprint) | Added interface coverage matrix, test summary table, traceability matrix, pass/fail template, execution order. Enhanced IT-01 with SPI register details. Enhanced IT-04 with sub-tests C (CRC non-fatal), D (Watchdog), restructured E/F/G from IT-07. Enhanced IT-06 with calibration mode (sub-test B) and mode sequence (sub-test C). Enhanced IT-07 with latency spike sub-test. Enhanced IT-08 with disconnect-during-acquisition. Enhanced IT-09 with CRC monitoring and clean shutdown. Enhanced IT-10 with per-sub-test detail and conditional execution rules. Added test decision tree improvements and dependency graph. |
 | 1.2.0 | 2026-02-17 | manager-spec (doc-completion) | Added Bit-Exact Data Integrity Verification section with algorithm, CRC verification chain, test pattern definitions, per-scenario verification matrix. Enhanced IntegrationRunner CLI reference with M3/M4 gate commands, JUnit XML output, environment variables, golden reference generation. |

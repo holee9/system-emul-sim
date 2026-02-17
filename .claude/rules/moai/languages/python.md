@@ -50,7 +50,7 @@ Version: Python 3.13+
 - Use parametrize for test variations
 - Mock external services with pytest-mock
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-python") for detailed patterns
+- Use Skill("moai-lang-python") for detailed patterns
 - Follow TRUST 5 quality gates

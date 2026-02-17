@@ -912,6 +912,6 @@ Attachments:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab | Initial HIL test plan |
-| 2.0.0 | 2026-02-17 | ABYZ-Lab Agent (spec-sim) | Complete rewrite: added hardware setup, pre-test checklist, peripheral tests (A-04 to A-08), golden reference test (B-06), network test (B-07), error recovery tests (C-03 to C-05), troubleshooting guide, traceability matrix, quality gates, report template |
+| 1.0.0 | 2026-02-17 | MoAI | Initial HIL test plan |
+| 2.0.0 | 2026-02-17 | MoAI Agent (spec-sim) | Complete rewrite: added hardware setup, pre-test checklist, peripheral tests (A-04 to A-08), golden reference test (B-06), network test (B-07), error recovery tests (C-03 to C-05), troubleshooting guide, traceability matrix, quality gates, report template |
 | 2.1.0 | 2026-02-17 | spec-fpga (P1 register fix) | Fixed 6 register address errors per fpga-design.md Section 6.3: HIL-B-01 Panel Config 0x60/0x61/0x62 -> 0x50/0x51/0x52, HIL-B-02/B-03 CSI2_LANE_SPEED values 0/1 -> 0x64/0x7D, HIL-B-03/C-03 soft reset 0x00 -> CONTROL 0x21, HIL-B-03 CSI2_STATUS 0x70 -> DATA_IF_STATUS 0x90, HIL-C-03 STATUS 0x04 -> 0x20 and FRAME_COUNTER 0x08 -> 0x30/0x31, HIL-C-03 DEVICE_ID value 0xD7E0 -> 0xA735. Added Go/No-Go 800M Decision Criteria section. Enhanced traceability matrix with IT-03/IT-05/IT-06/IT-07/IT-08/IT-10 cross-references. |

@@ -209,7 +209,7 @@ def load_secure_config() -> dict:
 ### Traceability Matrix
 
 ```yaml
-# .abyz-lab/specs/traceability.yaml
+# .moai/specs/traceability.yaml
 requirements:
   SPEC-001-REQ-01:
     description: "User registration with email/password"

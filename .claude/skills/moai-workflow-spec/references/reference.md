@@ -522,17 +522,17 @@ Technical:
 ```
 User Request
     ↓
-/abyz-lab:1-plan "feature description"
+/moai:1-plan "feature description"
     ↓
 manager-spec creates SPEC-001
     ↓
 /clear (token optimization)
     ↓
-/abyz-lab:2-run SPEC-001
+/moai:2-run SPEC-001
     ↓
 manager-ddd implements with ANALYZE-PRESERVE-IMPROVE
     ↓
-/abyz-lab:3-sync SPEC-001
+/moai:3-sync SPEC-001
     ↓
 manager-docs updates documentation
     ↓
@@ -544,7 +544,7 @@ Feature Complete
 ```
 User Request
     ↓
-/abyz-lab:1-plan "feature1" "feature2" "feature3" --worktree
+/moai:1-plan "feature1" "feature2" "feature3" --worktree
     ↓
 manager-spec creates SPEC-001, SPEC-002, SPEC-003
     ↓
@@ -555,12 +555,12 @@ Git Worktree setup for parallel development
 ┌─────────────┬─────────────┬─────────────┐
 │ Session 1   │ Session 2   │ Session 3   │
 │ SPEC-001    │ SPEC-002    │ SPEC-003    │
-│ /abyz-lab:2-run │ /abyz-lab:2-run │ /abyz-lab:2-run │
+│ /moai:2-run │ /moai:2-run │ /moai:2-run │
 └─────────────┴─────────────┴─────────────┘
     ↓
 Worktree merge to main branch
     ↓
-/abyz-lab:3-sync SPEC-001 SPEC-002 SPEC-003
+/moai:3-sync SPEC-001 SPEC-002 SPEC-003
     ↓
 All Features Complete
 ```
@@ -568,31 +568,31 @@ All Features Complete
 ### Dependency Chain Integration
 
 ```
-/abyz-lab:1-plan "database schema" --branch
+/moai:1-plan "database schema" --branch
     ↓
 SPEC-001 created (foundation)
     ↓
-/abyz-lab:2-run SPEC-001
+/moai:2-run SPEC-001
     ↓
 Database schema implemented
     ↓
-/abyz-lab:1-plan "backend API" --branch
+/moai:1-plan "backend API" --branch
     ↓
 SPEC-002 created (depends on SPEC-001)
     ↓
-/abyz-lab:2-run SPEC-002
+/moai:2-run SPEC-002
     ↓
 Backend API implemented
     ↓
-/abyz-lab:1-plan "frontend UI" --branch
+/moai:1-plan "frontend UI" --branch
     ↓
 SPEC-003 created (depends on SPEC-002)
     ↓
-/abyz-lab:2-run SPEC-003
+/moai:2-run SPEC-003
     ↓
 Frontend UI implemented
     ↓
-/abyz-lab:3-sync SPEC-001 SPEC-002 SPEC-003
+/moai:3-sync SPEC-001 SPEC-002 SPEC-003
     ↓
 Full Stack Feature Complete
 ```
@@ -686,7 +686,7 @@ Full Stack Feature Complete
 
 ### Related Documentation
 
-- ABYZ-Lab-ADK Plan-Run-Sync Workflow: Core methodology documentation
+- MoAI-ADK Plan-Run-Sync Workflow: Core methodology documentation
 - TRUST 5 Framework: Quality assurance and validation framework
 - Git Worktree Documentation: Parallel development environment setup
 - DDD Best Practices: Domain-Driven Development implementation guide

@@ -1,6 +1,6 @@
-# ABYZ-Lab Worktree Examples
+# MoAI Worktree Examples
 
-Purpose: Real-world usage examples and patterns for abyz-lab-worktree skill integration with ABYZ-Lab-ADK workflow.
+Purpose: Real-world usage examples and patterns for moai-worktree skill integration with MoAI-ADK workflow.
 
 Version: 1.0.0
 Last Updated: 2025-11-29
@@ -15,27 +15,27 @@ Scenario: Creating a new SPEC with automatic worktree setup
 
 ```bash
 # Plan Phase - Create SPEC with worktree
-/abyz-lab:1-plan "User Authentication System" --worktree
+/moai:1-plan "User Authentication System" --worktree
 
 # Output:
 # SPEC created: SPEC-AUTH-001
-# Worktree created: .abyz-lab/worktrees/ABYZ-Lab-ADK/SPEC-AUTH-001
+# Worktree created: .moai/worktrees/MoAI-ADK/SPEC-AUTH-001
 #
 # Next steps:
-# 1. Switch to worktree: abyz-lab-worktree switch SPEC-AUTH-001
-# 2. Or use shell eval: eval $(abyz-lab-worktree go SPEC-AUTH-001)
-# 3. Start development: /abyz-lab:2-run SPEC-AUTH-001
+# 1. Switch to worktree: moai-worktree switch SPEC-AUTH-001
+# 2. Or use shell eval: eval $(moai-worktree go SPEC-AUTH-001)
+# 3. Start development: /moai:2-run SPEC-AUTH-001
 
 # Development Phase - Implement in isolated environment
-eval $(abyz-lab-worktree go SPEC-AUTH-001)
-/abyz-lab:2-run SPEC-AUTH-001
+eval $(moai-worktree go SPEC-AUTH-001)
+/moai:2-run SPEC-AUTH-001
 
 # Sync Phase - Synchronize and integrate
-abyz-lab-worktree sync SPEC-AUTH-001
-/abyz-lab:3-sync SPEC-AUTH-001
+moai-worktree sync SPEC-AUTH-001
+/moai:3-sync SPEC-AUTH-001
 
 # Cleanup Phase - Remove completed worktree
-abyz-lab-worktree remove SPEC-AUTH-001
+moai-worktree remove SPEC-AUTH-001
 ```
 
 ### Example 2: Parallel SPEC Development
@@ -44,28 +44,28 @@ Scenario: Working on multiple SPECs simultaneously
 
 ```bash
 # Create multiple worktrees for parallel development
-abyz-lab-worktree new SPEC-AUTH-001 "User Authentication"
-abyz-lab-worktree new SPEC-PAY-001 "Payment Processing"
-abyz-lab-worktree new SPEC-DASH-001 "Dashboard Analytics"
+moai-worktree new SPEC-AUTH-001 "User Authentication"
+moai-worktree new SPEC-PAY-001 "Payment Processing"
+moai-worktree new SPEC-DASH-001 "Dashboard Analytics"
 
 # Switch between worktrees
-abyz-lab-worktree switch SPEC-AUTH-001
+moai-worktree switch SPEC-AUTH-001
 # Work on authentication...
 
-abyz-lab-worktree switch SPEC-PAY-001
+moai-worktree switch SPEC-PAY-001
 # Work on payment system...
 
-abyz-lab-worktree switch SPEC-DASH-001
+moai-worktree switch SPEC-DASH-001
 # Work on dashboard...
 
 # Check status of all worktrees
-abyz-lab-worktree status --all
+moai-worktree status --all
 
 # Sync all worktrees
-abyz-lab-worktree sync --all
+moai-worktree sync --all
 
 # Clean up completed worktrees
-abyz-lab-worktree clean --merged-only
+moai-worktree clean --merged-only
 ```
 
 ### Example 3: Worktree in Development Commands
@@ -73,8 +73,8 @@ abyz-lab-worktree clean --merged-only
 Scenario: Using worktree-aware DDD implementation
 
 ```bash
-# /abyz-lab:2-run automatically detects worktree environment
-/abyz-lab:2-run SPEC-AUTH-001
+# /moai:2-run automatically detects worktree environment
+/moai:2-run SPEC-AUTH-001
 
 # Command behavior in worktree:
 # - Detects worktree: SPEC-AUTH-001
@@ -83,9 +83,9 @@ Scenario: Using worktree-aware DDD implementation
 # - Updates worktree metadata
 
 # Manual worktree management during development
-abyz-lab-worktree status SPEC-AUTH-001
-abyz-lab-worktree sync SPEC-AUTH-001 --include "src/"
-abyz-lab-worktree config get worktree_root
+moai-worktree status SPEC-AUTH-001
+moai-worktree sync SPEC-AUTH-001 --include "src/"
+moai-worktree config get worktree_root
 ```
 
 ---
@@ -98,19 +98,19 @@ Agent Usage: Project initialization with worktree support
 
 ```python
 # In manager-project agent context
-Skill("abyz-lab-worktree") # Load worktree patterns
+Skill("moai-worktree") # Load worktree patterns
 
 # Setup project with worktree support
 project_config = {
  "name": "User Authentication System",
  "worktree_enabled": True,
- "worktree_root": ".abyz-lab/worktrees/UserAuth",
+ "worktree_root": ".moai/worktrees/UserAuth",
  "auto_create_worktree": True
 }
 
 # Create worktree after project setup
 if project_config.get("worktree_enabled"):
- from abyz-lab_worktree import WorktreeManager
+ from moai_worktree import WorktreeManager
 
  worktree_manager = WorktreeManager(
  repo_path=Path.cwd(),
@@ -130,7 +130,7 @@ Agent Usage: Git operations with worktree awareness
 
 ```python
 # In manager-git agent context
-Skill("abyz-lab-worktree") # Load worktree patterns
+Skill("moai-worktree") # Load worktree patterns
 
 def create_feature_branch_with_worktree(spec_id: str, description: str):
  """Create feature branch and associated worktree."""
@@ -149,7 +149,7 @@ def create_feature_branch_with_worktree(spec_id: str, description: str):
  update_worktree_branch(current_worktree, branch_name)
  else:
  # In main repo - create worktree
- from abyz-lab_worktree import WorktreeManager
+ from moai_worktree import WorktreeManager
 
  worktree_manager = WorktreeManager(Path.cwd())
  worktree_manager.create(
@@ -181,20 +181,20 @@ echo " Starting SPEC development workflow for $SPEC_ID"
 
 # Phase 1: Plan (with worktree)
 echo " Phase 1: Creating SPEC and worktree..."
-/abyz-lab:1-plan "$SPEC_DESCRIPTION" --worktree --spec-id "$SPEC_ID"
+/moai:1-plan "$SPEC_DESCRIPTION" --worktree --spec-id "$SPEC_ID"
 
 # Check if worktree was created successfully
-if abyz-lab-worktree list --format json | jq -r ".worktrees[\"$SPEC_ID\"]" > /dev/null; then
+if moai-worktree list --format json | jq -r ".worktrees[\"$SPEC_ID\"]" > /dev/null; then
  echo " Worktree $SPEC_ID created successfully"
 
  # Phase 2: Develop
  echo " Phase 2: Switching to worktree for development..."
- cd $(abyz-lab-worktree go "$SPEC_ID")
+ cd $(moai-worktree go "$SPEC_ID")
 
  # Development loop
  while true; do
  echo " Running DDD implementation..."
- /abyz-lab:2-run "$SPEC_ID"
+ /moai:2-run "$SPEC_ID"
 
  echo " Continue development? (y/n)"
  read -r response
@@ -205,22 +205,22 @@ if abyz-lab-worktree list --format json | jq -r ".worktrees[\"$SPEC_ID\"]" > /de
 
  # Phase 3: Sync
  echo " Phase 3: Synchronizing worktree..."
- abyz-lab-worktree sync "$SPEC_ID"
+ moai-worktree sync "$SPEC_ID"
  cd - # Return to main repository
- /abyz-lab:3-sync "$SPEC_ID"
+ /moai:3-sync "$SPEC_ID"
 
  # Phase 4: Cleanup (optional)
  echo " Phase 4: Clean up options"
  echo "Remove worktree $SPEC_ID? (y/n)"
  read -r cleanup_response
  if [[ "$cleanup_response" =~ ^[Yy]$ ]]; then
- abyz-lab-worktree remove "$SPEC_ID"
+ moai-worktree remove "$SPEC_ID"
  echo " Worktree $SPEC_ID removed"
  fi
 
 else
  echo " Worktree creation failed. Falling back to branch development."
- /abyz-lab:1-plan "$SPEC_DESCRIPTION" --branch --spec-id "$SPEC_ID"
+ /moai:1-plan "$SPEC_DESCRIPTION" --branch --spec-id "$SPEC_ID"
 fi
 
 echo " SPEC development workflow completed for $SPEC_ID"
@@ -240,7 +240,7 @@ PROJECT_NAME="$2"
 echo " Setting up team worktree configuration for $TEAM_NAME"
 
 # Create shared worktree root
-WORKTREE_ROOT=".abyz-lab/worktrees/$PROJECT_NAME"
+WORKTREE_ROOT=".moai/worktrees/$PROJECT_NAME"
 mkdir -p "$WORKTREE_ROOT"
 
 # Configure team registry
@@ -256,11 +256,11 @@ cat > "$WORKTREE_ROOT/.team-config.json" << EOF
 EOF
 
 # Initialize shared registry
-abyz-lab-worktree config set worktree_root "$WORKTREE_ROOT"
-abyz-lab-worktree config set registry_type team
+moai-worktree config set worktree_root "$WORKTREE_ROOT"
+moai-worktree config set registry_type team
 
 echo " Team worktree configuration completed"
-echo "Team members can now join with: abyz-lab-worktree join --team $TEAM_NAME"
+echo "Team members can now join with: moai-worktree join --team $TEAM_NAME"
 ```
 
 ---
@@ -340,7 +340,7 @@ DEBUG=true""",
  }
 
  # Save template
- template_path = Path.home() / ".abyz-lab-worktree/templates" / "fullstack.json"
+ template_path = Path.home() / ".moai-worktree/templates" / "fullstack.json"
  template_path.parent.mkdir(parents=True, exist_ok=True)
 
  import json
@@ -353,7 +353,7 @@ DEBUG=true""",
 create_fullstack_template()
 
 # Create worktree with template
-# abyz-lab-worktree new SPEC-FULL-001 "Fullstack Application" --template fullstack
+# moai-worktree new SPEC-FULL-001 "Fullstack Application" --template fullstack
 ```
 
 ### Example 9: Worktree Automation Script
@@ -386,7 +386,7 @@ class WorktreeAutomation:
  print(f" Creating worktree: {spec_id}")
 
  result = subprocess.run([
- "abyz-lab-worktree", "new", spec_id, description,
+ "moai-worktree", "new", spec_id, description,
  "--template", template
  ], capture_output=True, text=True, check=True)
 
@@ -419,7 +419,7 @@ class WorktreeAutomation:
  if spec_ids is None:
  # Get all active worktrees
  result = subprocess.run([
- "abyz-lab-worktree", "list", "--status", "active", "--format", "json"
+ "moai-worktree", "list", "--status", "active", "--format", "json"
  ], capture_output=True, text=True, check=True)
 
  worktrees = json.loads(result.stdout)
@@ -432,7 +432,7 @@ class WorktreeAutomation:
  print(f" Syncing worktree: {spec_id}")
 
  result = subprocess.run([
- "abyz-lab-worktree", "sync", spec_id
+ "moai-worktree", "sync", spec_id
  ], capture_output=True, text=True, check=True)
 
  sync_info = {
@@ -463,7 +463,7 @@ class WorktreeAutomation:
 
  # Get worktree status
  status_result = subprocess.run([
- "abyz-lab-worktree", "status", "--all", "--format", "json"
+ "moai-worktree", "status", "--all", "--format", "json"
  ], capture_output=True, text=True, check=True)
 
  worktrees = json.loads(status_result.stdout)
@@ -505,7 +505,7 @@ class WorktreeAutomation:
  recommendations.append({
  'type': 'cleanup',
  'message': f"Found {len(stale_worktrees)} stale worktrees: {', '.join(stale_worktrees)}",
- 'action': 'abyz-lab-worktree clean --stale --days 30'
+ 'action': 'moai-worktree clean --stale --days 30'
  })
 
  # Check for large worktrees
@@ -518,7 +518,7 @@ class WorktreeAutomation:
  recommendations.append({
  'type': 'optimization',
  'message': f"Found {len(large_worktrees)} large worktrees: {', '.join(large_worktrees)}",
- 'action': 'abyz-lab-worktree optimize --analyze'
+ 'action': 'moai-worktree optimize --analyze'
  })
 
  return recommendations
@@ -565,42 +565,42 @@ git status
 git remote -v
 
 # Try with verbose output
-abyz-lab-worktree new SPEC-DEBUG-001 "Debug Test" --verbose
+moai-worktree new SPEC-DEBUG-001 "Debug Test" --verbose
 
 # Problem 2: Worktree sync conflicts
 echo " Resolving sync conflicts..."
 
 # Check sync status
-abyz-lab-worktree status SPEC-CONFLICT-001
+moai-worktree status SPEC-CONFLICT-001
 
 # Interactive conflict resolution
-abyz-lab-worktree sync SPEC-CONFLICT-001 --interactive
+moai-worktree sync SPEC-CONFLICT-001 --interactive
 
 # Force sync (if appropriate)
-abyz-lab-worktree sync SPEC-CONFLICT-001 --force
+moai-worktree sync SPEC-CONFLICT-001 --force
 
 # Problem 3: Worktree registry corruption
 echo " Repairing worktree registry..."
 
 # Backup current registry
-cp .abyz-lab/worktrees/PROJECT/.abyz-lab-worktree-registry.json .abyz-lab/worktrees/PROJECT/.abyz-lab-worktree-registry.json.backup
+cp .moai/worktrees/PROJECT/.moai-worktree-registry.json .moai/worktrees/PROJECT/.moai-worktree-registry.json.backup
 
 # Rebuild registry from worktree directories
-abyz-lab-worktree config set registry_rebuild true
-abyz-lab-worktree list --rebuild-registry
+moai-worktree config set registry_rebuild true
+moai-worktree list --rebuild-registry
 
 # Problem 4: Permission issues
 echo " Fixing permission issues..."
 
 # Check worktree permissions
-ls -la .abyz-lab/worktrees/PROJECT/
+ls -la .moai/worktrees/PROJECT/
 
 # Fix permissions
-chmod -R 755 .abyz-lab/worktrees/PROJECT/
+chmod -R 755 .moai/worktrees/PROJECT/
 ```
 
 ---
 
 Version: 1.0.0
 Last Updated: 2025-11-29
-Examples: Real-world usage patterns for abyz-lab-worktree integration
+Examples: Real-world usage patterns for moai-worktree integration

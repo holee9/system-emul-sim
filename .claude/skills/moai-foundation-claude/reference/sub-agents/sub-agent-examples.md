@@ -24,10 +24,10 @@ Examples Cover: Domain experts, tool specialists, process orchestrators, quality
 ```yaml
 ---
 name: code-backend
-description: Use PROACTIVELY for backend architecture, API design, server implementation, database integration, or microservices architecture. Called from /abyz-lab:1-plan architecture design and task delegation workflows.
+description: Use PROACTIVELY for backend architecture, API design, server implementation, database integration, or microservices architecture. Called from /moai:1-plan architecture design and task delegation workflows.
 tools: Read, Write, Edit, Bash, WebFetch, Grep, Glob, MultiEdit, TodoWrite, AskUserQuestion, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
-skills: abyz-lab-domain-backend, abyz-lab-essentials-perf, abyz-lab-context7-integration, abyz-lab-lang-python
+skills: moai-domain-backend, moai-essentials-perf, moai-context7-integration, moai-lang-python
 ---
 
 # Backend Expert
@@ -192,10 +192,10 @@ database_selection:
 ```yaml
 ---
 name: code-frontend
-description: Use PROACTIVELY for frontend UI development, React/Vue/Angular components, responsive design, user experience optimization, or web application architecture. Called from /abyz-lab:2-run implementation and task delegation workflows.
+description: Use PROACTIVELY for frontend UI development, React/Vue/Angular components, responsive design, user experience optimization, or web application architecture. Called from /moai:2-run implementation and task delegation workflows.
 tools: Read, Write, Edit, Grep, Glob, MultiEdit, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
-skills: abyz-lab-domain-frontend, abyz-lab-cc-configuration, abyz-lab-context7-integration, abyz-lab-ui-ux-expert
+skills: moai-domain-frontend, moai-cc-configuration, moai-context7-integration, moai-ui-ux-expert
 ---
 
 # Frontend Expert
@@ -433,10 +433,10 @@ module.exports = {
 ```yaml
 ---
 name: format-expert
-description: Use PROACTIVELY for code formatting, style consistency, linting configuration, and automated code quality improvements. Called from /abyz-lab:2-run quality gates and task delegation workflows.
+description: Use PROACTIVELY for code formatting, style consistency, linting configuration, and automated code quality improvements. Called from /moai:2-run quality gates and task delegation workflows.
 tools: Read, Write, Edit, Bash, Grep, Glob, MultiEdit
 model: haiku
-skills: abyz-lab-code-quality, abyz-lab-cc-configuration, abyz-lab-lang-python
+skills: moai-code-quality, moai-cc-configuration, moai-lang-python
 ---
 
 # Code Format Expert
@@ -618,7 +618,7 @@ name: support-debug
 description: Use PROACTIVELY for error analysis, debugging assistance, troubleshooting guidance, and problem resolution. Use when encountering runtime errors, logic issues, or unexpected behavior that needs investigation.
 tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
-skills: abyz-lab-essentials-debug, abyz-lab-core-code-reviewer, abyz-lab-context7-integration
+skills: moai-essentials-debug, moai-core-code-reviewer, moai-context7-integration
 ---
 
 # Debug Helper Expert
@@ -930,10 +930,10 @@ class DebuggingKnowledgeBase:
 ```yaml
 ---
 name: workflow-ddd
-description: Execute ANALYZE-PRESERVE-IMPROVE DDD cycle for implementing features with behavior preservation and comprehensive test coverage. Called from /abyz-lab:2-run SPEC implementation and task delegation workflows.
+description: Execute ANALYZE-PRESERVE-IMPROVE DDD cycle for implementing features with behavior preservation and comprehensive test coverage. Called from /moai:2-run SPEC implementation and task delegation workflows.
 tools: Read, Write, Edit, Bash, Grep, Glob, MultiEdit, TodoWrite
 model: sonnet
-skills: abyz-lab-lang-python, abyz-lab-domain-testing, abyz-lab-foundation-quality, abyz-lab-core-spec-authoring
+skills: moai-lang-python, moai-domain-testing, moai-foundation-quality, moai-core-spec-authoring
 ---
 
 # DDD Implementation Expert
@@ -1235,7 +1235,7 @@ name: security-expert
 description: Use PROACTIVELY for security audits, vulnerability assessment, OWASP Top 10 analysis, and secure code review. Use when conducting security analysis, implementing security controls, or validating security measures.
 tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
-skills: abyz-lab-domain-security, abyz-lab-cc-security, abyz-lab-foundation-quality, abyz-lab-core-workflow
+skills: moai-domain-security, moai-cc-security, moai-foundation-quality, moai-core-workflow
 ---
 
 # Security Auditor Expert

@@ -80,7 +80,7 @@ Example - Quality Framework:
 ```markdown
 ## Quick Reference (30 seconds)
 
-TRUST 5 is ABYZ-Lab-ADK's comprehensive quality assurance framework enforcing five pillars:
+TRUST 5 is MoAI-ADK's comprehensive quality assurance framework enforcing five pillars:
 
 1. Test-first(T) - ≥85% coverage, ANALYZE-PRESERVE-IMPROVE cycle
 2. Readable(R) - Clear naming, ≤10 cyclomatic complexity
@@ -92,7 +92,7 @@ Integration Points:
 - Pre-commit hooks → Automated validation
 - CI/CD pipelines → Quality gate enforcement
 - quality-gate agent → TRUST 5 validation
-- /abyz-lab:2-run → Enforces ≥85% coverage
+- /moai:2-run → Enforces ≥85% coverage
 
 Quick Validation:
 ```python
@@ -186,10 +186,10 @@ Purpose: Define clear, testable requirements in EARS format before coding.
 Workflow:
 ```bash
 # 1. Generate SPEC
-/abyz-lab:1-plan "Implement user authentication with JWT tokens"
+/moai:1-plan "Implement user authentication with JWT tokens"
 
 # 2. spec-builder creates:
-.abyz-lab/specs/SPEC-001/
+.moai/specs/SPEC-001/
  spec.md # EARS format requirements
  acceptance.md # Acceptance criteria
  complexity.yaml # Complexity analysis
@@ -477,7 +477,7 @@ class SKILLMDValidator:
 validator = SKILLMDValidator()
 
 # Validate skill
-result = validator.validate_skill(".claude/skills/abyz-lab-foundation-core")
+result = validator.validate_skill(".claude/skills/moai-foundation-core")
 
 if not result["valid"]:
  print(f" SKILL.md exceeds limit: {result['line_count']} lines")
@@ -485,7 +485,7 @@ if not result["valid"]:
  print(f" Recommendation: {result['recommendation']}")
  
  # Auto-split
- validator.auto_split_skill(".claude/skills/abyz-lab-foundation-core")
+ validator.auto_split_skill(".claude/skills/moai-foundation-core")
  print(" Skill automatically split into modules")
 ```
 
@@ -571,7 +571,7 @@ class ProgressiveContentLoader:
  )
 
 # Usage
-loader = ProgressiveContentLoader(".claude/skills/abyz-lab-foundation-core")
+loader = ProgressiveContentLoader(".claude/skills/moai-foundation-core")
 
 # User with 30 seconds
 quick_help = loader.load_level_1() # ~1K tokens
@@ -630,17 +630,17 @@ Available Modules:
 ## Works Well With
 
 Skills:
-- abyz-lab-foundation-modular-system - File organization patterns
-- abyz-lab-foundation-token-optimization - Content efficiency
-- abyz-lab-cc-skill-factory - Skill creation with progressive structure
+- moai-foundation-modular-system - File organization patterns
+- moai-foundation-token-optimization - Content efficiency
+- moai-cc-skill-factory - Skill creation with progressive structure
 
 Agents:
 - skill-factory - Create skills with progressive disclosure
 - docs-manager - Generate documentation with layered structure
 
 Commands:
-- /abyz-lab:1-plan - Generate SPEC with progressive detail
-- /abyz-lab:3-sync - Create docs with layered structure
+- /moai:1-plan - Generate SPEC with progressive detail
+- /moai:3-sync - Create docs with layered structure
 
 ---
 

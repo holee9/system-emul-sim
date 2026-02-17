@@ -426,8 +426,8 @@ cat /proc/net/dev | grep <eth_iface>      # Check packet counters
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial verification strategy |
+| 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial verification strategy |
 | 2.0.0 | 2026-02-17 | spec-fw agent | Added FW/SDK to pyramid, Layer 1, Layer 2 (4 sub-tables). Expanded traceability matrix (4 domain tables with SPEC requirement links). Updated milestones (added M3.5). Added FW-specific KPIs (SPI jitter, CPU util). Fixed coverage targets to 85%+. |
-| 2.1.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-010: Added 2.5 GbE Driver Verification Plan (Steps 1-5: chip identification via lspci, kernel 6.6 in-tree driver check, optional out-of-tree port, iperf3 bandwidth test targeting 2.2 Gbps, 24-hour stress test at Mid-A tier). |
+| 2.1.0 | 2026-02-17 | MoAI Agent | MAJOR-010: Added 2.5 GbE Driver Verification Plan (Steps 1-5: chip identification via lspci, kernel 6.6 in-tree driver check, optional out-of-tree port, iperf3 bandwidth test targeting 2.2 Gbps, 24-hour stress test at Mid-A tier). |
 
 ---

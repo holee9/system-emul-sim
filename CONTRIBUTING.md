@@ -172,7 +172,7 @@ git push -u origin feat/spi-slave-register-map
 
 <body>
 
-🗿 ABYZ-Lab <email@mo.ai.kr>
+🗿 MoAI <email@mo.ai.kr>
 ```
 
 ### Types
@@ -213,7 +213,7 @@ Implements REQ-FPGA-010 through REQ-FPGA-016.
 FSM states: IDLE, INTEGRATE, READOUT, LINE_DONE, FRAME_DONE, ERROR.
 Three operating modes supported: single, continuous, calibration.
 
-🗿 ABYZ-Lab <email@mo.ai.kr>
+🗿 MoAI <email@mo.ai.kr>
 ```
 
 ```
@@ -223,7 +223,7 @@ Packets were being dropped when arriving out of sequence.
 Now correctly buffers by packet_index and assembles on completion.
 Fixes AC-SDK-004.
 
-🗿 ABYZ-Lab <email@mo.ai.kr>
+🗿 MoAI <email@mo.ai.kr>
 ```
 
 ---
@@ -333,7 +333,7 @@ Use conventional comment prefixes:
 
 ## 7. Development Methodology
 
-The project uses **Hybrid** development methodology (configured in `.abyz-lab/config/sections/quality.yaml`).
+The project uses **Hybrid** development methodology (configured in `.moai/config/sections/quality.yaml`).
 
 ### TDD for New Code
 
@@ -403,6 +403,6 @@ Before committing:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial contribution guide |
+| 1.0.0 | 2026-02-17 | MoAI Agent (architect) | Initial contribution guide |
 
 ---

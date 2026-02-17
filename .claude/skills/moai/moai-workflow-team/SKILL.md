@@ -1,7 +1,7 @@
 ---
-name: abyz-lab-workflow-team
+name: moai-workflow-team
 description: >
-  Agent Teams workflow management for ABYZ-Lab-ADK. Handles team creation,
+  Agent Teams workflow management for MoAI-ADK. Handles team creation,
   teammate spawning, task decomposition, inter-agent messaging, and
   graceful shutdown. Integrates with SPEC workflow for team-based
   Plan and Run phases. Supports dual-mode execution with automatic
@@ -17,26 +17,26 @@ metadata:
   updated: "2026-02-07"
   modularized: "false"
   tags: "team, agent-teams, collaboration, parallel, dual-mode"
-  related-skills: "abyz-lab-workflow-spec, abyz-lab-workflow-ddd, abyz-lab-workflow-tdd"
+  related-skills: "moai-workflow-spec, moai-workflow-ddd, moai-workflow-tdd"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 8000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["team", "agent-team", "parallel", "collaborate", "teammates", "--team"]
-  agents: ["abyz-lab"]
+  agents: ["moai"]
   phases: ["plan", "run"]
 ---
 
-# ABYZ-Lab Agent Teams Workflow
+# MoAI Agent Teams Workflow
 
 ## Overview
 
-This skill manages Agent Teams execution for ABYZ-Lab workflows. When team mode is selected (via --team flag, auto-detection, or configuration), ABYZ-Lab operates as Team Lead coordinating persistent teammates.
+This skill manages Agent Teams execution for MoAI workflows. When team mode is selected (via --team flag, auto-detection, or configuration), MoAI operates as Team Lead coordinating persistent teammates.
 
 ## Prerequisites
 
@@ -64,14 +64,14 @@ The mode selector determines execution strategy:
 ### Phase 1: Team Creation
 
 ```
-TeamCreate(team_name: "abyz-lab-{workflow}-{timestamp}")
+TeamCreate(team_name: "moai-{workflow}-{timestamp}")
 ```
 
 Team naming convention:
-- Plan phase: `abyz-lab-plan-SPEC-XXX`
-- Run phase: `abyz-lab-run-SPEC-XXX`
-- Debug: `abyz-lab-debug-{issue}`
-- Review: `abyz-lab-review-{target}`
+- Plan phase: `moai-plan-SPEC-XXX`
+- Run phase: `moai-run-SPEC-XXX`
+- Debug: `moai-debug-{issue}`
+- Review: `moai-review-{target}`
 
 ### Phase 2: Task Decomposition
 
@@ -95,7 +95,7 @@ Spawn teammates using Task tool with team_name parameter:
 ```
 Task(
   subagent_type: "team-backend-dev",
-  team_name: "abyz-lab-run-SPEC-XXX",
+  team_name: "moai-run-SPEC-XXX",
   name: "backend-dev",
   prompt: "You are the backend developer for this team. Your file ownership: {detected_ownership}. SPEC context: {spec_summary}",
   mode: "plan"
@@ -119,7 +119,7 @@ Plan approval (when workflow.yaml `team.require_plan_approval: true`):
 
 ### Phase 4: Coordination
 
-ABYZ-Lab as Team Lead monitors and coordinates:
+MoAI as Team Lead monitors and coordinates:
 
 1. Receive automatic messages from teammates (progress, completion, issues)
 2. Use SendMessage for direct coordination
@@ -134,7 +134,7 @@ Coordination patterns:
 - When all tasks complete: begin shutdown sequence
 
 Delegate mode (when workflow.yaml `team.delegate_mode: true`):
-- ABYZ-Lab operates in coordination-only mode
+- MoAI operates in coordination-only mode
 - Focus on task assignment, message routing, progress monitoring, and conflict resolution
 - Do NOT directly implement code or modify files (no Write, Edit, or Bash for implementation)
 - Delegate ALL implementation work to teammates via task assignment and SendMessage

@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-python
+name: moai-lang-python
 description: >
   Python 3.13+ development specialist covering FastAPI, Django, async patterns, data science, testing with pytest, and modern Python features. Use when developing Python APIs, web applications, data pipelines, or writing tests.
 license: Apache-2.0
@@ -14,13 +14,13 @@ metadata:
   modularized: "false"
   tags: "language, python, fastapi, django, pytest, async, data-science"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["Python", "Django", "FastAPI", "Flask", "asyncio", "pytest", "pyproject.toml", "requirements.txt", ".py"]
   languages: ["python"]
@@ -205,11 +205,11 @@ See:
 
 ## Works Well With
 
-- abyz-lab-domain-backend for REST API and microservices architecture
-- abyz-lab-domain-database for SQL patterns and ORM optimization
-- abyz-lab-workflow-testing for DDD and testing strategies
-- abyz-lab-essentials-debug for AI-powered debugging
-- abyz-lab-foundation-quality for TRUST 5 quality principles
+- moai-domain-backend for REST API and microservices architecture
+- moai-domain-database for SQL patterns and ORM optimization
+- moai-workflow-testing for DDD and testing strategies
+- moai-essentials-debug for AI-powered debugging
+- moai-foundation-quality for TRUST 5 quality principles
 
 ---
 

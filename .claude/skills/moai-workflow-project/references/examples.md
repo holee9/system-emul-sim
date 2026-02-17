@@ -1,4 +1,4 @@
-# ABYZ-Lab Workflow Project Examples
+# MoAI Workflow Project Examples
 
 실용적인 예시를 통해 프로젝트 관리 시스템의 활용 패턴을 학습합니다.
 
@@ -10,7 +10,7 @@
 
 **Input**:
 ```python
-from abyz-lab_menu_project import MoaiMenuProject
+from moai_menu_project import MoaiMenuProject
 
 # 프로젝트 초기화
 project = MoaiMenuProject("./my-ecommerce-app")
@@ -48,14 +48,14 @@ result = project.initialize_complete_project(
     "created_directories": [
       "docs/ko/",
       "docs/en/",
-      ".abyz-lab/docs/",
-      ".abyz-lab/specs/"
+      ".moai/docs/",
+      ".moai/specs/"
     ],
     "generated_files": [
       "README.md",
       "docs/ko/index.md",
       "docs/en/index.md",
-      ".abyz-lab/docs/architecture.md"
+      ".moai/docs/architecture.md"
     ]
   },
   "template_analysis": {
@@ -247,7 +247,7 @@ optimization_result = project.optimize_project_templates(optimization_options)
   },
   "optimization_result": {
     "status": "success",
-    "backup_created": ".abyz-lab/backups/templates-2025-12-06-103000/",
+    "backup_created": ".moai/backups/templates-2025-12-06-103000/",
     "files_optimized": 12,
     "size_reduction": {
       "before": "245KB",
@@ -506,27 +506,27 @@ if optimization_failed:
 
 ```bash
 # 프로젝트 초기화
-python -m abyz-lab_menu_project.cli init \
+python -m moai_menu_project.cli init \
     --language ko \
     --domains backend,frontend
 
 # SPEC에서 문서 생성
-python -m abyz-lab_menu_project.cli generate-docs \
-    --spec-file .abyz-lab/specs/SPEC-001.json
+python -m moai_menu_project.cli generate-docs \
+    --spec-file .moai/specs/SPEC-001.json
 
 # 템플릿 최적화
-python -m abyz-lab_menu_project.cli optimize-templates \
+python -m moai_menu_project.cli optimize-templates \
     --backup \
     --dry-run  # 미리보기
 
 # 문서 내보내기
-python -m abyz-lab_menu_project.cli export-docs \
+python -m moai_menu_project.cli export-docs \
     --format html \
     --language ko \
     --output ./dist/docs
 
 # 프로젝트 상태 확인
-python -m abyz-lab_menu_project.cli status
+python -m moai_menu_project.cli status
 ```
 
 ---

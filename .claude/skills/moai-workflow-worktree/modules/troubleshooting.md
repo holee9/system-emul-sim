@@ -14,11 +14,11 @@ Common Issue Categories:
 - Registry Issues: Registry corruption, sync failures, orphaned entries
 - Git State Problems: Detached HEAD, branch conflicts, merge issues
 - Path and Permission: Directory access, path resolution, file permission errors
-- Integration Issues: ABYZ-Lab workflow integration and command coordination
+- Integration Issues: MoAI workflow integration and command coordination
 
 Quick Diagnostics:
-- Check worktree status: abyz-lab-worktree status --all
-- Verify registry integrity: abyz-lab-worktree registry validate
+- Check worktree status: moai-worktree status --all
+- Verify registry integrity: moai-worktree registry validate
 - List Git worktrees: git worktree list
 - Check branch state: git status
 
@@ -46,7 +46,7 @@ Resolution Steps:
 5. Retry the worktree creation command
 
 Prevention:
-- Always use abyz-lab-worktree remove instead of manual directory deletion
+- Always use moai-worktree remove instead of manual directory deletion
 - Run git worktree prune after any failed Git operations
 - Verify registry integrity periodically
 
@@ -93,7 +93,7 @@ Resolution Steps:
 ### Registry File Corruption
 
 Symptoms:
-- abyz-lab-worktree commands fail with JSON parsing errors
+- moai-worktree commands fail with JSON parsing errors
 - Registry file contains invalid JSON syntax
 - Commands report registry not found despite file existing
 
@@ -114,13 +114,13 @@ Recovery Process:
 - List all directories in the worktree root folder
 - For each valid worktree directory, extract metadata from Git configuration
 - Rebuild registry entries with discovered worktree information
-- Validate the rebuilt registry with abyz-lab-worktree status --all
+- Validate the rebuilt registry with moai-worktree status --all
 
 ### Orphaned Registry Entries
 
 Symptoms:
 - Registry lists worktrees that no longer exist on disk
-- abyz-lab-worktree status shows worktrees as missing
+- moai-worktree status shows worktrees as missing
 - Commands fail when trying to operate on listed worktrees
 
 Root Causes:
@@ -130,9 +130,9 @@ Root Causes:
 - Registry was not updated after worktree removal
 
 Resolution Steps:
-1. Run abyz-lab-worktree status --all to identify orphaned entries
+1. Run moai-worktree status --all to identify orphaned entries
 2. For each orphaned entry, confirm the directory truly does not exist
-3. Remove orphaned entries from registry using abyz-lab-worktree registry prune
+3. Remove orphaned entries from registry using moai-worktree registry prune
 4. Alternatively, recreate the worktree if the branch still exists
 
 ### Registry Sync Conflicts
@@ -179,7 +179,7 @@ Resolution Steps:
 Prevention:
 - Avoid manual git checkout of commit hashes in worktrees
 - Complete rebase and merge operations before switching worktrees
-- Use abyz-lab-worktree commands for standard operations
+- Use moai-worktree commands for standard operations
 
 ### Merge Conflicts During Sync
 
@@ -275,23 +275,23 @@ Resolution Steps:
 
 ## Integration Issues
 
-### ABYZ-Lab Command Coordination Failures
+### MoAI Command Coordination Failures
 
 Symptoms:
-- /abyz-lab:1-plan does not create expected worktree
-- /abyz-lab:2-run cannot find worktree for SPEC
+- /moai:1-plan does not create expected worktree
+- /moai:2-run cannot find worktree for SPEC
 - Workflow commands operate on wrong worktree
 
 Root Causes:
 - SPEC ID not matching worktree ID format
-- Worktree was created manually without ABYZ-Lab integration
-- Configuration mismatch between ABYZ-Lab and worktree settings
+- Worktree was created manually without MoAI integration
+- Configuration mismatch between MoAI and worktree settings
 - Working directory context not in expected location
 
 Resolution Steps:
 1. Verify SPEC ID format matches expected worktree naming convention
-2. Ensure worktree was created through ABYZ-Lab workflow or properly registered
-3. Check abyz-lab configuration for worktree integration settings
+2. Ensure worktree was created through MoAI workflow or properly registered
+3. Check moai configuration for worktree integration settings
 4. Confirm working directory context before running workflow commands
 
 ### Auto-Detection Not Working
@@ -320,14 +320,14 @@ Resolution Steps:
 ### Worktree State Verification
 
 Status Commands:
-- abyz-lab-worktree status --all: Shows all worktrees with sync status
+- moai-worktree status --all: Shows all worktrees with sync status
 - git worktree list: Native Git worktree listing
-- abyz-lab-worktree status SPEC-ID --detailed: Detailed status for specific worktree
+- moai-worktree status SPEC-ID --detailed: Detailed status for specific worktree
 
 Registry Commands:
-- abyz-lab-worktree registry validate: Checks registry integrity
-- abyz-lab-worktree registry prune: Removes orphaned entries
-- abyz-lab-worktree registry export: Exports registry for backup
+- moai-worktree registry validate: Checks registry integrity
+- moai-worktree registry prune: Removes orphaned entries
+- moai-worktree registry export: Exports registry for backup
 
 Git State Commands:
 - git status: Current worktree Git state
@@ -337,13 +337,13 @@ Git State Commands:
 ### Cleanup and Recovery
 
 Cleanup Commands:
-- abyz-lab-worktree clean --dry-run: Preview cleanup without changes
-- abyz-lab-worktree clean --merged-only: Clean only merged worktrees
+- moai-worktree clean --dry-run: Preview cleanup without changes
+- moai-worktree clean --merged-only: Clean only merged worktrees
 - git worktree prune: Remove stale Git worktree metadata
 
 Recovery Commands:
-- abyz-lab-worktree registry rebuild: Reconstruct registry from directories
-- abyz-lab-worktree remove SPEC-ID --keep-branch: Remove worktree, preserve branch
+- moai-worktree registry rebuild: Reconstruct registry from directories
+- moai-worktree remove SPEC-ID --keep-branch: Remove worktree, preserve branch
 
 ---
 
@@ -352,7 +352,7 @@ Recovery Commands:
 ### Regular Maintenance
 
 Weekly Tasks:
-- Run abyz-lab-worktree status --all to check for issues
+- Run moai-worktree status --all to check for issues
 - Sync active worktrees with base branch to minimize conflicts
 - Clean up merged worktrees to reduce clutter
 
@@ -364,7 +364,7 @@ Monthly Tasks:
 ### Safe Operation Patterns
 
 Creation:
-- Always use abyz-lab-worktree new instead of manual Git commands
+- Always use moai-worktree new instead of manual Git commands
 - Verify branch name is unique before creation
 - Use descriptive SPEC IDs for easy identification
 
@@ -374,7 +374,7 @@ Modification:
 - Resolve conflicts immediately rather than deferring
 
 Removal:
-- Use abyz-lab-worktree remove instead of manual deletion
+- Use moai-worktree remove instead of manual deletion
 - Consider keeping branch with keep-branch option
 - Create backup for worktrees with uncommitted work
 

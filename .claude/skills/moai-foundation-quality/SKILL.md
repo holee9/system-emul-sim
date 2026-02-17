@@ -1,11 +1,11 @@
 ---
-name: abyz-lab-foundation-quality
+name: moai-foundation-quality
 description: >
   Code quality orchestrator enforcing TRUST 5 validation, proactive code analysis,
   linting standards, and automated best practices.
   Use when performing code review, quality gate checks, lint configuration,
   TRUST 5 compliance validation, or establishing coding standards.
-  Do NOT use for writing tests (use abyz-lab-workflow-testing instead)
+  Do NOT use for writing tests (use moai-workflow-testing instead)
   or debugging runtime errors (use expert-debug agent instead).
 license: Apache-2.0
 compatibility: Designed for Claude Code
@@ -18,15 +18,15 @@ metadata:
   updated: "2026-01-11"
   modularized: "true"
   tags: "foundation, quality, testing, validation, trust-5, best-practices, code-review"
-  aliases: "abyz-lab-foundation-quality"
+  aliases: "moai-foundation-quality"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords:
     - "quality"
@@ -202,17 +202,17 @@ Agents:
 
 Skills:
 
-- abyz-lab-foundation-core - TRUST 5 framework reference
-- abyz-lab-workflow-ddd - DDD workflow validation
-- abyz-lab-security-owasp - Security compliance
-- abyz-lab-context7-integration - Context7 best practices
-- abyz-lab-performance-optimization - Performance analysis
+- moai-foundation-core - TRUST 5 framework reference
+- moai-workflow-ddd - DDD workflow validation
+- moai-security-owasp - Security compliance
+- moai-context7-integration - Context7 best practices
+- moai-performance-optimization - Performance analysis
 
 Commands:
 
-- /abyz-lab:2-run - DDD validation integration
-- /abyz-lab:3-sync - Documentation quality checks
-- /abyz-lab:9-feedback - Quality improvement feedback
+- /moai:2-run - DDD validation integration
+- /moai:3-sync - Documentation quality checks
+- /moai:9-feedback - Quality improvement feedback
 
 ## Quick Reference Summary
 

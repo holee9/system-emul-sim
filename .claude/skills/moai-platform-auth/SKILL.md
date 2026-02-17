@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-platform-auth
+name: moai-platform-auth
 description: >
   Authentication and authorization specialist covering Auth0, Clerk, and Firebase Auth.
   Use when implementing authentication, authorization, MFA, SSO, passkeys, WebAuthn,
@@ -18,15 +18,15 @@ metadata:
   platforms: "Auth0, Clerk, Firebase Auth"
   tags: "auth0, clerk, firebase, authentication, authorization, mfa, sso, passkeys, webauthn, social-login, security"
   context7-libraries: "/auth0/docs, /clerk/clerk-docs, /firebase/firebase-docs"
-  related-skills: "abyz-lab-platform-supabase, abyz-lab-platform-vercel, abyz-lab-lang-typescript, abyz-lab-domain-backend, abyz-lab-expert-security"
+  related-skills: "moai-platform-supabase, moai-platform-vercel, moai-lang-typescript, moai-domain-backend, moai-expert-security"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 4500
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["auth0", "clerk", "firebase auth", "authentication", "authorization", "mfa", "sso", "passkeys", "webauthn", "social login", "user management", "attack protection", "auth ui", "passwordless", "oauth", "identity", "jwt", "token security"]
   agents: ["expert-backend", "expert-security", "expert-frontend"]
@@ -221,12 +221,12 @@ Access up-to-date platform documentation using Context7 MCP:
 
 ## Works Well With
 
-- abyz-lab-platform-supabase: Database with auth integration
-- abyz-lab-platform-vercel: Deployment with edge authentication
-- abyz-lab-lang-typescript: TypeScript patterns for auth SDKs
-- abyz-lab-domain-backend: Backend architecture with authentication
-- abyz-lab-domain-frontend: React/Next.js frontend integration
-- abyz-lab-expert-security: Security audit and threat modeling
+- moai-platform-supabase: Database with auth integration
+- moai-platform-vercel: Deployment with edge authentication
+- moai-lang-typescript: TypeScript patterns for auth SDKs
+- moai-domain-backend: Backend architecture with authentication
+- moai-domain-frontend: React/Next.js frontend integration
+- moai-expert-security: Security audit and threat modeling
 
 ---
 

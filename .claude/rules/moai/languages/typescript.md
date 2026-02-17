@@ -56,7 +56,7 @@ Version: TypeScript 5.9+
 - Use React.memo() for expensive renders
 - Avoid prop drilling with Context or state libraries
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-typescript") for detailed patterns
+- Use Skill("moai-lang-typescript") for detailed patterns
 - Follow TRUST 5 quality gates

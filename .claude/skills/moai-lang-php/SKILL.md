@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-php
+name: moai-lang-php
 description: >
   PHP 8.3+ development specialist covering Laravel 11, Symfony 7, Eloquent
   ORM, and modern PHP patterns. Use when developing PHP APIs, web
@@ -16,13 +16,13 @@ metadata:
   modularized: "true"
   tags: "language, php, laravel, symfony, eloquent, doctrine, phpunit"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["PHP", "Laravel", "Symfony", "Eloquent", "Doctrine", "PHPUnit", "Pest", ".php", "composer.json", "artisan"]
   languages: ["php"]
@@ -150,12 +150,12 @@ See:
 
 ## Works Well With
 
-- abyz-lab-domain-backend for REST API and microservices architecture
-- abyz-lab-domain-database for SQL patterns and ORM optimization
-- abyz-lab-workflow-testing for DDD and testing strategies
-- abyz-lab-platform-deploy for Docker and deployment patterns
-- abyz-lab-essentials-debug for AI-powered debugging
-- abyz-lab-foundation-quality for TRUST 5 quality principles
+- moai-domain-backend for REST API and microservices architecture
+- moai-domain-database for SQL patterns and ORM optimization
+- moai-workflow-testing for DDD and testing strategies
+- moai-platform-deploy for Docker and deployment patterns
+- moai-essentials-debug for AI-powered debugging
+- moai-foundation-quality for TRUST 5 quality principles
 
 ---
 

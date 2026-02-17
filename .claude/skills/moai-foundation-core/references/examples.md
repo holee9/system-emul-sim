@@ -1,6 +1,6 @@
-# ABYZ-Lab Foundation Core Examples
+# MoAI Foundation Core Examples
 
-실용적인 예시를 통해 ABYZ-Lab Foundation Core의 6가지 핵심 원칙을 학습합니다.
+실용적인 예시를 통해 MoAI Foundation Core의 6가지 핵심 원칙을 학습합니다.
 
 ---
 
@@ -46,19 +46,19 @@ Overall Status: APPROVED for merge
 **Input**:
 ```bash
 # Phase 1: SPEC 생성
-/abyz-lab:1-plan "JWT 기반 사용자 인증 시스템 구현"
+/moai:1-plan "JWT 기반 사용자 인증 시스템 구현"
 
 # Phase 2: DDD 실행 (Phase 1 완료 후 /clear 실행)
 /clear
-/abyz-lab:2-run SPEC-001
+/moai:2-run SPEC-001
 
 # Phase 3: 문서화
-/abyz-lab:3-sync SPEC-001
+/moai:3-sync SPEC-001
 ```
 
 **Output**:
 ```markdown
-Phase 1 Result (.abyz-lab/specs/SPEC-001/spec.md):
+Phase 1 Result (.moai/specs/SPEC-001/spec.md):
 ==============================================
 ID: SPEC-001
 Title: JWT Authentication System
@@ -242,12 +242,12 @@ else:
 
 ### Anti-Pattern 1: 직접 실행
 
-**Problem**: ABYZ-Lab가 에이전트 위임 없이 직접 코드를 작성하거나 수정함
+**Problem**: MoAI가 에이전트 위임 없이 직접 코드를 작성하거나 수정함
 
 ```python
 # 잘못된 예시
-def abyz-lab_direct_execution():
-    # ABYZ-Lab가 직접 파일 수정 - 절대 금지!
+def moai_direct_execution():
+    # MoAI가 직접 파일 수정 - 절대 금지!
     with open("src/app.py", "w") as f:
         f.write("# Direct modification")
 ```
@@ -269,17 +269,17 @@ await Task(
 
 ```bash
 # 잘못된 예시
-/abyz-lab:1-plan "feature"  # 30K 사용
-/abyz-lab:2-run SPEC-001    # 이전 컨텍스트 유지 → 토큰 부족!
+/moai:1-plan "feature"  # 30K 사용
+/moai:2-run SPEC-001    # 이전 컨텍스트 유지 → 토큰 부족!
 ```
 
 **Solution**: Phase 완료 후 반드시 /clear 실행
 
 ```bash
 # 올바른 예시
-/abyz-lab:1-plan "feature"  # 30K 사용
+/moai:1-plan "feature"  # 30K 사용
 /clear                  # 컨텍스트 초기화 (45-50K 절약)
-/abyz-lab:2-run SPEC-001    # 새로운 180K 예산으로 시작
+/moai:2-run SPEC-001    # 새로운 180K 예산으로 시작
 ```
 
 ### Anti-Pattern 3: 과도한 순차 실행

@@ -1,4 +1,4 @@
-# abyz-lab-workflow-templates Reference
+# moai-workflow-templates Reference
 
 Progressive Disclosure Level 2: Extended documentation for template management and optimization.
 
@@ -121,7 +121,7 @@ Feature Request Fields:
 
 ```python
 # Complete project scaffolding with customizations
-from abyz-lab_workflow_templates import TemplateManager
+from moai_workflow_templates import TemplateManager
 
 manager = TemplateManager()
 
@@ -147,9 +147,9 @@ project.run_hooks()  # Install deps, init git, etc.
 
 ```python
 # Update templates while preserving customizations
-from abyz-lab_workflow_templates import TemplateOptimizer
+from moai_workflow_templates import TemplateOptimizer
 
-optimizer = TemplateOptimizer("/project/.abyz-lab")
+optimizer = TemplateOptimizer("/project/.moai")
 
 # Step 1: Create backup
 backup_id = optimizer.create_backup()
@@ -174,8 +174,8 @@ optimizer.apply_templates(merged)
 ### Pattern 3: Feedback Command Integration
 
 ```python
-# Integration with /abyz-lab:9-feedback command
-from abyz-lab_workflow_templates import FeedbackTemplateGenerator
+# Integration with /moai:9-feedback command
+from moai_workflow_templates import FeedbackTemplateGenerator
 
 def handle_feedback_command(feedback_type: str, data: dict):
     """Generate GitHub issue from feedback."""
@@ -206,7 +206,7 @@ def handle_feedback_command(feedback_type: str, data: dict):
 
 ```python
 # Track template versions across projects
-from abyz-lab_workflow_templates import VersionManager
+from moai_workflow_templates import VersionManager
 
 version_manager = VersionManager()
 
@@ -241,7 +241,7 @@ Issue: Template scaffolding fails with missing variables:
 
 Issue: Smart merge creates conflicts:
 - Cause: Significant changes in both template and user customizations
-- Solution: Review conflicts in `.abyz-lab/merge-conflicts/` and resolve manually
+- Solution: Review conflicts in `.moai/merge-conflicts/` and resolve manually
 - Prevention: Regularly update templates to minimize drift
 
 Issue: Post-generation hooks fail:
@@ -263,7 +263,7 @@ Issue: Feedback template missing fields:
 
 ```python
 # Template system diagnostics
-from abyz-lab_workflow_templates import diagnose
+from moai_workflow_templates import diagnose
 
 # Run full diagnostics
 report = diagnose.run_full_check()
@@ -280,11 +280,11 @@ diagnose.validate_customizations()
 
 ### File Locations
 
-- Template storage: `.claude/skills/abyz-lab-workflow-templates/templates/`
-- Backups: `.abyz-lab/backups/templates/`
-- Merge conflicts: `.abyz-lab/merge-conflicts/`
-- Version history: `.abyz-lab/config/template-versions.json`
-- Feedback templates: `.claude/skills/abyz-lab-workflow-templates/modules/feedback-templates.md`
+- Template storage: `.claude/skills/moai-workflow-templates/templates/`
+- Backups: `.moai/backups/templates/`
+- Merge conflicts: `.moai/merge-conflicts/`
+- Version history: `.moai/config/template-versions.json`
+- Feedback templates: `.claude/skills/moai-workflow-templates/modules/feedback-templates.md`
 
 ---
 
@@ -292,16 +292,16 @@ diagnose.validate_customizations()
 
 ### Official Documentation
 
-- ABYZ-Lab-ADK Templates Guide: See `modules/code-templates.md`
+- MoAI-ADK Templates Guide: See `modules/code-templates.md`
 - Feedback Templates Reference: See `modules/feedback-templates.md`
 - Template Optimizer Guide: See `modules/template-optimizer.md`
 
 ### Related Skills
 
-- abyz-lab-workflow-project - Project initialization with templates
-- abyz-lab-foundation-core - SPEC-driven template generation
-- abyz-lab-docs-generation - Documentation template scaffolding
-- abyz-lab-cc-configuration - Claude Code settings integration
+- moai-workflow-project - Project initialization with templates
+- moai-foundation-core - SPEC-driven template generation
+- moai-docs-generation - Documentation template scaffolding
+- moai-cc-configuration - Claude Code settings integration
 
 ### Template Development Resources
 

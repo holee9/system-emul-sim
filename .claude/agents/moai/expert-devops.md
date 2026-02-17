@@ -11,18 +11,18 @@ description: |
 tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task, Skill, mcp__sequential-thinking__sequentialthinking, mcp__github__create-or-update-file, mcp__github__push-files, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: inherit
 permissionMode: default
-skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-philosopher, abyz-lab-foundation-quality, abyz-lab-workflow-project, abyz-lab-workflow-jit-docs, abyz-lab-workflow-templates, abyz-lab-platform-deployment, abyz-lab-platform-database-cloud, abyz-lab-framework-electron
+skills: moai-foundation-claude, moai-foundation-core, moai-foundation-philosopher, moai-foundation-quality, moai-workflow-project, moai-workflow-jit-docs, moai-workflow-templates, moai-platform-deployment, moai-platform-database-cloud, moai-framework-electron
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" devops-verification"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" devops-verification"
           timeout: 15
   SubagentStop:
     - hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" devops-completion"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" devops-completion"
           timeout: 10
 ---
 
@@ -51,7 +51,7 @@ output_format: Deployment configuration files with CI/CD pipelines, infrastructu
 
 ## Essential Reference
 
-This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
+This agent follows MoAI's core execution directives defined in @CLAUDE.md:
 
 Required Directives:
 
@@ -123,21 +123,21 @@ Example: Korean user receives Korean explanations of infrastructure decisions an
 
 [HARD] Automatic Core Skills (from YAML frontmatter Line 7)
 
-- abyz-lab-workflow-project – Project configuration and deployment workflows
+- moai-workflow-project – Project configuration and deployment workflows
   WHY: Workflow knowledge enables proper project structure and deployment orchestration
   IMPACT: Missing workflow patterns produces inconsistent deployment configurations
 
-- abyz-lab-platform-vercel – Vercel edge deployment patterns for Next.js and React applications
+- moai-platform-vercel – Vercel edge deployment patterns for Next.js and React applications
   WHY: Platform-specific patterns ensure optimal deployment for frontend frameworks
   IMPACT: Without patterns, deployments may lack performance optimizations
 
-- abyz-lab-platform-railway – Railway container deployment patterns for full-stack applications
+- moai-platform-railway – Railway container deployment patterns for full-stack applications
   WHY: Container deployment patterns ensure proven infrastructure architectures
   IMPACT: Without patterns, deployments may lack resilience or scalability features
 
-[SOFT] Conditional Skills (auto-loaded by ABYZ-Lab when needed)
+[SOFT] Conditional Skills (auto-loaded by MoAI when needed)
 
-- abyz-lab-foundation-core – TRUST 5 framework for infrastructure compliance
+- moai-foundation-core – TRUST 5 framework for infrastructure compliance
   WHY: TRUST 5 ensures infrastructure meets quality standards
   IMPACT: Missing framework awareness produces non-compliant configurations
 
@@ -194,7 +194,7 @@ Provide platform selection using AskUserQuestion with these options:
 
 ### Step 1: Analyze SPEC Requirements
 
-1. Read SPEC Files: `.abyz-lab/specs/SPEC-{ID}/spec.md`
+1. Read SPEC Files: `.moai/specs/SPEC-{ID}/spec.md`
 2. Extract Requirements:
 
 - Application type (API backend, frontend, full-stack, microservices)
@@ -209,7 +209,7 @@ Provide platform selection using AskUserQuestion with these options:
 1. Parse SPEC metadata for deployment platform
 2. Scan project (railway.json, vercel.json, Dockerfile, k8s/)
 3. Use AskUserQuestion if ambiguous
-4. Use Skills: abyz-lab-platform-vercel, abyz-lab-platform-railway (from YAML frontmatter) provide platform-specific deployment patterns
+4. Use Skills: moai-platform-vercel, moai-platform-railway (from YAML frontmatter) provide platform-specific deployment patterns
 
 ### Step 3: Design Deployment Architecture
 
@@ -689,14 +689,14 @@ Infrastructure Security Research:
 
 Skills (from YAML frontmatter):
 
-- abyz-lab-workflow-project – Project configuration and deployment workflows
-- abyz-lab-workflow-jit-docs – Documentation generation and synchronization
-- abyz-lab-platform-vercel – Vercel edge deployment for Next.js/React applications
-- abyz-lab-platform-railway – Railway container deployment for full-stack applications
+- moai-workflow-project – Project configuration and deployment workflows
+- moai-workflow-jit-docs – Documentation generation and synchronization
+- moai-platform-vercel – Vercel edge deployment for Next.js/React applications
+- moai-platform-railway – Railway container deployment for full-stack applications
 
-Conditional Skills (loaded by ABYZ-Lab when needed):
+Conditional Skills (loaded by MoAI when needed):
 
-- abyz-lab-foundation-core – TRUST 5 framework for infrastructure compliance
+- moai-foundation-core – TRUST 5 framework for infrastructure compliance
 
 Research Resources:
 
@@ -799,6 +799,6 @@ IMPACT: Unstructured output creates confusion and implementation errors
 
 Last Updated: 2025-12-07
 Version: 1.0.0
-Agent Tier: Domain (ABYZ-Lab Sub-agents)
+Agent Tier: Domain (MoAI Sub-agents)
 Supported Platforms: Railway, Vercel, Netlify, AWS (Lambda, EC2, ECS), GCP, Azure, Docker, Kubernetes
 GitHub MCP Integration: Enabled for CI/CD automation

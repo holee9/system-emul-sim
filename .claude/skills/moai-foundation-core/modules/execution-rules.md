@@ -1,6 +1,6 @@
 # Execution Rules and Constraints
 
-Purpose: Security policies, execution constraints, and Git workflow strategies governing ABYZ-Lab-ADK agent behavior.
+Purpose: Security policies, execution constraints, and Git workflow strategies governing MoAI-ADK agent behavior.
 
 Last Updated: 2025-11-25
 Version: 2.0.0
@@ -9,7 +9,7 @@ Version: 2.0.0
 
 ## Quick Reference (30 seconds)
 
-ABYZ-Lab operates under strict execution rules:
+MoAI operates under strict execution rules:
 
 Core Constraints:
 - Agent-First: ALWAYS delegate via Task(), NEVER execute directly
@@ -73,7 +73,7 @@ Allowed Tools (4 categories):
 |------|---------|---------|
 | `Task()` | Agent delegation | `Task("code-backend", "Implement API")` |
 | `AskUserQuestion()` | User interaction | `AskUserQuestion(questions=[...])` |
-| `Skill()` | Knowledge invocation | `Skill("abyz-lab-foundation-core")` |
+| `Skill()` | Knowledge invocation | `Skill("moai-foundation-core")` |
 | `MCP Servers` | External integrations | Context7, Playwright, Pencil |
 
 Forbidden Tools (Why?):
@@ -171,7 +171,7 @@ MCP Server Permissions:
 
 ### Git Strategy 3-Mode System
 
-ABYZ-Lab automatically adjusts Git workflow based on `config.json` settings.
+MoAI automatically adjusts Git workflow based on `config.json` settings.
 
 Key Configuration Fields:
 - `git_strategy.mode`: Git mode selection (manual, personal, team)
@@ -203,8 +203,8 @@ Configuration (default):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=true):
-1. When running `/abyz-lab:1-plan`, user prompted: "Create branch?"
+MoAI's Behavior (prompt_always=true):
+1. When running `/moai:1-plan`, user prompted: "Create branch?"
  - Auto create → Creates feature/SPEC-001
  - Use current branch → Continues on current branch
 2. All DDD commits saved locally only (automatic)
@@ -223,7 +223,7 @@ Configuration (auto skip):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=false):
+MoAI's Behavior (prompt_always=false):
 - All SPECs automatically work on current branch (no branch creation)
 - No user prompts
 
@@ -246,12 +246,12 @@ Configuration (default - prompt each time):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=true):
-1. When running `/abyz-lab:1-plan`, user prompted: "Create branch?"
+MoAI's Behavior (prompt_always=true):
+1. When running `/moai:1-plan`, user prompted: "Create branch?"
  - Auto create → Creates feature/SPEC-002 + auto push
  - Use current branch → Commits directly on current branch
-2. Running `/abyz-lab:2-run`: DDD commits + auto push
-3. Running `/abyz-lab:3-sync`: Doc commits + suggest PR creation (user choice)
+2. Running `/moai:2-run`: DDD commits + auto push
+3. Running `/moai:3-sync`: Doc commits + suggest PR creation (user choice)
 
 Configuration (auto after approval):
 ```json
@@ -266,8 +266,8 @@ Configuration (auto after approval):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=false, auto_enabled=false):
-1. When running `/abyz-lab:1-plan`, user prompted once: "Enable automatic branch creation?"
+MoAI's Behavior (prompt_always=false, auto_enabled=false):
+1. When running `/moai:1-plan`, user prompted once: "Enable automatic branch creation?"
  - Yes → Auto updates config.json with `auto_enabled=true` → Creates feature/SPEC
  - No → Works on current branch, no config change
 2. From next SPEC: If `auto_enabled=true`, feature branches created automatically without prompts
@@ -285,7 +285,7 @@ Configuration (full automation):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=false, auto_enabled=true):
+MoAI's Behavior (prompt_always=false, auto_enabled=true):
 - Automatically creates feature/SPEC-XXX branch for every SPEC
 - No user prompts (full automation)
 - All DDD and documentation commits auto-pushed to feature branch
@@ -309,12 +309,12 @@ Configuration (default - prompt each time):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=true):
-1. When running `/abyz-lab:1-plan`, user prompted: "Create branch?"
+MoAI's Behavior (prompt_always=true):
+1. When running `/moai:1-plan`, user prompted: "Create branch?"
  - Auto create → Creates feature/SPEC-003 + auto create Draft PR
  - Use current branch → Proceeds on current branch (not recommended)
-2. Running `/abyz-lab:2-run`: DDD commits + auto push (to feature branch)
-3. Running `/abyz-lab:3-sync`: Doc commits + prepare PR
+2. Running `/moai:2-run`: DDD commits + auto push (to feature branch)
+3. Running `/moai:3-sync`: Doc commits + prepare PR
 4. Team code review required (minimum 1 reviewer)
 5. After approval: Merge (Squash or Merge)
 
@@ -331,8 +331,8 @@ Configuration (auto after approval):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=false, auto_enabled=false):
-1. When running `/abyz-lab:1-plan`, user prompted once: "Enable automatic branch creation and Draft PR creation?"
+MoAI's Behavior (prompt_always=false, auto_enabled=false):
+1. When running `/moai:1-plan`, user prompted once: "Enable automatic branch creation and Draft PR creation?"
  - Yes → Auto updates config.json with `auto_enabled=true` → Creates feature/SPEC + Draft PR
  - No → Works on current branch, no config change
 2. From next SPEC: If `auto_enabled=true`, feature branches + Draft PRs created automatically without prompts
@@ -350,7 +350,7 @@ Configuration (full automation):
 }
 ```
 
-ABYZ-Lab's Behavior (prompt_always=false, auto_enabled=true):
+MoAI's Behavior (prompt_always=false, auto_enabled=true):
 - Automatically creates feature/SPEC-XXX branch + Draft PR for every SPEC
 - No user prompts (full automation)
 - All DDD and documentation commits auto-pushed to feature branch
@@ -363,7 +363,7 @@ Use Case: Team projects, code review required, quality management needed
 ### `/clear` Execution Rule
 
 Mandatory `/clear` After SPEC Generation:
-Execute `/clear` after `/abyz-lab:1-plan` completion in ALL modes.
+Execute `/clear` after `/moai:1-plan` completion in ALL modes.
 
 Why?:
 - Saves 45-50K tokens (SPEC generation context)
@@ -371,7 +371,7 @@ Why?:
 - Prevents token overflow
 
 When to Execute `/clear`:
-1. Immediately after `/abyz-lab:1-plan` (mandatory)
+1. Immediately after `/moai:1-plan` (mandatory)
 2. When context > 150K tokens
 3. After 50+ conversation messages
 
@@ -550,7 +550,7 @@ Optimization Requirements:
 Allowed Operations:
 - Read files within project directory
 - Write files to designated locations
-- Create documentation in `.abyz-lab/` directory
+- Create documentation in `.moai/` directory
 - Generate code in source directories
 
 Prohibited Operations:
@@ -666,8 +666,8 @@ Emergency Procedures:
 ## Works Well With
 
 Skills:
-- [abyz-lab-foundation-core](../SKILL.md) - Parent skill
-- [abyz-lab-foundation-context](../../abyz-lab-foundation-context/SKILL.md) - Token budget and session state
+- [moai-foundation-core](../SKILL.md) - Parent skill
+- [moai-foundation-context](../../moai-foundation-context/SKILL.md) - Token budget and session state
 
 Other Modules:
 - [trust-5-framework.md](trust-5-framework.md) - Quality gates detail
@@ -681,7 +681,7 @@ Agents:
 
 ---
 
-This comprehensive set of execution rules ensures that ABYZ-Lab-ADK operates securely, efficiently, and in compliance with industry standards while maintaining high quality output.
+This comprehensive set of execution rules ensures that MoAI-ADK operates securely, efficiently, and in compliance with industry standards while maintaining high quality output.
 
-Maintained by: ABYZ-Lab-ADK Team
+Maintained by: MoAI-ADK Team
 Status: Production Ready

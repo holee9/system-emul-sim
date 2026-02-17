@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-domain-frontend
+name: moai-domain-frontend
 description: >
   Frontend development specialist covering React 19, Next.js 16, Vue 3.5,
   and modern UI/UX patterns with component architecture. Use when building
@@ -16,10 +16,10 @@ metadata:
   updated: "2026-01-11"
   modularized: "true"
   tags: "frontend, react, nextjs, vue, ui, components"
-  author: "ABYZ-Lab-ADK Team"
+  author: "MoAI-ADK Team"
   context7-libraries: "/facebook/react, /vercel/next.js, /vuejs/vue"
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords:
     - frontend
@@ -129,11 +129,11 @@ Import cva and VariantProps from class-variance-authority. Define buttonVariants
 
 ## Works Well With
 
-- abyz-lab-domain-backend - Full-stack development
-- abyz-lab-library-shadcn - Component library integration
-- abyz-lab-domain-uiux - UI/UX design principles
-- abyz-lab-lang-typescript - TypeScript patterns
-- abyz-lab-workflow-testing - Frontend testing
+- moai-domain-backend - Full-stack development
+- moai-library-shadcn - Component library integration
+- moai-domain-uiux - UI/UX design principles
+- moai-lang-typescript - TypeScript patterns
+- moai-workflow-testing - Frontend testing
 
 ---
 

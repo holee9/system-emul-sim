@@ -9,7 +9,7 @@ Last Updated: 2026-01-06
 
 ## Quick Reference (30 seconds)
 
-TRUST 5 is ABYZ-Lab-ADK's comprehensive quality assurance framework enforcing five pillars:
+TRUST 5 is MoAI-ADK's comprehensive quality assurance framework enforcing five pillars:
 
 1. Test-first(T) - ≥85% coverage, RED-GREEN-REFACTOR cycle
 2. Readable(R) - Clear naming, ≤10 cyclomatic complexity
@@ -21,7 +21,7 @@ Integration Points:
 - Pre-commit hooks - Automated validation
 - CI/CD pipelines - Quality gate enforcement
 - quality-gate agent - TRUST 5 validation
-- /abyz-lab:2-run - Enforces ≥85% coverage
+- /moai:2-run - Enforces ≥85% coverage
 
 Quick Validation:
 ```python
@@ -140,7 +140,7 @@ Documentation Consistency:
 Validation Tools:
 ```bash
 # Check architecture compliance
-python .abyz-lab/scripts/validate_architecture.py
+python .moai/scripts/validate_architecture.py
 
 # Check consistent imports
 isort --check-only src/
@@ -225,12 +225,12 @@ Agents:
 - test-engineer - Test generation and coverage
 
 Skills:
-- abyz-lab-workflow-testing - Test framework setup
-- abyz-lab-domain-security - Security patterns
+- moai-workflow-testing - Test framework setup
+- moai-domain-security - Security patterns
 
 Commands:
-- /abyz-lab:2-run - Enforces ≥85% coverage requirement
-- /abyz-lab:9-feedback - Quality improvement suggestions
+- /moai:2-run - Enforces ≥85% coverage requirement
+- /moai:9-feedback - Quality improvement suggestions
 
 ---
 

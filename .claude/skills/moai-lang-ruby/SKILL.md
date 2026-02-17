@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-ruby
+name: moai-lang-ruby
 description: >
   Ruby 3.3+ development specialist covering Rails 7.2, ActiveRecord,
   Hotwire/Turbo, and modern Ruby patterns. Use when developing Ruby APIs,
@@ -16,13 +16,13 @@ metadata:
   modularized: "true"
   tags: "language, ruby, rails, activerecord, hotwire, turbo, rspec"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["Ruby", "Rails", "ActiveRecord", "Hotwire", "Turbo", "RSpec", ".rb", "Gemfile", "Rakefile", "config.ru"]
   languages: ["ruby"]
@@ -150,11 +150,11 @@ See:
 
 ## Works Well With
 
-- abyz-lab-domain-backend for REST API and web application architecture
-- abyz-lab-domain-database for SQL patterns and ActiveRecord optimization
-- abyz-lab-workflow-testing for DDD and testing strategies
-- abyz-lab-essentials-debug for AI-powered debugging
-- abyz-lab-foundation-quality for TRUST 5 quality principles
+- moai-domain-backend for REST API and web application architecture
+- moai-domain-database for SQL patterns and ActiveRecord optimization
+- moai-workflow-testing for DDD and testing strategies
+- moai-essentials-debug for AI-powered debugging
+- moai-foundation-quality for TRUST 5 quality principles
 
 ---
 

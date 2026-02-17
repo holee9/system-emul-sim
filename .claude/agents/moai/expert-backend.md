@@ -12,19 +12,19 @@ tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Task
 model: inherit
 permissionMode: default
 memory: project
-skills: abyz-lab-foundation-claude, abyz-lab-foundation-core, abyz-lab-foundation-philosopher, abyz-lab-foundation-quality, abyz-lab-foundation-context, abyz-lab-domain-backend, abyz-lab-domain-database, abyz-lab-lang-python, abyz-lab-lang-typescript, abyz-lab-lang-javascript, abyz-lab-lang-go, abyz-lab-lang-java, abyz-lab-lang-rust, abyz-lab-lang-php, abyz-lab-lang-csharp, abyz-lab-lang-ruby, abyz-lab-lang-elixir, abyz-lab-lang-scala, abyz-lab-platform-database-cloud, abyz-lab-platform-auth, abyz-lab-platform-deployment, abyz-lab-platform-chrome-extension, abyz-lab-tool-ast-grep, abyz-lab-workflow-tdd, abyz-lab-workflow-ddd, abyz-lab-workflow-testing, abyz-lab-workflow-jit-docs
+skills: moai-foundation-claude, moai-foundation-core, moai-foundation-philosopher, moai-foundation-quality, moai-foundation-context, moai-domain-backend, moai-domain-database, moai-lang-python, moai-lang-typescript, moai-lang-javascript, moai-lang-go, moai-lang-java, moai-lang-rust, moai-lang-php, moai-lang-csharp, moai-lang-ruby, moai-lang-elixir, moai-lang-scala, moai-platform-database-cloud, moai-platform-auth, moai-platform-deployment, moai-platform-chrome-extension, moai-tool-ast-grep, moai-workflow-tdd, moai-workflow-ddd, moai-workflow-testing, moai-workflow-jit-docs
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" backend-validation"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" backend-validation"
           timeout: 5
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/abyz-lab/handle-agent-hook.sh\" backend-verification"
+          command: "\"$CLAUDE_PROJECT_DIR/.claude/hooks/moai/handle-agent-hook.sh\" backend-verification"
           timeout: 15
 ---
 
@@ -76,7 +76,7 @@ Architecture:
 
 ## Essential Reference
 
-IMPORTANT: This agent follows ABYZ-Lab's core execution directives defined in @CLAUDE.md:
+IMPORTANT: This agent follows MoAI's core execution directives defined in @CLAUDE.md:
 
 - Rule 1: 8-Step User Request Analysis Process
 - Rule 3: Behavioral Constraints (Never execute directly, always delegate)
@@ -205,14 +205,14 @@ Example: Korean prompt → Korean architecture guidance + English code examples
 
 Automatic Core Skills (from YAML frontmatter Line 7)
 
-- abyz-lab-foundation-claude – Core execution rules and agent delegation patterns
-- abyz-lab-lang-python – Python/FastAPI/Django/Flask patterns
-- abyz-lab-lang-typescript – TypeScript/Node.js/Express/NestJS patterns
-- abyz-lab-domain-backend – Backend infrastructure, databases, authentication, microservices architecture
+- moai-foundation-claude – Core execution rules and agent delegation patterns
+- moai-lang-python – Python/FastAPI/Django/Flask patterns
+- moai-lang-typescript – TypeScript/Node.js/Express/NestJS patterns
+- moai-domain-backend – Backend infrastructure, databases, authentication, microservices architecture
 
-Conditional Skills (auto-loaded by ABYZ-Lab when needed)
+Conditional Skills (auto-loaded by MoAI when needed)
 
-- abyz-lab-foundation-core – TRUST 5 framework and quality gates
+- moai-foundation-core – TRUST 5 framework and quality gates
 
 ## Core Mission
 
@@ -324,22 +324,22 @@ IMPACT: Guessing framework leads to misaligned architectures and wasted effort
 
 Framework Coverage Provided:
 
-Python Frameworks: FastAPI, Flask, Django patterns provided by abyz-lab-lang-python
+Python Frameworks: FastAPI, Flask, Django patterns provided by moai-lang-python
 
-TypeScript Frameworks: Express, Fastify, NestJS, Sails patterns provided by abyz-lab-lang-typescript
+TypeScript Frameworks: Express, Fastify, NestJS, Sails patterns provided by moai-lang-typescript
 
-Go Frameworks: Gin, Beego patterns provided by abyz-lab-lang-go
+Go Frameworks: Gin, Beego patterns provided by moai-lang-go
 
-Rust Frameworks: Axum, Rocket patterns provided by abyz-lab-lang-rust
+Rust Frameworks: Axum, Rocket patterns provided by moai-lang-rust
 
-Java Frameworks: Spring Boot patterns provided by abyz-lab-lang-java
+Java Frameworks: Spring Boot patterns provided by moai-lang-java
 
-PHP Frameworks: Laravel, Symfony patterns provided by abyz-lab-lang-php
+PHP Frameworks: Laravel, Symfony patterns provided by moai-lang-php
 
 WHY: Centralized skill loading ensures consistent patterns across all frameworks
 IMPACT: Inconsistent patterns create integration issues and maintenance burden
 
-[HARD] Use abyz-lab-domain-backend skill for backend infrastructure patterns
+[HARD] Use moai-domain-backend skill for backend infrastructure patterns
 WHY: Infrastructure patterns ensure consistent deployment and scaling approaches
 IMPACT: Missing infrastructure patterns create operational issues
 
@@ -349,7 +349,7 @@ IMPACT: Missing infrastructure patterns create operational issues
 
 [HARD] Read SPEC files and extract all backend requirements before recommending architecture
 
-1. [HARD] Read SPEC Files: Access `.abyz-lab/specs/SPEC-{ID}/spec.md`
+1. [HARD] Read SPEC Files: Access `.moai/specs/SPEC-{ID}/spec.md`
    WHY: SPEC contains authoritative requirements
    IMPACT: Missing requirements lead to misaligned architectures
 
@@ -515,7 +515,7 @@ IMPACT: Missing infrastructure patterns create operational issues
 
 ### Step 5: Generate Architecture Documentation
 
-Create `.abyz-lab/docs/backend-architecture-{SPEC-ID}.md`:
+Create `.moai/docs/backend-architecture-{SPEC-ID}.md`:
 
 ```markdown
 ## Backend Architecture: SPEC-{ID}
@@ -917,14 +917,14 @@ IMPACT: Unstructured output requires stakeholder parsing and creates interpretat
 
 Skills (from YAML frontmatter):
 
-- abyz-lab-foundation-claude – Core execution rules and agent delegation patterns
-- abyz-lab-lang-python – Python/FastAPI/Django/Flask patterns
-- abyz-lab-lang-typescript – TypeScript/Node.js/Express/NestJS patterns
-- abyz-lab-domain-backend – Backend infrastructure, databases, authentication, microservices
+- moai-foundation-claude – Core execution rules and agent delegation patterns
+- moai-lang-python – Python/FastAPI/Django/Flask patterns
+- moai-lang-typescript – TypeScript/Node.js/Express/NestJS patterns
+- moai-domain-backend – Backend infrastructure, databases, authentication, microservices
 
-Conditional Skills (loaded by ABYZ-Lab when needed):
+Conditional Skills (loaded by MoAI when needed):
 
-- abyz-lab-foundation-core – MCP server integration patterns
+- moai-foundation-core – MCP server integration patterns
 
 Research Resources:
 
@@ -959,7 +959,7 @@ Context Engineering Requirements:
 
 Last Updated: 2025-12-03
 Version: 2.0.0
-Agent Tier: Domain (ABYZ-Lab Sub-agents)
+Agent Tier: Domain (MoAI Sub-agents)
 Supported Frameworks: FastAPI, Flask, Django, Express, Fastify, NestJS, Sails, Gin, Beego, Axum, Rocket, Spring Boot, Laravel, Symfony
 Supported Languages: Python, TypeScript, Go, Rust, Java, Scala, PHP
 Context7 Integration: Enabled for real-time framework documentation

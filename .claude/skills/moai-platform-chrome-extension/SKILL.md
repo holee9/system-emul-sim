@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-platform-chrome-extension
+name: moai-platform-chrome-extension
 description: >
   Chrome Extension Manifest V3 development specialist covering service workers,
   content scripts, message passing, chrome.* APIs, side panel, declarativeNetRequest,
@@ -20,16 +20,16 @@ metadata:
   modularized: "true"
   tags: "chrome-extension, manifest-v3, service-worker, content-script, messaging, chrome-api, browser-extension, web-store, side-panel, declarative-net-request"
   context7-libraries: "/nicedoc/chrome-extension-doc"
-  related-skills: "abyz-lab-lang-typescript, abyz-lab-lang-javascript, abyz-lab-domain-frontend"
+  related-skills: "moai-lang-typescript, moai-lang-javascript, moai-domain-frontend"
   aliases: "chrome-ext, browser-extension, crx"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 120
   level2_tokens: 8000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["chrome extension", "manifest v3", "service worker", "content script", "chrome api", "browser extension", "popup", "side panel", "background script", "web store", "declarativeNetRequest", "chrome.runtime", "chrome.tabs", "chrome.storage", "chrome.scripting", "chrome.action", "manifest.json", "crx"]
   agents: ["expert-frontend", "expert-backend"]
@@ -279,11 +279,11 @@ Open chrome://extensions to view all installed extensions and their status. Enab
 
 ## Works Well With
 
-- abyz-lab-lang-typescript for TypeScript patterns in extension development
-- abyz-lab-lang-javascript for JavaScript patterns and ES module usage
-- abyz-lab-domain-frontend for React or framework-based popup and side panel UI
-- abyz-lab-domain-backend for server-side API integration
-- abyz-lab-workflow-testing for extension testing strategies
+- moai-lang-typescript for TypeScript patterns in extension development
+- moai-lang-javascript for JavaScript patterns and ES module usage
+- moai-domain-frontend for React or framework-based popup and side panel UI
+- moai-domain-backend for server-side API integration
+- moai-workflow-testing for extension testing strategies
 
 ---
 
@@ -316,7 +316,7 @@ For official Chrome documentation, use WebFetch with:
 ---
 
 Status: Production Ready
-Generated with: ABYZ-Lab-ADK Skill Factory v1.0
+Generated with: MoAI-ADK Skill Factory v1.0
 Last Updated: 2026-02-01
 Version: 1.0.0 (Initial Release)
 Coverage: Manifest V3, Service Workers, Content Scripts, Messaging, Chrome APIs, UI, Security, Publishing

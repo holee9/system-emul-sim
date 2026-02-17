@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-tool-svg
+name: moai-tool-svg
 description: >
   SVG creation, optimization, and transformation specialist. Use when creating vector
   graphics, optimizing SVG files with SVGO, implementing icon systems, building data
@@ -15,7 +15,7 @@ metadata:
   status: "active"
   updated: "2026-01-26"
   tags: "svg, vector, graphics, svgo, optimization, animation, icons"
-  related-skills: "abyz-lab-domain-frontend, abyz-lab-docs-generation"
+  related-skills: "moai-domain-frontend, moai-docs-generation"
   context7-libraries: "/nicolo-ribaudo/svgo"
 ---
 
@@ -411,6 +411,6 @@ For detailed patterns on each topic, see the modules directory.
 
 ## Works Well With
 
-- abyz-lab-domain-frontend: React/Vue SVG component integration
-- abyz-lab-docs-generation: SVG diagram generation for documentation
-- abyz-lab-domain-uiux: Icon systems and design system integration
+- moai-domain-frontend: React/Vue SVG component integration
+- moai-docs-generation: SVG diagram generation for documentation
+- moai-domain-uiux: Icon systems and design system integration

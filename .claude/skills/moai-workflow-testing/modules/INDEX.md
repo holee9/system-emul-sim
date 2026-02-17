@@ -6,7 +6,7 @@
 
 ## Module Overview
 
-This modules directory contains detailed implementation modules for the abyz-lab-workflow-testing skill. Each module provides comprehensive code examples, advanced features, and integration patterns that extend the core functionality described in the main SKILL.md file.
+This modules directory contains detailed implementation modules for the moai-workflow-testing skill. Each module provides comprehensive code examples, advanced features, and integration patterns that extend the core functionality described in the main SKILL.md file.
 
 ## Available Modules
 
@@ -137,8 +137,8 @@ Each module can be used independently or as part of the unified workflow system:
 
 ```python
 # Import specific module components
-from abyz-lab_workflow_testing.modules.ai_debugging import AIDebugger
-from abyz-lab_workflow_testing.modules.performance_optimization import PerformanceProfiler
+from moai_workflow_testing.modules.ai_debugging import AIDebugger
+from moai_workflow_testing.modules.performance_optimization import PerformanceProfiler
 
 # Use modules independently
 debugger = AIDebugger(context7_client=context7)
@@ -150,7 +150,7 @@ profiler = PerformanceProfiler(context7_client=context7)
 All modules are designed to work together seamlessly:
 
 ```python
-from abyz-lab_workflow_testing import DevelopmentWorkflow
+from moai_workflow_testing import DevelopmentWorkflow
 
 # Complete workflow with all modules
 workflow = DevelopmentWorkflow(
@@ -266,4 +266,4 @@ When contributing to modules:
 
 Last Updated: 2026-01-06
 Module Count: 12 root-level modules + 7 thematic subdirectories
-Maintained by: ABYZ-Lab-ADK Development Workflow Team
+Maintained by: MoAI-ADK Development Workflow Team

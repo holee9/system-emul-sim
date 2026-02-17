@@ -1,6 +1,6 @@
 # Enterprise Code Quality Examples
 
-Comprehensive examples demonstrating the abyz-lab-foundation-quality skill in action across various scenarios and use cases.
+Comprehensive examples demonstrating the moai-foundation-quality skill in action across various scenarios and use cases.
 
 ---
 
@@ -9,7 +9,7 @@ Comprehensive examples demonstrating the abyz-lab-foundation-quality skill in ac
 Scenario: Validate code quality before deployment
 
 ```python
-from abyz-lab_core_quality import QualityOrchestrator, QualityConfig
+from moai_core_quality import QualityOrchestrator, QualityConfig
 
 # Initialize quality orchestrator with TRUST 5 validation
 config = QualityConfig(
@@ -61,7 +61,7 @@ TRUST 5 Validation: PASSED
 Scenario: Identify and fix security vulnerabilities in web application
 
 ```python
-from abyz-lab_core_quality import ProactiveSecurityScanner
+from moai_core_quality import ProactiveSecurityScanner
 
 security_scanner = ProactiveSecurityScanner(
  context7_integration=True,
@@ -138,7 +138,7 @@ Sample Security Issues Found:
 Scenario: Identify performance bottlenecks and optimization opportunities
 
 ```python
-from abyz-lab_core_quality import PerformanceAnalyzer
+from moai_core_quality import PerformanceAnalyzer
 
 performance_analyzer = PerformanceAnalyzer(
  context7_integration=True,
@@ -216,7 +216,7 @@ Overall Performance Score: 0.73
 Scenario: Analyze quality across Python, TypeScript, and Go codebase
 
 ```python
-from abyz-lab_core_quality import MultiLanguageQualityAnalyzer
+from moai_core_quality import MultiLanguageQualityAnalyzer
 
 multi_lang_analyzer = MultiLanguageQualityAnalyzer(
  languages=["python", "typescript", "go"],
@@ -341,14 +341,14 @@ jobs:
 
  - name: Install dependencies
  run: |
- pip install abyz-lab-foundation-quality
+ pip install moai-foundation-quality
  npm install -g eslint prettier
 
  - name: Run Quality Analysis
  run: |
  python -c "
  import asyncio
- from abyz-lab_core_quality import QualityOrchestrator
+ from moai_core_quality import QualityOrchestrator
 
  async def run_quality_analysis():
  orchestrator = QualityOrchestrator()
@@ -400,7 +400,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from abyz-lab_core_quality import QualityOrchestrator, CIIntegration
+from moai_core_quality import QualityOrchestrator, CIIntegration
 
 async def run_pipeline_quality_check():
  """Run quality check for CI/CD pipeline"""
@@ -483,7 +483,7 @@ if __name__ == "__main__":
 Scenario: Define project-specific quality rules and policies
 
 ```python
-from abyz-lab_core_quality import QualityOrchestrator, CustomQualityRule, QualityPolicy
+from moai_core_quality import QualityOrchestrator, CustomQualityRule, QualityPolicy
 
 # Define custom quality rules for enterprise project
 class EnterpriseNamingRule(CustomQualityRule):
@@ -591,7 +591,7 @@ print(f"Policy Compliance: {' COMPLIANT' if result.policy_compliance.passed else
 Scenario: Analyze and manage technical debt across codebase
 
 ```python
-from abyz-lab_core_quality import TechnicalDebtAnalyzer
+from moai_core_quality import TechnicalDebtAnalyzer
 
 debt_analyzer = TechnicalDebtAnalyzer(
  context7_integration=True,
@@ -703,7 +703,7 @@ Debt Interest: 18 hours/month
 Scenario: Set up real-time quality monitoring with alerts
 
 ```python
-from abyz-lab_core_quality import RealTimeQualityMonitor, AlertConfiguration
+from moai_core_quality import RealTimeQualityMonitor, AlertConfiguration
 
 # Configure real-time monitoring
 alert_config = AlertConfiguration(
@@ -819,7 +819,7 @@ quality_monitor.register_alert_handler(
 Scenario: Benchmark project quality against industry standards
 
 ```python
-from abyz-lab_core_quality import QualityBenchmarking
+from moai_core_quality import QualityBenchmarking
 
 # Initialize benchmarking service
 benchmarking = QualityBenchmarking(
@@ -884,7 +884,7 @@ await benchmarking.generate_benchmark_report(
 Scenario: Generate and apply automated refactoring suggestions
 
 ```python
-from abyz-lab_core_quality import RefactoringSuggester
+from moai_core_quality import RefactoringSuggester
 
 refactoring_engine = RefactoringSuggester(
  auto_apply_safe_refactors=True,
@@ -990,7 +990,7 @@ if safe_refactors:
 Scenario: Create comprehensive quality metrics dashboard
 
 ```python
-from abyz-lab_core_quality import QualityDashboard, MetricsCollector
+from moai_core_quality import QualityDashboard, MetricsCollector
 
 # Initialize metrics collector
 metrics_collector = MetricsCollector(
@@ -1105,7 +1105,7 @@ live_monitoring_widget = {
 Scenario: Implement enterprise-wide quality governance policies
 
 ```python
-from abyz-lab_core_quality import EnterpriseQualityGovernance, QualityPolicy, ComplianceReporter
+from moai_core_quality import EnterpriseQualityGovernance, QualityPolicy, ComplianceReporter
 
 # Define enterprise quality governance framework
 governance = EnterpriseQualityGovernance(
@@ -1229,4 +1229,4 @@ print(" Monthly compliance audits scheduled")
 
 ---
 
-These examples demonstrate the comprehensive capabilities of the abyz-lab-foundation-quality skill across various enterprise scenarios, from basic quality validation to complex governance frameworks. Each example includes practical implementation details, output samples, and integration patterns suitable for production environments.
+These examples demonstrate the comprehensive capabilities of the moai-foundation-quality skill across various enterprise scenarios, from basic quality validation to complex governance frameworks. Each example includes practical implementation details, output samples, and integration patterns suitable for production environments.

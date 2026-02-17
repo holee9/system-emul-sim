@@ -1,7 +1,7 @@
 ---
 name: manifest-v3-reference
 description: Complete manifest.json field reference for Chrome Extension Manifest V3
-parent-skill: abyz-lab-platform-chrome-extension
+parent-skill: moai-platform-chrome-extension
 version: 1.0.0
 updated: 2026-02-01
 ---

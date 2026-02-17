@@ -782,8 +782,8 @@ All validation scripts provided in PoC test package: `poc_validation_scripts.zip
 **Acceptance Criteria Version**: 1.0.1
 **Created**: 2026-02-17
 **Updated**: 2026-02-17
-**Author**: ABYZ-Lab Agent (manager-spec)
+**Author**: MoAI Agent (manager-spec)
 **Reviewer**: spec-fpga (doc-approval-sprint)
 **Changes**: Fixed gate_week W6→W26, RAW16 data type 0x2C→0x2E, Linux 5.15→6.6.52, GO threshold 1.41→1.58 Gbps (aligned with spec.md), Yocto Scarthgap references corrected
 
-🗿 ABYZ-Lab <email@mo.ai.kr>
+🗿 MoAI <email@mo.ai.kr>

@@ -1,6 +1,6 @@
-# ABYZ-Lab-ADK Integration Module
+# MoAI-ADK Integration Module
 
-Purpose: Detailed integration patterns for abyz-lab-worktree with ABYZ-Lab-ADK Plan-Run-Sync workflow including plan phase automation, DDD integration, and cleanup workflows.
+Purpose: Detailed integration patterns for moai-worktree with MoAI-ADK Plan-Run-Sync workflow including plan phase automation, DDD integration, and cleanup workflows.
 
 Version: 1.0.0
 Last Updated: 2026-01-06
@@ -9,15 +9,15 @@ Last Updated: 2026-01-06
 
 ## Quick Reference (30 seconds)
 
-ABYZ-Lab-ADK Integration Points:
-- /abyz-lab:1-plan: Automatic worktree creation after SPEC generation
-- /abyz-lab:2-run: DDD execution in isolated worktree environment
-- /abyz-lab:3-sync: Worktree sync with documentation updates
+MoAI-ADK Integration Points:
+- /moai:1-plan: Automatic worktree creation after SPEC generation
+- /moai:2-run: DDD execution in isolated worktree environment
+- /moai:3-sync: Worktree sync with documentation updates
 - Cleanup: Automatic removal of merged worktrees
 
 ---
 
-## Plan Phase Integration (/abyz-lab:1-plan)
+## Plan Phase Integration (/moai:1-plan)
 
 ### Automatic Worktree Creation
 
@@ -28,11 +28,11 @@ Branch Naming Convention:
 - Example: SPEC-001 with title "User Auth" becomes feature/SPEC-001-user-auth
 
 Worktree Path Pattern:
-- Default: {repo}/.abyz-lab/worktrees/{project-name}/SPEC-{id}
+- Default: {repo}/.moai/worktrees/{project-name}/SPEC-{id}
 - Configurable via worktree_root setting
 
 Creation Workflow:
-1. SPEC is created with /abyz-lab:1-plan
+1. SPEC is created with /moai:1-plan
 2. Worktree new command is invoked automatically if auto_create is enabled
 3. Branch is created from configured base branch (default: main)
 4. Template is applied if specified
@@ -56,7 +56,7 @@ Template Configuration Structure:
 
 ---
 
-## Development Phase Integration (/abyz-lab:2-run)
+## Development Phase Integration (/moai:2-run)
 
 ### Worktree-Aware DDD
 
@@ -64,7 +64,7 @@ The DDD manager detects worktree environments and adapts its behavior accordingl
 
 Worktree Detection:
 - Checks if current directory name starts with SPEC-
-- Looks for .abyz-lab/worktrees directory in path hierarchy
+- Looks for .moai/worktrees directory in path hierarchy
 - Validates against registry for accurate identification
 
 DDD Execution Benefits:
@@ -95,7 +95,7 @@ Server Management:
 
 ---
 
-## Sync Phase Integration (/abyz-lab:3-sync)
+## Sync Phase Integration (/moai:3-sync)
 
 ### Automated Worktree Synchronization
 
@@ -187,15 +187,15 @@ Access Levels:
 
 ## Configuration Reference
 
-### ABYZ-Lab Configuration Integration
+### MoAI Configuration Integration
 
-Worktree settings in .abyz-lab/config/config.yaml:
+Worktree settings in .moai/config/config.yaml:
 
 worktree section:
 - auto_create: Enable automatic worktree creation (default: true)
 - auto_sync: Enable automatic synchronization (default: true)
 - cleanup_merged: Remove worktrees for merged branches (default: true)
-- worktree_root: Base directory for worktrees (default: {repo}/.abyz-lab/worktrees)
+- worktree_root: Base directory for worktrees (default: {repo}/.moai/worktrees)
 - default_base: Default base branch (default: main)
 - sync_strategy: Sync method - merge, rebase, or squash (default: merge)
 - registry_type: local or team (default: local)
@@ -242,4 +242,4 @@ For failed synchronization:
 
 Version: 1.0.0
 Last Updated: 2026-01-06
-Module: ABYZ-Lab-ADK workflow integration patterns for Plan-Run-Sync phases
+Module: MoAI-ADK workflow integration patterns for Plan-Run-Sync phases

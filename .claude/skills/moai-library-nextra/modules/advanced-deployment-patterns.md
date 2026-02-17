@@ -1,6 +1,6 @@
 ---
 name: advanced-deployment-patterns
-parent: abyz-lab-library-nextra
+parent: moai-library-nextra
 description: Mobile optimization, accessibility, and SEO
 ---
 

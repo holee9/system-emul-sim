@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-java
+name: moai-lang-java
 description: >
   Java 21 LTS development specialist covering Spring Boot 3.3, virtual threads, pattern matching, and enterprise patterns. Use when building enterprise applications, microservices, or Spring projects.
 license: Apache-2.0
@@ -13,15 +13,15 @@ metadata:
   modularized: "false"
   tags: "java, spring-boot, jpa, hibernate, virtual-threads, enterprise"
   context7-libraries: "/spring-projects/spring-boot, /spring-projects/spring-framework, /spring-projects/spring-security"
-  related-skills: "abyz-lab-lang-kotlin, abyz-lab-domain-backend"
+  related-skills: "moai-lang-kotlin, moai-domain-backend"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["Java", "Spring Boot", "Spring Framework", "JPA", "Hibernate", "Maven", "Gradle", ".java", "pom.xml", "build.gradle", "virtual thread"]
   languages: ["java"]
@@ -138,11 +138,11 @@ Library mappings for latest documentation:
 
 ## Works Well With
 
-- abyz-lab-lang-kotlin for Kotlin interoperability and Spring Kotlin extensions
-- abyz-lab-domain-backend for REST API, GraphQL, and microservices architecture
-- abyz-lab-domain-database for JPA, Hibernate, and R2DBC patterns
-- abyz-lab-foundation-quality for JUnit 5, Mockito, and TestContainers integration
-- abyz-lab-infra-docker for JVM container optimization
+- moai-lang-kotlin for Kotlin interoperability and Spring Kotlin extensions
+- moai-domain-backend for REST API, GraphQL, and microservices architecture
+- moai-domain-database for JPA, Hibernate, and R2DBC patterns
+- moai-foundation-quality for JUnit 5, Mockito, and TestContainers integration
+- moai-infra-docker for JVM container optimization
 
 ---
 

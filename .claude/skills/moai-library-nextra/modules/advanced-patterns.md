@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-library-nextra/advanced-patterns
+name: moai-library-nextra/advanced-patterns
 description: Advanced Nextra architecture patterns, MDX integration, dynamic routing, and site optimization
 ---
 

@@ -1,4 +1,4 @@
-name: abyz-lab-library-shadcn-theming
+name: moai-library-shadcn-theming
 description: shadcn/ui theme system and design token customization
 
 ## Theme System Implementation

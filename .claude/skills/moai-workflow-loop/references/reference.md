@@ -12,7 +12,7 @@
 | `ralph.lsp.poll_interval_ms`                        | integer | `500`                                                  | Polling interval for diagnostics (milliseconds)           |
 | `ralph.lsp.graceful_degradation`                    | boolean | `true`                                                 | Continue if LSP unavailable (fallback to linters)         |
 | `ralph.ast_grep.enabled`                            | boolean | `true`                                                 | Enable AST-grep security scanning                         |
-| `ralph.ast_grep.config_path`                        | string  | `.claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml` | Path to AST-grep configuration                            |
+| `ralph.ast_grep.config_path`                        | string  | `.claude/skills/moai-tool-ast-grep/rules/sgconfig.yml` | Path to AST-grep configuration                            |
 | `ralph.ast_grep.security_scan`                      | boolean | `true`                                                 | Enable security vulnerability scanning                    |
 | `ralph.ast_grep.quality_scan`                       | boolean | `true`                                                 | Enable code quality pattern scanning                      |
 | `ralph.ast_grep.auto_fix`                           | boolean | `false`                                                | Auto-fix without confirmation (dangerous)                 |
@@ -79,10 +79,10 @@ ralph:
 
 | Variable                       | Type    | Description                            | Example                          |
 | ------------------------------ | ------- | -------------------------------------- | -------------------------------- |
-| `ABYZ-LAB_DISABLE_LSP_DIAGNOSTIC`  | boolean | Disable LSP diagnostic hook            | `ABYZ-LAB_DISABLE_LSP_DIAGNOSTIC=1`  |
-| `ABYZ-LAB_DISABLE_LOOP_CONTROLLER` | boolean | Disable loop controller hook           | `ABYZ-LAB_DISABLE_LOOP_CONTROLLER=1` |
-| `ABYZ-LAB_LOOP_ACTIVE`             | boolean | Loop active flag (set by commands)     | `ABYZ-LAB_LOOP_ACTIVE=1`             |
-| `ABYZ-LAB_LOOP_ITERATION`          | integer | Current iteration number               | `ABYZ-LAB_LOOP_ITERATION=3`          |
+| `MOAI_DISABLE_LSP_DIAGNOSTIC`  | boolean | Disable LSP diagnostic hook            | `MOAI_DISABLE_LSP_DIAGNOSTIC=1`  |
+| `MOAI_DISABLE_LOOP_CONTROLLER` | boolean | Disable loop controller hook           | `MOAI_DISABLE_LOOP_CONTROLLER=1` |
+| `MOAI_LOOP_ACTIVE`             | boolean | Loop active flag (set by commands)     | `MOAI_LOOP_ACTIVE=1`             |
+| `MOAI_LOOP_ITERATION`          | integer | Current iteration number               | `MOAI_LOOP_ITERATION=3`          |
 | `CLAUDE_PROJECT_DIR`           | string  | Project root path (set by Claude Code) | `/path/to/project`               |
 
 ### Environment Variable Usage
@@ -91,11 +91,11 @@ Enable/Disable Hooks:
 
 ```bash
 # Disable LSP diagnostics temporarily
-export ABYZ-LAB_DISABLE_LSP_DIAGNOSTIC=1
+export MOAI_DISABLE_LSP_DIAGNOSTIC=1
 claude -p "Make changes"
 
 # Disable loop controller
-export ABYZ-LAB_DISABLE_LOOP_CONTROLLER=1
+export MOAI_DISABLE_LOOP_CONTROLLER=1
 claude -p "Single run only"
 ```
 
@@ -103,25 +103,25 @@ Set Loop State (for CI/CD):
 
 ```bash
 # Start loop with iteration count
-export ABYZ-LAB_LOOP_ACTIVE=1
-export ABYZ-LAB_LOOP_ITERATION=0
-claude -p "/abyz-lab:loop --max-iterations 5"
+export MOAI_LOOP_ACTIVE=1
+export MOAI_LOOP_ITERATION=0
+claude -p "/moai:loop --max-iterations 5"
 ```
 
 ---
 
 ## API Reference
 
-> Note: The Go edition provides LSP capabilities through compiled hook subcommands in internal/lsp/. The examples below show the conceptual API; actual invocation is via abyz-lab hook post-tool-use.
+> Note: The Go edition provides LSP capabilities through compiled hook subcommands in internal/lsp/. The examples below show the conceptual API; actual invocation is via moai hook post-tool-use.
 
-### ABYZ-LabLSPClient
+### MoAILSPClient
 
 High-level LSP client interface for getting diagnostics, finding references, renaming symbols, and other LSP operations.
 
 #### Constructor
 
 ```python
-ABYZ-LabLSPClient(project_root: str | Path)
+MoAILSPClient(project_root: str | Path)
 ```
 
 Initialize the LSP client.
@@ -139,7 +139,7 @@ Initialize the LSP client.
 ```python
 # Go edition: internal/lsp/ package provides these capabilities
 
-client = ABYZ-LabLSPClient(project_root="/path/to/project")
+client = MoAILSPClient(project_root="/path/to/project")
 ```
 
 #### Methods
@@ -573,7 +573,7 @@ hooks:
 #### Disable Hook
 
 ```bash
-export ABYZ-LAB_DISABLE_LSP_DIAGNOSTIC=1
+export MOAI_DISABLE_LSP_DIAGNOSTIC=1
 ```
 
 ---
@@ -627,16 +627,16 @@ hooks:
 #### Disable Hook
 
 ```bash
-export ABYZ-LAB_DISABLE_LOOP_CONTROLLER=1
+export MOAI_DISABLE_LOOP_CONTROLLER=1
 ```
 
 ---
 
 ## State File Format
 
-### Loop State File (.abyz-lab_loop_state.json)
+### Loop State File (.moai_loop_state.json)
 
-Location: `.abyz-lab/cache/.abyz-lab_loop_state.json`
+Location: `.moai/cache/.moai_loop_state.json`
 
 #### Schema
 
@@ -676,7 +676,7 @@ Initial State:
   ...
 }
 
-After /abyz-lab:loop:
+After /moai:loop:
 {
   "active": true,
   "iteration": 1,
@@ -775,7 +775,7 @@ Location: `.lsp.json` (project root)
 
 ### sgconfig.yml Format
 
-Location: `.claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml`
+Location: `.claude/skills/moai-tool-ast-grep/rules/sgconfig.yml`
 
 #### Schema
 
@@ -863,7 +863,7 @@ constraints:
 
 **Symptoms:**
 
-- `/abyz-lab:loop` command does nothing
+- `/moai:loop` command does nothing
 - No loop state file created
 
 **Solutions:**
@@ -871,7 +871,7 @@ constraints:
 1. Check if Ralph is enabled:
 
    ```yaml
-   # .abyz-lab/config/sections/ralph.yaml
+   # .moai/config/sections/ralph.yaml
    ralph:
      enabled: true
    ```
@@ -888,13 +888,13 @@ constraints:
 3. Check environment variable:
 
    ```bash
-   unset ABYZ-LAB_DISABLE_LOOP_CONTROLLER
+   unset MOAI_DISABLE_LOOP_CONTROLLER
    ```
 
 4. Verify state file is writable:
    ```bash
-   mkdir -p .abyz-lab/cache
-   chmod 755 .abyz-lab/cache
+   mkdir -p .moai/cache
+   chmod 755 .moai/cache
    ```
 
 ---
@@ -945,7 +945,7 @@ constraints:
 4. Check environment variable:
 
    ```bash
-   unset ABYZ-LAB_DISABLE_LSP_DIAGNOSTIC
+   unset MOAI_DISABLE_LSP_DIAGNOSTIC
    ```
 
 5. Enable graceful degradation to use fallback linters:
@@ -988,7 +988,7 @@ constraints:
 
 3. Delete state file:
    ```bash
-   rm .abyz-lab/cache/.abyz-lab_loop_state.json
+   rm .moai/cache/.moai_loop_state.json
    ```
 
 ---
@@ -1106,7 +1106,7 @@ constraints:
 3. Check configuration file exists:
 
    ```bash
-   ls .claude/skills/abyz-lab-tool-ast-grep/rules/sgconfig.yml
+   ls .claude/skills/moai-tool-ast-grep/rules/sgconfig.yml
    ```
 
 4. Test ast-grep manually:
@@ -1229,16 +1229,16 @@ jobs:
 
       - name: Run Ralph Loop
         run: |
-          export ABYZ-LAB_LOOP_ACTIVE=1
-          export ABYZ-LAB_LOOP_ITERATION=0
-          claude -p "/abyz-lab:loop --max-iterations 5" \
+          export MOAI_LOOP_ACTIVE=1
+          export MOAI_LOOP_ITERATION=0
+          claude -p "/moai:loop --max-iterations 5" \
             --allowedTools "Read,Write,Edit,Bash,Grep,Glob"
 
       - name: Commit fixes
         if: success()
         run: |
           git config user.name "Ralph Bot"
-          git config user.email "ralph@abyz-lab-adk.dev"
+          git config user.email "ralph@moai-adk.dev"
           git add .
           git commit -m "fix: Auto-fixes from Ralph Engine" || true
           git push
@@ -1284,7 +1284,7 @@ Configuration for projects with multiple languages:
 Extend the loop controller for project-specific checks:
 
 ```python
-# .claude/hooks/abyz-lab/custom_completion_check
+# .claude/hooks/moai/custom_completion_check
 def check_custom_conditions() -> bool:
     """Add project-specific completion checks."""
     # Example 1: Check for TODO comments
@@ -1311,7 +1311,7 @@ ralph:
   loop:
     completion:
       custom_checks:
-        - .claude/hooks/abyz-lab/custom_completion_check
+        - .claude/hooks/moai/custom_completion_check
 ```
 
 ---

@@ -17,7 +17,7 @@ Phase Allocation:
 - Documentation: 40K tokens
 
 /clear Execution Rules:
-1. Immediately after /abyz-lab:1-plan (saves 45-50K)
+1. Immediately after /moai:1-plan (saves 45-50K)
 2. When context > 150K tokens
 3. After 50+ conversation messages
 
@@ -204,7 +204,7 @@ def generate_context_summary() -> dict:
 def restore_minimal_context(summary: dict):
  """Restore only essential context after /clear."""
  # Load only necessary files
- load_file(f".abyz-lab/specs/{summary['current_spec']}/spec.md")
+ load_file(f".moai/specs/{summary['current_spec']}/spec.md")
  # Do NOT reload entire conversation history
 ```
 
@@ -259,7 +259,7 @@ class SelectiveFileLoader:
  files = [
  f"src/{context['module']}.py",
  f"tests/test_{context['module']}.py",
- f".abyz-lab/specs/{context['spec_id']}/spec.md"
+ f".moai/specs/{context['spec_id']}/spec.md"
  ]
  
  elif task_type == "frontend_implementation":
@@ -267,7 +267,7 @@ class SelectiveFileLoader:
  files = [
  f"src/components/{context['component']}.tsx",
  f"src/components/{context['component']}.test.tsx",
- f".abyz-lab/specs/{context['spec_id']}/spec.md"
+ f".moai/specs/{context['spec_id']}/spec.md"
  ]
  
  elif task_type == "testing":
@@ -279,7 +279,7 @@ class SelectiveFileLoader:
  
  else:
  # Default: Load spec only
- files = [f".abyz-lab/specs/{context['spec_id']}/spec.md"]
+ files = [f".moai/specs/{context['spec_id']}/spec.md"]
  
  # Load files
  for file in files:
@@ -346,7 +346,7 @@ def load_binaries():
 
 # BAD: Load conversation history
 def load_history():
- load_file(".abyz-lab/conversation_history.json") # 500K+ tokens
+ load_file(".moai/conversation_history.json") # 500K+ tokens
 ```
 
 ---
@@ -686,20 +686,20 @@ for rec in report['recommendations']:
 ## Works Well With
 
 Skills:
-- abyz-lab-foundation-delegation-patterns - Context passing
-- abyz-lab-foundation-progressive-disclosure - Content structuring
-- abyz-lab-cc-memory - Context persistence
+- moai-foundation-delegation-patterns - Context passing
+- moai-foundation-progressive-disclosure - Content structuring
+- moai-cc-memory - Context persistence
 
 Commands:
-- /clear - Context reset (mandatory after /abyz-lab:1-plan)
+- /clear - Context reset (mandatory after /moai:1-plan)
 - /context - Check current token usage
-- /abyz-lab:1-plan - SPEC generation (30K budget)
-- /abyz-lab:2-run - DDD implementation (180K budget)
-- /abyz-lab:3-sync - Documentation (40K budget)
+- /moai:1-plan - SPEC generation (30K budget)
+- /moai:2-run - DDD implementation (180K budget)
+- /moai:3-sync - Documentation (40K budget)
 
 Memory:
-- Skill("abyz-lab-foundation-core") modules/token-optimization.md - Optimization strategies
-- @.abyz-lab/config/config.json - Budget configuration
+- Skill("moai-foundation-core") modules/token-optimization.md - Optimization strategies
+- @.moai/config/config.json - Budget configuration
 
 ---
 

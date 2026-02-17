@@ -1,8 +1,8 @@
 ---
-name: abyz-lab-workflow-worktree
+name: moai-workflow-worktree
 description: >
   Git worktree management for parallel SPEC development with isolated workspaces,
-  automatic branch registration, and seamless ABYZ-Lab-ADK integration.
+  automatic branch registration, and seamless MoAI-ADK integration.
   Use when setting up parallel development environments, creating isolated SPEC
   workspaces, managing git worktrees, or working on multiple features simultaneously.
   Do NOT use for regular git operations like commit or merge
@@ -19,35 +19,35 @@ metadata:
   modularized: "true"
   tags: "git, worktree, parallel, development, spec, isolation"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["worktree", "git worktree", "parallel development", "isolated workspace", "multiple SPECs", "branch isolation", "feature branch"]
   phases: ["plan", "run"]
   agents: ["manager-git", "manager-spec", "manager-project"]
 ---
 
-# ABYZ-Lab Worktree Management
+# MoAI Worktree Management
 
-Git worktree management system for parallel SPEC development with isolated workspaces, automatic registration, and seamless ABYZ-Lab-ADK integration.
+Git worktree management system for parallel SPEC development with isolated workspaces, automatic registration, and seamless MoAI-ADK integration.
 
 Core Philosophy: Each SPEC deserves its own isolated workspace to enable true parallel development without context switching overhead.
 
 ## Quick Reference (30 seconds)
 
-What is ABYZ-Lab Worktree Management?
+What is MoAI Worktree Management?
 A specialized Git worktree system that creates isolated development environments for each SPEC, enabling parallel development without conflicts.
 
 Key Features:
 - Isolated Workspaces: Each SPEC gets its own worktree with independent Git state
 - Automatic Registration: Worktree registry tracks all active workspaces
 - Parallel Development: Multiple SPECs can be developed simultaneously
-- Seamless Integration: Works with /abyz-lab:1-plan, /abyz-lab:2-run, /abyz-lab:3-sync workflow
+- Seamless Integration: Works with /moai:1-plan, /moai:2-run, /moai:3-sync workflow
 - Smart Synchronization: Automatic sync with base branch when needed
 - Cleanup Automation: Automatic cleanup of merged worktrees
 
@@ -79,7 +79,7 @@ Key Components:
 2. Manager Layer - Core worktree operations including create, switch, remove, and sync
 3. CLI Interface - User-friendly command interface
 4. Models - Data structures for worktree metadata
-5. Integration Layer - ABYZ-Lab-ADK workflow integration
+5. Integration Layer - MoAI-ADK workflow integration
 
 Registry Structure:
 
@@ -87,7 +87,7 @@ The registry file stores worktree metadata in JSON format. Each worktree entry c
 
 File Structure:
 
-The worktree system creates a dedicated directory structure inside the project's .abyz-lab directory. At the worktree root ({repo}/.abyz-lab/worktrees/{ProjectName}/), you will find the central registry JSON file and individual directories for each SPEC. Each SPEC directory contains a .git file for worktree metadata and a complete copy of all project files.
+The worktree system creates a dedicated directory structure inside the project's .moai directory. At the worktree root ({repo}/.moai/worktrees/{ProjectName}/), you will find the central registry JSON file and individual directories for each SPEC. Each SPEC directory contains a .git file for worktree metadata and a complete copy of all project files.
 
 Detailed Reference: Refer to Worktree Management Module at modules/worktree-management.md
 
@@ -123,11 +123,11 @@ Purpose: Enable true parallel development without context switching.
 
 Workflow Integration:
 
-During the Plan Phase using /abyz-lab:1-plan, the SPEC is created and the worktree new command sets up automatic worktree isolation.
+During the Plan Phase using /moai:1-plan, the SPEC is created and the worktree new command sets up automatic worktree isolation.
 
 During the Development Phase, the isolated worktree environment provides independent Git state with zero context switching overhead.
 
-During the Sync Phase using /abyz-lab:3-sync, the worktree sync command ensures clean integration with conflict resolution support.
+During the Sync Phase using /moai:3-sync, the worktree sync command ensures clean integration with conflict resolution support.
 
 During the Cleanup Phase, the worktree clean command provides automatic cleanup with registry maintenance.
 
@@ -141,23 +141,23 @@ Parallel Development Benefits:
 
 Example Workflow:
 
-First, create a worktree for SPEC-001 with a description like "User Authentication" and switch to that directory. Then run /abyz-lab:2-run SPEC-001 to develop in isolation. Next, navigate back to the main repository and create another worktree for SPEC-002 with description "Payment Integration". Switch to that worktree and run /abyz-lab:2-run SPEC-002 for parallel development. When needed, switch between worktrees and continue development. Finally, sync both worktrees when ready for integration.
+First, create a worktree for SPEC-001 with a description like "User Authentication" and switch to that directory. Then run /moai:2-run SPEC-001 to develop in isolation. Next, navigate back to the main repository and create another worktree for SPEC-002 with description "Payment Integration". Switch to that worktree and run /moai:2-run SPEC-002 for parallel development. When needed, switch between worktrees and continue development. Finally, sync both worktrees when ready for integration.
 
 Detailed Reference: Refer to Parallel Development Module at modules/parallel-development.md
 
 ---
 
-### 4. Integration Patterns - ABYZ-Lab-ADK Workflow Integration
+### 4. Integration Patterns - MoAI-ADK Workflow Integration
 
-Purpose: Seamless integration with ABYZ-Lab-ADK Plan-Run-Sync workflow.
+Purpose: Seamless integration with MoAI-ADK Plan-Run-Sync workflow.
 
 Integration Points:
 
-During Plan Phase Integration with /abyz-lab:1-plan, after SPEC creation, create the worktree using the new command with the SPEC ID. The output provides guidance for switching to the worktree using either the switch command or the shell eval pattern with the go command.
+During Plan Phase Integration with /moai:1-plan, after SPEC creation, create the worktree using the new command with the SPEC ID. The output provides guidance for switching to the worktree using either the switch command or the shell eval pattern with the go command.
 
-During Development Phase with /abyz-lab:2-run, worktree isolation provides a clean development environment with independent Git state preventing conflicts and automatic registry tracking.
+During Development Phase with /moai:2-run, worktree isolation provides a clean development environment with independent Git state preventing conflicts and automatic registry tracking.
 
-During Sync Phase with /abyz-lab:3-sync, before PR creation run the sync command for the SPEC. After PR merge, run the clean command with the merged-only flag to remove completed worktrees.
+During Sync Phase with /moai:3-sync, before PR creation run the sync command for the SPEC. After PR merge, run the clean command with the merged-only flag to remove completed worktrees.
 
 Auto-Detection Patterns:
 
@@ -165,7 +165,7 @@ The system detects worktree environments by checking for the registry file in th
 
 Configuration Integration:
 
-The ABYZ-Lab configuration supports worktree settings including auto_create for automatic worktree creation, auto_sync for automatic synchronization, cleanup_merged for automatic cleanup of merged branches, and worktree_root for specifying the worktree directory location with project name substitution.
+The MoAI configuration supports worktree settings including auto_create for automatic worktree creation, auto_sync for automatic synchronization, cleanup_merged for automatic cleanup of merged branches, and worktree_root for specifying the worktree directory location with project name substitution.
 
 Detailed Reference: Refer to Integration Patterns Module at modules/integration-patterns.md
 
@@ -202,16 +202,16 @@ For faster worktree creation, use the shallow flag with a depth value for shallo
 ## Works Well With
 
 Commands:
-- abyz-lab:1-plan - SPEC creation with automatic worktree setup
-- abyz-lab:2-run - Development in isolated worktree environment
-- abyz-lab:3-sync - Integration with automatic worktree sync
-- abyz-lab:9-feedback - Worktree workflow improvements
+- moai:1-plan - SPEC creation with automatic worktree setup
+- moai:2-run - Development in isolated worktree environment
+- moai:3-sync - Integration with automatic worktree sync
+- moai:9-feedback - Worktree workflow improvements
 
 Skills:
-- abyz-lab-foundation-core - Parallel development patterns
-- abyz-lab-workflow-project - Project management integration
-- abyz-lab-workflow-spec - SPEC-driven development
-- abyz-lab-git-strategy - Git workflow optimization
+- moai-foundation-core - Parallel development patterns
+- moai-workflow-project - Project management integration
+- moai-workflow-spec - SPEC-driven development
+- moai-git-strategy - Git workflow optimization
 
 Tools:
 - Git worktree - Native Git worktree functionality
@@ -222,7 +222,7 @@ Tools:
 
 ## Quick Decision Guide
 
-For new SPEC development, use the worktree isolation pattern with auto-setup. The primary approach is worktree isolation and the supporting pattern is integration with /abyz-lab:1-plan.
+For new SPEC development, use the worktree isolation pattern with auto-setup. The primary approach is worktree isolation and the supporting pattern is integration with /moai:1-plan.
 
 For parallel development across multiple SPECs, use multiple worktrees with shell integration. The primary approach is maintaining multiple worktrees and the supporting pattern is fast switching between them.
 
@@ -236,7 +236,7 @@ Module Deep Dives:
 - Worktree Commands: Refer to modules/worktree-commands.md for complete CLI reference
 - Worktree Management: Refer to modules/worktree-management.md for core architecture
 - Parallel Development: Refer to modules/parallel-development.md for workflow patterns
-- Integration Patterns: Refer to modules/integration-patterns.md for ABYZ-Lab-ADK integration
+- Integration Patterns: Refer to modules/integration-patterns.md for MoAI-ADK integration
 - Troubleshooting: Refer to modules/troubleshooting.md for problem resolution
 
 Full Examples: Refer to examples.md

@@ -1,5 +1,5 @@
 ---
-name: abyz-lab-lang-kotlin
+name: moai-lang-kotlin
 description: >
   Kotlin 2.0+ development specialist covering Ktor, coroutines, Compose
   Multiplatform, and Kotlin-idiomatic patterns. Use when building Kotlin
@@ -15,15 +15,15 @@ metadata:
   modularized: "false"
   tags: "kotlin, ktor, coroutines, compose, android, multiplatform"
   context7-libraries: "/ktorio/ktor, /jetbrains/compose-multiplatform, /jetbrains/exposed"
-  related-skills: "abyz-lab-lang-java, abyz-lab-lang-swift"
+  related-skills: "moai-lang-java, moai-lang-swift"
 
-# ABYZ-Lab Extension: Progressive Disclosure
+# MoAI Extension: Progressive Disclosure
 progressive_disclosure:
   enabled: true
   level1_tokens: 100
   level2_tokens: 5000
 
-# ABYZ-Lab Extension: Triggers
+# MoAI Extension: Triggers
 triggers:
   keywords: ["Kotlin", "Ktor", "coroutine", "Flow", "Compose", "Android", ".kt", ".kts", "build.gradle.kts"]
   languages: ["kotlin"]
@@ -129,11 +129,11 @@ Consider Alternatives When:
 
 ## Works Well With
 
-- `abyz-lab-lang-java` - Java interoperability and Spring Boot patterns
-- `abyz-lab-domain-backend` - REST API, GraphQL, microservices architecture
-- `abyz-lab-domain-database` - JPA, Exposed, R2DBC patterns
-- `abyz-lab-quality-testing` - JUnit 5, MockK, TestContainers integration
-- `abyz-lab-infra-docker` - JVM container optimization
+- `moai-lang-java` - Java interoperability and Spring Boot patterns
+- `moai-domain-backend` - REST API, GraphQL, microservices architecture
+- `moai-domain-database` - JPA, Exposed, R2DBC patterns
+- `moai-quality-testing` - JUnit 5, MockK, TestContainers integration
+- `moai-infra-docker` - JVM container optimization
 
 ---
 

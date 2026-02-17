@@ -890,7 +890,7 @@ And all 100 frames shall produce valid CSI-2 output
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (spec-sim) | Initial acceptance criteria for SPEC-SIM-001 |
+| 1.0.0 | 2026-02-17 | MoAI Agent (spec-sim) | Initial acceptance criteria for SPEC-SIM-001 |
 
 ---
 

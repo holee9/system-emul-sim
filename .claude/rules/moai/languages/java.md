@@ -50,7 +50,7 @@ Version: Java 21 LTS
 - Use AssertJ for fluent assertions
 - Use Testcontainers for integration tests
 
-## ABYZ-Lab Integration
+## MoAI Integration
 
-- Use Skill("abyz-lab-lang-java") for detailed patterns
+- Use Skill("moai-lang-java") for detailed patterns
 - Follow TRUST 5 quality gates
