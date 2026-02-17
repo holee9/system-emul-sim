@@ -3,7 +3,7 @@
 ---
 spec_id: SPEC-POC-001
 milestone: M0.5
-gate_week: W6
+gate_week: W26
 test_framework: Manual + Python validation scripts
 ---
 
@@ -27,7 +27,7 @@ This document defines detailed acceptance criteria for M0.5 CSI-2 Proof of Conce
 - MIPI CSI-2 TX Subsystem IP is configured:
   - Lanes: 4 data lanes + 1 clock lane
   - Lane speed: 1.0 Gbps/lane
-  - Data type: RAW16 (0x2C)
+  - Data type: RAW16 (0x2E)
   - Virtual channel: VC0
 - Synthesis, implementation, and bitstream generation are executed
 
@@ -107,7 +107,7 @@ This document defines detailed acceptance criteria for M0.5 CSI-2 Proof of Conce
 ### Scenario 1: Linux Kernel Boot and Driver Loading
 
 **GIVEN**:
-- NXP i.MX8M Plus EVK with Linux 5.15+ flashed to eMMC or SD card
+- NXP i.MX8M Plus EVK with Linux 6.6.52 (Yocto Scarthgap 5.0 LTS, Variscite BSP imx-6.6.52-2.2.0-v1.3) flashed to eMMC or SD card
 - UART console connected (115200 baud)
 
 **WHEN**:
@@ -329,7 +329,7 @@ print("PASS: Checkerboard pattern validated across 100 frames")
 - ✅ Expected duration: 33.33 seconds (1000 frames / 30 fps)
 - ✅ Actual duration: 33.33 ± 1.0 seconds (±3% tolerance)
 - ✅ Calculated throughput: 2.01 ± 0.06 Gbps
-- ✅ Throughput meets **70% threshold**: ≥1.41 Gbps (2.01 × 0.7 = 1.407)
+- ✅ Throughput meets **70% threshold**: ≥1.58 Gbps (2.264 × 0.7 = 1.585)
 
 **Throughput Calculation**:
 ```python
@@ -345,11 +345,11 @@ throughput_gbps = throughput_bps / 1e9
 print(f"Measured duration: {duration_sec:.2f} seconds")
 print(f"Calculated throughput: {throughput_gbps:.2f} Gbps")
 
-assert throughput_gbps >= 1.41, f"FAIL: Throughput {throughput_gbps:.2f} < 1.41 Gbps"
+assert throughput_gbps >= 1.58, f"FAIL: Throughput {throughput_gbps:.2f} < 1.58 Gbps"
 print(f"PASS: Throughput {throughput_gbps:.2f} Gbps meets 70% threshold")
 ```
 
-**Pass Criteria**: Throughput ≥1.41 Gbps (outputs "PASS")
+**Pass Criteria**: Throughput ≥1.58 Gbps (outputs "PASS")
 
 ---
 
@@ -542,7 +542,7 @@ print(f"Stable: {'Yes' if stable else 'No'}")
 - Packet headers are parsed for each line (2048 lines × 100 frames = 204,800 packets)
 
 **THEN**:
-- ✅ All packet data types = 0x2C (RAW16 format)
+- ✅ All packet data types = 0x2E (RAW16 format)
 - ✅ All virtual channels = 0 (VC0)
 - ✅ All word counts = 4096 bytes (2048 pixels × 2 bytes/pixel)
 - ✅ No malformed packets (incorrect sync pattern, invalid data type)
@@ -551,7 +551,7 @@ print(f"Stable: {'Yes' if stable else 'No'}")
 ```python
 # Pseudo-code (requires raw packet access, SoC driver-dependent)
 for packet in raw_packets:
-    assert packet.data_type == 0x2C, "Wrong data type"
+    assert packet.data_type == 0x2E, "Wrong data type"
     assert packet.virtual_channel == 0, "Wrong VC"
     assert packet.word_count == 4096, "Wrong word count"
 print("PASS: All packet headers valid")
@@ -618,7 +618,7 @@ print("PASS: All CRC-16 checksums valid")
 
 **WHEN**:
 - GO criteria are evaluated:
-  1. Measured throughput ≥1.41 Gbps (70% of Target tier 2.01 Gbps)
+  1. Measured throughput ≥1.58 Gbps (70% of Final Target tier 2.264 Gbps)
   2. Zero data corruption (bit errors) in 1000 frames
   3. Signal integrity validated (eye diagram or functional test)
   4. SoC CSI-2 receiver successfully decodes packets
@@ -631,7 +631,7 @@ print("PASS: All CRC-16 checksums valid")
 
 | Criterion | Result | Status |
 |-----------|--------|--------|
-| Throughput ≥1.41 Gbps | ___ Gbps | ✅ / ❌ |
+| Throughput ≥1.58 Gbps | ___ Gbps | ✅ / ❌ |
 | Zero bit errors (1000 frames) | ___ errors | ✅ / ❌ |
 | Signal integrity (eye diagram or functional) | ___ | ✅ / ❌ / SKIPPED |
 | Packet decoding success | ___ | ✅ / ❌ |
@@ -710,7 +710,7 @@ print("PASS: All CRC-16 checksums valid")
 
 **SoC Setup**:
 - Board: NXP i.MX8M Plus EVK
-- OS: Linux 5.15+ (Yocto or Buildroot with imx8-mipi-csi2 driver)
+- OS: Linux 6.6.52 (Yocto Scarthgap 5.0 LTS, Variscite BSP imx-6.6.52-2.2.0-v1.3, custom V4L2 CSI-2 RX driver)
 - UART: USB-to-serial adapter, 115200 baud
 - FPC connector: MIPI CSI-2 RX (verify pinout matches FPGA)
 
@@ -749,12 +749,12 @@ All validation scripts provided in PoC test package: `poc_validation_scripts.zip
 
 **PoC is considered SUCCESSFUL (GO) if**:
 - ✅ AC-001 through AC-005 all PASS (FPGA, SoC, data integrity, throughput, lane speed)
-- ✅ AC-008 GO criteria met (throughput ≥1.41 Gbps, zero errors, SI validated)
+- ✅ AC-008 GO criteria met (throughput ≥1.58 Gbps, zero errors, SI validated)
 - ✅ AC-006 and AC-007 are PASS or SKIPPED (optional SI and packet validation)
 
 **PoC is considered FAILED (NO-GO) if**:
 - ❌ Any of AC-001 through AC-005 FAIL (critical path blocked)
-- ❌ AC-008 GO criteria not met (throughput <1.41 Gbps or data corruption)
+- ❌ AC-008 GO criteria not met (throughput <1.58 Gbps or data corruption)
 
 **Mitigation Required if**:
 - NO-GO decision → Evaluate alternatives (external PHY, SoC change, tier reduction)
@@ -774,13 +774,16 @@ All validation scripts provided in PoC test package: `poc_validation_scripts.zip
 - X-ray_Detector_Optimal_Project_Plan.md Section 5.4 (PoC gate criteria)
 
 **Outputs To**:
-- PoC Test Report (W6)
+- PoC Test Report (W26)
 - GO/NO-GO decision (triggers M1 or architecture review)
 
 ---
 
-**Acceptance Criteria Version**: 1.0.0
+**Acceptance Criteria Version**: 1.0.1
 **Created**: 2026-02-17
+**Updated**: 2026-02-17
 **Author**: MoAI Agent (manager-spec)
+**Reviewer**: spec-fpga (doc-approval-sprint)
+**Changes**: Fixed gate_week W6→W26, RAW16 data type 0x2C→0x2E, Linux 5.15→6.6.52, GO threshold 1.41→1.58 Gbps (aligned with spec.md), Yocto Scarthgap references corrected
 
 🗿 MoAI <email@mo.ai.kr>

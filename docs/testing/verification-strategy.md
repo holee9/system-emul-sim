@@ -1,7 +1,7 @@
 # Verification Strategy
 
 **Project**: X-ray Detector Panel System
-**Document Version**: 1.0.0
+**Document Version**: 2.0.0
 **Last Updated**: 2026-02-17
 
 ---
@@ -26,15 +26,17 @@ This document defines the overall verification approach, mapping the verificatio
                    +------------+------------+
                                 |
               +-----------------+------------------+
-              |   Layer 2: Unit Tests              |    M2 (W9)
-              |   FV-01~FV-11 (RTL)               |    Module-level verification
-              |   SW-01~SW-08 (xUnit)              |
+              |   Layer 2: Unit Tests              |    M2-M3 (W9-W16)
+              |   FV-01~FV-11 (RTL, 97 tests)     |    Module-level verification
+              |   SW-01~SW-09 (Simulators, 56 tests)|    254 total test cases
+              |   FW-UT-01~08 (Firmware, 68 tests) |
+              |   SDK-01~SDK-05 (Host SDK, 38 tests)|
               +-----------------+------------------+
                                 |
          +----------------------+----------------------+
          |     Layer 1: Static Analysis               |    Continuous
          |     RTL lint, CDC checks, compile warnings  |    Every commit
-         |     C# analyzers, code style               |
+         |     C# analyzers, FW gcc -Wall, cppcheck   |
          +---------------------------------------------+
 ```
 
@@ -45,7 +47,7 @@ This document defines the overall verification approach, mapping the verificatio
 ### Layer 1: Static Analysis (Continuous)
 
 **When**: Every commit, CI pipeline
-**Tools**: Vivado RTL lint, C# Roslyn analyzers, ruff (Python)
+**Tools**: Vivado RTL lint, C# Roslyn analyzers, gcc/cppcheck (firmware), ruff (Python)
 
 | Check | Tool | Threshold | Action on Failure |
 |-------|------|-----------|-------------------|
@@ -54,26 +56,80 @@ This document defines the overall verification approach, mapping the verificatio
 | CDC (Clock Domain Crossing) | Vivado CDC report | Zero violations | Block merge |
 | C# compilation | `dotnet build` | Zero errors | Block merge |
 | C# analyzers | Roslyn (CA rules) | Zero errors, max 10 warnings | Block merge on errors |
-| Code formatting | `dotnet format` / ruff | No diff | Auto-fix in CI |
+| C# code formatting | `dotnet format` / EditorConfig | No diff | Auto-fix in CI |
+| FW compilation | `aarch64-poky-linux-gcc -Wall -Werror` | Zero errors, zero warnings | Block merge |
+| FW static analysis | cppcheck (Yocto SDK) | Zero errors | Block merge |
+| FW MISRA compliance | cppcheck --addon=misra (advisory) | Report only | Informational |
 
 ---
 
-### Layer 2: Unit Tests (M2 Gate)
+### Layer 2: Unit Tests (M2-M3 Gates)
 
-**When**: Every commit (SW), per-build (RTL)
-**Test Plans**: `unit-test-plan.md`
+**When**: Every commit (SW/FW), per-build (RTL)
+**Test Plans**: `unit-test-plan.md` (v2.0.0, 254 test cases)
 
-| Domain | Tests | Coverage Target | Gate |
-|--------|-------|----------------|------|
-| FPGA RTL | FV-01 to FV-11 | Line >= 95%, Branch >= 90%, FSM 100% | M2 |
-| PanelSimulator | SW-01 | 80-90% | M2 |
-| FpgaSimulator | SW-02 | 80-90% | M2 |
-| McuSimulator | SW-03 | 80-90% | M2 |
-| HostSimulator | SW-04 | 80-90% | M2 |
-| ParameterExtractor | SW-05 | 80-90% | M2 |
-| CodeGenerator | SW-06 | 80-90% | M2 |
-| ConfigConverter | SW-07 | 80-90% | M2 |
-| IntegrationRunner | SW-08 | 80-90% | M2 |
+#### FPGA RTL (Vivado Simulator / ModelSim / Questa)
+
+| Domain | Tests | Test Count | Coverage Target | Gate |
+|--------|-------|-----------|----------------|------|
+| Panel Scan FSM | FV-01 | 11 | Line >= 95%, Branch >= 90%, FSM 100% | M2 |
+| Line Buffer | FV-02 | 8 | Line >= 95%, Branch >= 90% | M2 |
+| CSI-2 TX | FV-03 | 10 | Line >= 95%, Branch >= 90% | M2 |
+| SPI Slave | FV-04 | 8 | Line >= 95%, Branch >= 90% | M2 |
+| Protection Logic | FV-05 | 10 | Line >= 95%, Branch >= 90% | M2 |
+| Clock Manager | FV-06 | 8 | Line >= 95%, Branch >= 90% | M2 |
+| Reset Controller | FV-07 | 8 | Line >= 95%, Branch >= 90% | M2 |
+| D-PHY Serializer | FV-08 | 8 | Line >= 95%, Branch >= 90% | M2 |
+| Frame Timing Gen | FV-09 | 8 | Line >= 95%, Branch >= 90% | M2 |
+| Test Pattern Gen | FV-10 | 8 | Line >= 95%, Branch >= 90% | M2 |
+| Top-Level Integration | FV-11 | 8 | Line >= 95%, Branch >= 90%, FSM 100% | M2 |
+
+**RTL Subtotal**: 97 test cases across 11 modules
+
+#### Simulators and Tools (xUnit, .NET 8.0+)
+
+| Domain | Tests | Test Count | Coverage Target | Gate |
+|--------|-------|-----------|----------------|------|
+| PanelSimulator | SW-01 | 8 | 85%+ | M2 |
+| FpgaSimulator | SW-02 | 8 | 85%+ | M2 |
+| McuSimulator | SW-03 | 7 | 85%+ | M2 |
+| HostSimulator | SW-04 | 8 | 85%+ | M2 |
+| ParameterExtractor | SW-05 | 4 | 85%+ | M2 |
+| CodeGenerator | SW-06 | 4 | 85%+ | M2 |
+| ConfigConverter | SW-07 | 7 | 85%+ | M2 |
+| IntegrationRunner | SW-08 | 4 | 85%+ | M2 |
+| Common.Dto | SW-09 | 3 | 85%+ | M2 |
+
+**Simulator/Tools Subtotal**: 53 test cases across 9 modules
+
+#### SoC Firmware (CMocka / Unity, C)
+
+| Domain | Tests | Test Count | Coverage Target | Gate |
+|--------|-------|-----------|----------------|------|
+| SPI Master HAL | FW-UT-01 | 8 | 85%+ | M3 |
+| Frame Header | FW-UT-02 | 8 | 85%+ | M3 |
+| CRC-16 | FW-UT-03 | 6 | 85%+ | M3 |
+| Config YAML Parser | FW-UT-04 | 10 | 85%+ | M3 |
+| Sequence Engine FSM | FW-UT-05 | 13 | 85%+ | M3 |
+| Frame Buffer Manager | FW-UT-06 | 9 | 85%+ | M3 |
+| Command Protocol | FW-UT-07 | 8 | 85%+ | M3 |
+| Health Monitor | FW-UT-08 | 6 | 85%+ | M3 |
+
+**Firmware Subtotal**: 68 test cases across 8 modules
+
+#### Host SDK (xUnit, .NET 8.0+)
+
+| Domain | Tests | Test Count | Coverage Target | Gate |
+|--------|-------|-----------|----------------|------|
+| PacketReceiver | SDK-01 | 8 | 85%+ | M3 |
+| FrameReassembler | SDK-02 | 8 | 85%+ | M3 |
+| DetectorClient API | SDK-03 | 10 | 85%+ | M3 |
+| ImageEncoder | SDK-04 | 7 | 85%+ | M3 |
+| Frame Memory Mgmt | SDK-05 | 5 | 85%+ | M3 |
+
+**SDK Subtotal**: 38 test cases across 5 modules
+
+**Grand Total**: 254 unit test cases (with 2 additional test cases for Common.Dto = 256)
 
 ---
 
@@ -123,19 +179,27 @@ This document defines the overall verification approach, mapping the verificatio
 | RTL Line Coverage | >= 95% | Vivado coverage report | M2 |
 | RTL Branch Coverage | >= 90% | Vivado coverage report | M2 |
 | RTL FSM Coverage | 100% | State/transition coverage | M2 |
-| SW Unit Coverage | 80-90% per module | xUnit + coverlet | M2 |
-| Overall Coverage | >= 85% | Weighted average | M3 |
-| Static Analysis | Zero critical issues | CI pipeline | Continuous |
+| Simulator/Tools Coverage | >= 85% per module | xUnit + coverlet | M2 |
+| FW Unit Coverage | >= 85% per module | CMocka + gcov + lcov | M3 |
+| SDK Unit Coverage | >= 85% per module | xUnit + coverlet | M3 |
+| Overall Coverage | >= 85% | Weighted average all domains | M3 |
+| Static Analysis | Zero critical issues | CI pipeline (all domains) | Continuous |
+| FW Static Analysis | Zero cppcheck errors | cppcheck in CI | Continuous |
 
 ### System Performance KPIs
 
 | KPI | Target | Measurement | Milestone |
 |-----|--------|-------------|-----------|
-| Command Latency | < 10 ms (SPI round-trip) | Time from SDK command to FPGA response | M4 |
-| Frame Latency | < 100 ms (capture to display) | Timestamp delta end-to-end | M4 |
+| SPI Round-trip Latency | < 10 ms | Time from SoC command to FPGA response | M4 |
+| SPI Polling Jitter (avg) | 100 us +/- 10 us | High-resolution timer, SCHED_FIFO | M3 |
+| SPI Polling Jitter (P99) | < 500 us | 99th percentile, 10,000 cycles | M3 |
+| FW Frame Latency | < 45 ms (CSI-2 RX to UDP TX) | Timestamp at each stage | M3 |
+| End-to-End Latency | < 100 ms (capture to Host display) | Timestamp delta full pipeline | M4 |
 | FPGA LUT Utilization | < 60% | Vivado utilization report | M2 |
 | FPGA BRAM Utilization | < 50% | Vivado utilization report | M2 |
-| Memory Stability | Zero leaks | 1-hour continuous test | M4 |
+| FW CPU Utilization | < 80% (during sustained scan) | top/perf on target hardware | M4 |
+| SDK GC Pressure | < 5 Gen2 GCs per 10,000 frames | dotnet-trace GC event monitor | M3 |
+| Memory Stability | Zero leaks (FW + SDK) | 1-hour continuous test, valgrind (FW) | M4 |
 
 ---
 
@@ -143,32 +207,72 @@ This document defines the overall verification approach, mapping the verificatio
 
 ### Requirements to Tests
 
-| Requirement Area | Unit Tests | Integration Tests | HIL Tests |
-|-----------------|------------|-------------------|-----------|
-| Panel Scan FSM | FV-01 | IT-06 | HIL-B-01, HIL-B-02 |
-| Line Buffer | FV-02 | IT-01 | HIL-A-01 |
-| CSI-2 TX | FV-03 | IT-01, IT-03 | HIL-A-01, HIL-A-02 |
-| SPI Control | FV-04 | IT-06 | HIL-B-01 |
-| Protection Logic | FV-05 | IT-07 | HIL-B-03 |
-| PanelSimulator | SW-01 | IT-05 | N/A |
-| FpgaSimulator | SW-02 | IT-01~IT-04 | N/A |
-| McuSimulator | SW-03 | IT-01~IT-04 | N/A |
-| HostSimulator | SW-04 | IT-01~IT-04 | N/A |
-| ConfigConverter | SW-07 | IT-08 | N/A |
-| Storage Formats | SW-04 | IT-10 | N/A |
+#### FPGA RTL (SPEC-FPGA-001)
+
+| Requirement Area | SPEC Requirements | Unit Tests | Integration Tests | HIL Tests |
+|-----------------|-------------------|------------|-------------------|-----------|
+| Panel Scan FSM | REQ-FPGA-010~016 | FV-01 (11 tests) | IT-06 | HIL-B-01, HIL-B-02 |
+| Line Buffer | REQ-FPGA-020~024 | FV-02 (8 tests) | IT-01 | HIL-A-01 |
+| CSI-2 TX | REQ-FPGA-030~036 | FV-03 (10 tests) | IT-01, IT-03 | HIL-A-01, HIL-A-02 |
+| SPI Slave | REQ-FPGA-040~044 | FV-04 (8 tests) | IT-06 | HIL-B-01 |
+| Protection Logic | REQ-FPGA-050~054 | FV-05 (10 tests) | IT-07 | HIL-B-03 |
+| Clock Manager | REQ-FPGA-060 | FV-06 (8 tests) | FV-11 | HIL-A-01 |
+| Reset Controller | REQ-FPGA-062 | FV-07 (8 tests) | FV-11 | HIL-B-01 |
+| D-PHY Serializer | REQ-FPGA-035 | FV-08 (8 tests) | IT-03 | HIL-A-02 |
+| Frame Timing Gen | REQ-FPGA-012~015 | FV-09 (8 tests) | IT-06 | HIL-B-02 |
+| Test Pattern Gen | (test infrastructure) | FV-10 (8 tests) | IT-01~IT-04 | HIL-A-01 |
+| Top-Level | (all REQs) | FV-11 (8 tests) | IT-01~IT-06 | HIL-A/B |
+
+#### Simulators and Tools (SPEC-SIM-001)
+
+| Requirement Area | SPEC Requirements | Unit Tests | Integration Tests | HIL Tests |
+|-----------------|-------------------|------------|-------------------|-----------|
+| PanelSimulator | REQ-SIM-010~014 | SW-01 (8 tests) | IT-05 | N/A |
+| FpgaSimulator | REQ-SIM-020~026 | SW-02 (8 tests) | IT-01~IT-04 | N/A |
+| McuSimulator | REQ-SIM-030~034 | SW-03 (7 tests) | IT-01~IT-04 | N/A |
+| HostSimulator | REQ-SIM-040~044 | SW-04 (8 tests) | IT-01~IT-04 | N/A |
+| Common.Dto | REQ-SIM-050~052 | SW-09 (3 tests) | IT-01~IT-10 | N/A |
+| ConfigConverter | (SPEC-TOOLS-001) | SW-07 (7 tests) | IT-08 | N/A |
+| CodeGenerator | (SPEC-TOOLS-001) | SW-06 (4 tests) | IT-09 | N/A |
+| ParameterExtractor | (SPEC-TOOLS-001) | SW-05 (4 tests) | N/A | N/A |
+| IntegrationRunner | (SPEC-TOOLS-001) | SW-08 (4 tests) | IT-01~IT-10 | N/A |
+
+#### SoC Firmware (SPEC-FW-001)
+
+| Requirement Area | SPEC Requirements | Unit Tests | Integration Tests | HIL Tests |
+|-----------------|-------------------|------------|-------------------|-----------|
+| SPI Master HAL | REQ-FW-020~023 | FW-UT-01 (8 tests) | FW-IT-02 | HIL-B-01 |
+| Frame Header | REQ-FW-040~042 | FW-UT-02 (8 tests) | FW-IT-03 | HIL-A-02 |
+| CRC-16 | REQ-FW-042 | FW-UT-03 (6 tests) | FW-IT-03 | N/A |
+| Config Parser | REQ-FW-003, REQ-FW-130~131 | FW-UT-04 (10 tests) | N/A | N/A |
+| Sequence Engine | REQ-FW-030~033 | FW-UT-05 (13 tests) | FW-IT-03 | HIL-B-01, HIL-B-02 |
+| Frame Buffer Mgr | REQ-FW-050~052 | FW-UT-06 (9 tests) | FW-IT-04 | HIL-B-05 |
+| Command Protocol | REQ-FW-043, REQ-FW-100~101 | FW-UT-07 (8 tests) | FW-IT-05 | HIL-B-06 |
+| Health Monitor | REQ-FW-060, REQ-FW-110~112 | FW-UT-08 (6 tests) | FW-IT-05 | HIL-B-05 |
+
+#### Host SDK (SPEC-SDK-001)
+
+| Requirement Area | SPEC Requirements | Unit Tests | Integration Tests | HIL Tests |
+|-----------------|-------------------|------------|-------------------|-----------|
+| PacketReceiver | REQ-SDK-010, REQ-SDK-030 | SDK-01 (8 tests) | IT-01~IT-04 | HIL-A-02 |
+| FrameReassembler | REQ-SDK-013~015, REQ-SDK-032 | SDK-02 (8 tests) | IT-01~IT-04 | HIL-A-02 |
+| DetectorClient API | REQ-SDK-002, REQ-SDK-010~019 | SDK-03 (10 tests) | IT-01, IT-10 | HIL-B-06 |
+| ImageEncoder | REQ-SDK-017, REQ-SDK-023~024 | SDK-04 (7 tests) | IT-10 | N/A |
+| Frame Memory | REQ-SDK-004, REQ-SDK-031 | SDK-05 (5 tests) | IT-04 | HIL-B-05 |
 
 ### Milestones to Verification Gates
 
 | Milestone | Week | Required Verification |
 |-----------|------|-----------------------|
-| M0 | W1 | SPEC documents approved |
-| M0.5 | W26 | CSI-2 PoC pass (SPEC-POC-001) |
-| M1 | W3 | Architecture review, schema validated |
-| M2 | W9 | All unit tests pass (FV-01~11, SW-01~08) |
-| M3 | W14 | IT-01~IT-06 pass (P0 scenarios) |
+| M0 | W1 | All SPEC documents approved (FPGA, FW, SDK, SIM, POC, TOOLS) |
+| M1 | W3 | Architecture review, schema validated, static analysis baseline |
+| M2 | W9 | RTL unit tests pass (FV-01~11, 97 tests), Simulator unit tests pass (SW-01~09, 53 tests) |
+| M3 | W14 | FW unit tests pass (FW-UT-01~08, 68 tests), SDK unit tests pass (SDK-01~05, 38 tests), IT-01~IT-06 pass |
+| M3.5 | W16 | IT-07~IT-10 pass, FW-IT-01~05 pass |
 | M4 | W18 | HIL Pattern A/B core scenarios pass |
+| M0.5 | W26 | CSI-2 PoC pass (SPEC-POC-001) |
 | M5 | W23 | Code generator RTL passes testbench |
-| M6 | W28 | System V&V with real panel |
+| M6 | W28 | System V&V with real panel (SYS-01~05) |
 
 ---
 
@@ -189,14 +293,16 @@ Tests are prioritized based on risk analysis:
 
 ### Hybrid Methodology Application
 
-| Code Type | Methodology | Test Timing | Coverage Target |
-|-----------|-------------|-------------|-----------------|
-| New simulators (C#) | TDD | Write test BEFORE code | 85% |
-| New SDK modules (C#) | TDD | Write test BEFORE code | 85% |
-| New tools (C#) | TDD | Write test BEFORE code | 85% |
-| FPGA RTL (existing IP) | DDD | Characterization test first | 95% line |
-| Firmware HAL (existing) | DDD | Characterization test first | 85% |
-| New RTL modules | Hybrid (TDD) | Test-first for new blocks | 95% line |
+| Code Type | Domain | Methodology | Test Timing | Coverage Target |
+|-----------|--------|-------------|-------------|-----------------|
+| New simulators (C#) | SPEC-SIM-001 | TDD | Write test BEFORE code | 85% |
+| New SDK modules (C#) | SPEC-SDK-001 | TDD | Write test BEFORE code | 85% |
+| New tools (C#) | SPEC-TOOLS-001 | TDD | Write test BEFORE code | 85% |
+| FPGA RTL (existing IP) | SPEC-FPGA-001 | DDD | Characterization test first | 95% line |
+| New RTL modules | SPEC-FPGA-001 | Hybrid (TDD) | Test-first for new blocks | 95% line |
+| New FW modules (C) | SPEC-FW-001 | TDD | Write test BEFORE code | 85% |
+| FW HAL integration | SPEC-FW-001 | DDD | Characterization test first | 85% |
+| BQ40z50 driver port | SPEC-FW-001 | DDD | ANALYZE 4.4, PRESERVE, IMPROVE | 85% |
 
 ### Test-First Enforcement
 
@@ -219,5 +325,6 @@ For DDD modules:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (analyst) | Initial verification strategy |
+| 2.0.0 | 2026-02-17 | spec-fw agent | Added FW/SDK to pyramid, Layer 1, Layer 2 (4 sub-tables). Expanded traceability matrix (4 domain tables with SPEC requirement links). Updated milestones (added M3.5). Added FW-specific KPIs (SPI jitter, CPU util). Fixed coverage targets to 85%+. |
 
 ---

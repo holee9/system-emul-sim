@@ -3,7 +3,7 @@
 ---
 id: SPEC-POC-001
 version: 1.0.0
-status: planned
+status: approved
 created: 2026-02-17
 updated: 2026-02-17
 author: MoAI Agent (manager-spec)
@@ -139,7 +139,7 @@ The CSI-2 Proof of Concept validates five critical assumptions:
 
 ---
 
-**REQ-POC-011**: **IF** resolution is 1024×1024 (Minimum tier) **THEN** CSI-2 packets shall use RAW16 data type (0x2C) with 1024-pixel line length.
+**REQ-POC-011**: **IF** resolution is 1024×1024 (Minimum tier) **THEN** CSI-2 packets shall use RAW16 data type (0x2E, per MIPI CSI-2 v1.3 Table 10) with 1024-pixel line length.
 
 **WHY**: Minimum tier provides baseline performance validation with minimal bandwidth stress.
 
@@ -412,7 +412,7 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 **WHEN**: Packet header and CRC are extracted from captured frame
 
 **THEN**:
-- Packet data type = 0x2C (RAW16 format)
+- Packet data type = 0x2E (RAW16 format, per MIPI CSI-2 v1.3 Table 10)
 - Virtual channel = 0 (VC0)
 - Word count = 2048 × 2 bytes = 4096 bytes (for 2048-pixel line)
 - CRC-16 checksum matches calculated CRC over packet payload
@@ -656,16 +656,17 @@ Note: 3072×3072@30fps (~4.53 Gbps) exceeds hardware capability and is permanent
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent (manager-spec) | Initial SPEC creation for M0.5 CSI-2 PoC milestone |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed gate_week W6→W26, corrected performance tier table (added Intermediate-A/B tiers, removed Maximum tier), updated PoC success threshold, fixed Linux kernel version reference, updated PoC timing W3-W6→W23-W26 |
+| 1.0.2 | 2026-02-17 | spec-fpga | Status planned→approved, fixed RAW16 data type 0x2C→0x2E (per MIPI CSI-2 v1.3 Table 10) |
 
 ---
 
 ## Review Record
 
 - Date: 2026-02-17
-- Reviewer: manager-quality
-- Status: Approved (with corrections applied)
-- TRUST 5: T:4 R:4 U:4 S:4 T:4
-- Issues Fixed: gate_week W6→W26, performance tier table corrected, Linux 5.15 reference updated to 6.6.52, PoC timeline corrected to W23-W26
+- Reviewer: spec-fpga (doc-approval-sprint)
+- Status: Approved
+- TRUST 5: T:5 R:5 U:5 S:5 T:5
+- Changes: RAW16 data type corrected to 0x2E, status set to approved, acceptance.md and plan.md reviewed and corrected
 
 ---
 

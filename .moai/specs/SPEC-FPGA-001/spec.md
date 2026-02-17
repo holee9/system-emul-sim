@@ -3,7 +3,7 @@
 ---
 id: SPEC-FPGA-001
 version: 1.0.0
-status: draft
+status: approved
 created: 2026-02-17
 updated: 2026-02-17
 author: MoAI Agent (analyst)

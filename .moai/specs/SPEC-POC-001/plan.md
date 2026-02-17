@@ -3,8 +3,8 @@
 ---
 spec_id: SPEC-POC-001
 milestone: M0.5
-timeline: W3-W6 (3 weeks)
-status: planned
+timeline: W23-W26 (3 weeks)
+status: approved
 ---
 
 ## Overview
@@ -15,7 +15,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 
 ## Phase Breakdown
 
-### Phase 1: Hardware Setup and Basic Connectivity (W3, Days 1-3)
+### Phase 1: Hardware Setup and Basic Connectivity (W23, Days 1-3)
 
 **Objective**: Assemble PoC hardware and validate basic FPGA-SoC connectivity
 
@@ -37,7 +37,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
      sync
      ```
    - Connect UART console (USB-to-serial adapter, 115200 baud, 8N1)
-   - Boot SoC and verify kernel version: `uname -r` (Expected: Linux 6.6.52)
+   - Boot SoC and verify kernel version: `uname -r` (Expected: 6.6.52, Yocto Scarthgap 5.0 LTS)
    - Verify confirmed hardware peripherals:
      ```bash
      # WiFi/BT: Ezurio Sterling 60 (QCA6174A, M.2)
@@ -99,7 +99,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 
 ---
 
-### Phase 2: FPGA CSI-2 TX IP Integration (W4, Days 4-7)
+### Phase 2: FPGA CSI-2 TX IP Integration (W24, Days 4-7)
 
 **Objective**: Instantiate AMD MIPI CSI-2 TX Subsystem IP and generate basic test pattern
 
@@ -115,7 +115,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
    - Configuration GUI:
      - Lanes: 4 data lanes + 1 clock lane
      - Lane speed: 1.0 Gbps/lane (initial conservative setting)
-     - Data type: RAW16 (0x2C)
+     - Data type: RAW16 (0x2E)
      - Virtual channel: VC0
      - Line blanking: 100 pixel clocks
      - Frame blanking: 10 line times
@@ -170,7 +170,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 
 ---
 
-### Phase 3: SoC CSI-2 RX Configuration and Frame Capture (W5, Days 8-11)
+### Phase 3: SoC CSI-2 RX Configuration and Frame Capture (W25, Days 8-11)
 
 **Objective**: Configure i.MX8M Plus CSI-2 receiver and capture FPGA-transmitted frames
 
@@ -252,7 +252,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 
 ---
 
-### Phase 4: Throughput Measurement and Lane Speed Characterization (W5-W6, Days 12-15)
+### Phase 4: Throughput Measurement and Lane Speed Characterization (W25-W26, Days 12-15)
 
 **Objective**: Measure end-to-end throughput and characterize maximum stable lane speed
 
@@ -273,7 +273,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
    - Calculate throughput:
      - Data volume = 1000 frames × 2048×2048 pixels × 2 bytes = 8.39 GB
      - Throughput = 8.39 GB / 33.33 s = 0.252 GB/s = 2.01 Gbps ✅
-   - Validate: Throughput ≥1.41 Gbps (70% threshold) → PASS
+   - Validate: Throughput ≥1.58 Gbps (70% threshold) → PASS
 
 3. **Lane Speed Sweep (1.0, 1.1, 1.2, 1.25 Gbps)** (Day 13-14)
    - For each lane speed:
@@ -306,15 +306,15 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 **Deliverables**:
 - Throughput measurement: 2.01 Gbps at Target tier (2048×2048, 30 fps)
 - Lane speed characterization: Maximum stable speed documented
-- GO/NO-GO recommendation: Based on ≥1.41 Gbps threshold
+- GO/NO-GO recommendation: Based on ≥1.58 Gbps threshold
 
 **Risks**:
-- Throughput <1.41 Gbps → NO-GO, triggers architecture review
+- Throughput <1.58 Gbps → NO-GO, triggers architecture review
 - Lane speed <1.0 Gbps → NO-GO, requires external D-PHY PHY chip
 
 ---
 
-### Phase 5: Signal Integrity Validation (Optional, W6, Days 16-17)
+### Phase 5: Signal Integrity Validation (Optional, W26, Days 16-17)
 
 **Objective**: Measure D-PHY electrical characteristics and validate eye diagram
 
@@ -362,7 +362,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 
 ---
 
-### Phase 6: PoC Report and GO/NO-GO Decision (W6, Days 18-19)
+### Phase 6: PoC Report and GO/NO-GO Decision (W26, Days 18-19)
 
 **Objective**: Compile test results and make GO/NO-GO recommendation
 
@@ -382,7 +382,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 
 2. **GO/NO-GO Analysis** (Day 18)
    - Check GO criteria:
-     - ✅ Measured throughput ≥1.41 Gbps (70% of Target tier)?
+     - ✅ Measured throughput ≥1.58 Gbps (70% of Target tier)?
      - ✅ Zero data corruption (bit errors) in 1000 frames?
      - ✅ Signal integrity validated (eye diagram or functional test)?
      - ✅ SoC CSI-2 receiver successfully decodes packets?
@@ -390,7 +390,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
    - If any ❌: Recommend **NO-GO** (architecture review)
 
 3. **Risk Assessment (NO-GO Scenario)** (Day 18)
-   - If throughput <1.41 Gbps:
+   - If throughput <1.58 Gbps:
      - Option A: External D-PHY PHY chip (e.g., TI DLPC3439) for 2.5 Gbps/lane
        - Cost: ~$50 per unit
        - Schedule: +2 weeks for integration
@@ -445,7 +445,7 @@ This plan details the execution strategy for M0.5 CSI-2 Proof of Concept, includ
 ```
 - FS packet: 4 bytes (sync + VC + data type + frame number)
 - LS packet: 4 bytes (sync + VC + data type + line number)
-- Pixel data: RAW16 (0x2C), 2048 pixels × 2 bytes = 4096 bytes
+- Pixel data: RAW16 (0x2E), 2048 pixels × 2 bytes = 4096 bytes
 - CRC-16: 2 bytes (appended after pixel data)
 
 **Timing Constraints**:
@@ -550,7 +550,7 @@ def calculate_throughput(width, height, fps, num_frames, duration_sec):
 
 ## Milestones and Checkpoints
 
-### Checkpoint 1: Hardware Setup Complete (End of W3)
+### Checkpoint 1: Hardware Setup Complete (End of W23)
 - ✅ FPGA and SoC boards powered on
 - ✅ FPC cable connected
 - ✅ SPI control channel functional
@@ -558,7 +558,7 @@ def calculate_throughput(width, height, fps, num_frames, duration_sec):
 
 ---
 
-### Checkpoint 2: FPGA Bitstream Validated (End of W4)
+### Checkpoint 2: FPGA Bitstream Validated (End of W24)
 - ✅ CSI-2 TX IP instantiated, bitstream generated
 - ✅ LUT utilization <5,000 (24%)
 - ✅ ILA captures test pattern (counter increments)
@@ -566,21 +566,21 @@ def calculate_throughput(width, height, fps, num_frames, duration_sec):
 
 ---
 
-### Checkpoint 3: SoC Frame Capture Success (Middle of W5)
+### Checkpoint 3: SoC Frame Capture Success (Middle of W25)
 - ✅ SoC captures 100 frames with zero bit errors
 - ✅ Frame drop rate <1%
 - **Decision**: If capture fails, debug SoC driver or device tree
 
 ---
 
-### Checkpoint 4: Throughput Validated (End of W5)
-- ✅ Target tier (2048×2048, 30 fps) achieves ≥1.41 Gbps
+### Checkpoint 4: Throughput Validated (End of W25)
+- ✅ Target tier (2048×2048, 30 fps) achieves ≥1.58 Gbps
 - ✅ Lane speed characterization complete
-- **Decision**: GO if throughput ≥1.41 Gbps, NO-GO if <1.41 Gbps
+- **Decision**: GO if throughput ≥1.58 Gbps, NO-GO if <1.58 Gbps
 
 ---
 
-### Checkpoint 5: PoC Report Complete (End of W6)
+### Checkpoint 5: PoC Report Complete (End of W26)
 - ✅ GO/NO-GO recommendation documented
 - ✅ Stakeholder review completed
 - **Decision**: Proceed to M1 (GO) or architecture review (NO-GO)
@@ -589,22 +589,22 @@ def calculate_throughput(width, height, fps, num_frames, duration_sec):
 
 ## Resource Allocation
 
-### Personnel (W3-W6)
+### Personnel (W23-W26)
 
 **FPGA Engineer** (1 FTE):
-- W3: Hardware setup, JTAG test
-- W4: CSI-2 TX IP integration, bitstream generation
-- W5: Lane speed characterization, throughput measurement
-- W6: Signal integrity validation (if logic analyzer available)
+- W23: Hardware setup, JTAG test
+- W24: CSI-2 TX IP integration, bitstream generation
+- W25: Lane speed characterization, throughput measurement
+- W26: Signal integrity validation (if logic analyzer available)
 
 **Embedded Engineer** (0.5 FTE):
-- W3: SoC Linux boot, driver verification
-- W4-W5: Device tree configuration, frame capture testing
-- W6: Validation script development
+- W23: SoC Linux boot, driver verification
+- W24-W25: Device tree configuration, frame capture testing
+- W26: Validation script development
 
 **System Architect** (0.25 FTE):
-- W3: PoC test plan review
-- W6: PoC report review, GO/NO-GO decision
+- W23: PoC test plan review
+- W26: PoC report review, GO/NO-GO decision
 
 **Total Effort**: 1.75 FTE × 3 weeks = 5.25 person-weeks
 
@@ -629,38 +629,38 @@ def calculate_throughput(width, height, fps, num_frames, duration_sec):
 ### Software/Licenses
 
 - AMD Vivado HL Design Edition (annual subscription, $3,000/year, includes CSI-2 IP)
-- NXP i.MX8M Plus Linux BSP (free, open-source Yocto/Buildroot)
+- NXP i.MX8M Plus Linux BSP (free, Yocto Scarthgap 5.0 LTS, Variscite BSP imx-6.6.52-2.2.0-v1.3)
 - Python 3.10+ with NumPy (free)
 
 ---
 
 ## Next Steps After PoC
 
-### If GO (Proceed to M1)
+### If GO (Proceed to M6-Final)
 
-**Immediate Actions (W7)**:
-- Finalize Architecture Design Document with validated CSI-2 parameters
-- Begin FPGA RTL detailed design (panel scan FSM, line buffer, protection logic)
-- Parallelize: SoC firmware development can start with validated CSI-2 driver
+**Immediate Actions (W27)**:
+- Update Architecture Design Document with validated CSI-2 parameters from PoC
+- Confirm FPGA RTL integration matches PoC results (lane speed, throughput)
+- Proceed to HIL testing and system validation (W27-W28)
 
-**M1 Milestone (W3)** (note: W3 of project, not PoC):
-- Architecture review complete
-- Common config schema finalized (detector_config.yaml)
-- Register map locked
+**M6-Final Milestone (W28)**:
+- System validation with real panel frame acquisition
+- Full pipeline verified: FPGA -> SoC -> Host
+- Production readiness assessment
 
 ---
 
 ### If NO-GO (Architecture Review)
 
-**Immediate Actions (W7-W8)**:
+**Immediate Actions (W27-W28)**:
 - Evaluate alternatives:
   - **Option A**: External D-PHY PHY chip (TI DLPC3439, ~$50/unit, +2 weeks)
   - **Option B**: Alternative SoC platform (Raspberry Pi CM4, NVIDIA Jetson Nano, +4 weeks)
-  - **Option C**: Reduce performance tier (1536×1536 or lower, no schedule impact)
+  - **Option C**: Reduce performance tier (1536x1536 or lower, no schedule impact)
 - Update project plan with revised timeline and budget
 - Stakeholder approval for chosen alternative
 
-**Revised M0.5** (W9-W10):
+**Revised PoC** (schedule extension required):
 - Re-run PoC with alternative solution
 - Validate GO criteria again
 
@@ -682,8 +682,11 @@ def calculate_throughput(width, height, fps, num_frames, duration_sec):
 
 ---
 
-**Plan Version**: 1.0.0
+**Plan Version**: 1.0.1
 **Created**: 2026-02-17
+**Updated**: 2026-02-17
 **Author**: MoAI Agent (manager-spec)
+**Reviewer**: spec-fpga (doc-approval-sprint)
+**Changes**: Timeline W3-W6→W23-W26, status planned→approved, RAW16 0x2C→0x2E, GO threshold aligned to 1.58 Gbps, Linux/Yocto references corrected, Next Steps updated for post-implementation context
 
 🗿 MoAI <email@mo.ai.kr>

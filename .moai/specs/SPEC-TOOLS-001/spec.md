@@ -3,7 +3,7 @@
 ---
 id: SPEC-TOOLS-001
 version: 1.0.0
-status: draft
+status: approved
 created: 2026-02-17
 updated: 2026-02-17
 author: MoAI Agent (analyst)
@@ -204,6 +204,38 @@ All tools are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per quality.y
 
 ---
 
+**REQ-TOOLS-042**: **WHEN** the user adjusts Window/Level sliders **THEN** the GUI.Application **shall** update the frame preview within 100 ms.
+
+**WHY**: Interactive Window/Level adjustment is essential for evaluating X-ray image quality during development and calibration.
+
+**IMPACT**: Window center and width parameters applied to 16-bit pixel data via lookup table. WPF WriteableBitmap updated on UI thread.
+
+---
+
+**REQ-TOOLS-043**: The GUI.Application **shall** integrate with IDetectorClient (SPEC-SDK-001) for connection management, frame acquisition, and status monitoring.
+
+**WHY**: The GUI is the primary user interface for the Host SDK and must expose all SDK capabilities.
+
+**IMPACT**: MVVM architecture with IDetectorClient injected via dependency injection. ViewModel binds to SDK events (FrameReceived, ErrorOccurred, ConnectionChanged).
+
+---
+
+**REQ-TOOLS-044**: **WHEN** the user clicks Save Frame **THEN** the GUI.Application **shall** invoke SaveFrameAsync with the selected format (TIFF or RAW) and target path.
+
+**WHY**: Frame storage from the GUI enables quick capture and archival during testing.
+
+**IMPACT**: File save dialog with format selection. SaveFrameAsync called on background thread to avoid UI freeze.
+
+---
+
+**REQ-TOOLS-045**: **WHEN** the GUI.Application is connected to a SoC or simulator **THEN** it **shall** display a status dashboard showing: connection state, scan mode, frames received, dropped frames, and throughput (Gbps).
+
+**WHY**: Real-time status monitoring enables rapid diagnosis of performance and connectivity issues.
+
+**IMPACT**: Status bar and dashboard panel updated at 1 Hz minimum via GetStatusAsync polling.
+
+---
+
 ### 6. Unwanted Requirements
 
 **REQ-TOOLS-050**: Tools **shall not** modify detector_config.yaml directly without user confirmation.
@@ -221,6 +253,116 @@ All tools are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per quality.y
 **IMPACT**: No code generator imports, no runtime dependencies on tools/ projects.
 
 ---
+
+### 7. Optional Requirements
+
+**REQ-TOOLS-060**: **Where possible**, the ParameterExtractor should support OCR for scanned PDF datasheets.
+
+**WHY**: Some legacy detector datasheets are scanned images rather than native PDF with selectable text.
+
+**IMPACT**: OCR library (e.g., Tesseract) integration. Priority: low. Manual entry remains as fallback.
+
+---
+
+**REQ-TOOLS-061**: **Where possible**, the GUI.Application should support dark/light theme switching.
+
+**WHY**: Medical imaging workstations typically use dark themes to reduce eye strain during extended use.
+
+**IMPACT**: WPF resource dictionaries for theme support. Priority: low.
+
+---
+
+**REQ-TOOLS-062**: **Where possible**, the IntegrationRunner should support parallel scenario execution.
+
+**WHY**: Parallel execution reduces total integration test time for CI pipelines.
+
+**IMPACT**: Requires isolated simulator instances per scenario. Priority: low.
+
+---
+
+## Technical Constraints
+
+### Platform Constraints
+
+| Constraint | Value | Rationale |
+|-----------|-------|-----------|
+| Target Framework | .NET 8.0 LTS | Consistent with Host SDK (SPEC-SDK-001) |
+| Language | C# 12 | Modern language features, consistent toolchain |
+| GUI Framework | WPF (Windows only) | Rich databinding, WriteableBitmap for 16-bit display |
+| CLI Runtime | Cross-platform (.NET 8.0) | CLI tools run on Windows and Linux |
+| OS Support (GUI) | Windows 10+ | WPF requirement |
+| OS Support (CLI) | Windows 10+, Linux (Ubuntu 22.04+) | CLI tools are cross-platform |
+
+### Tool-Specific Constraints
+
+| Tool | Constraint | Value |
+|------|-----------|-------|
+| ParameterExtractor | PDF library | iTextSharp or PdfPig (MIT/AGPL license check) |
+| CodeGenerator | Template engine | Scriban or T4 templates |
+| ConfigConverter | YAML parser | YamlDotNet 13.0+ |
+| ConfigConverter | JSON Schema validator | NJsonSchema 11.0+ |
+| IntegrationRunner | Test timeout | 60 seconds per scenario |
+| GUI.Application | Frame preview | WriteableBitmap, 15 fps target |
+| GUI.Application | Window/Level update | < 100 ms response time |
+
+### Performance Constraints
+
+| Metric | Target | Tool |
+|--------|--------|------|
+| PDF parsing time | < 30 seconds per document | ParameterExtractor |
+| Code generation time | < 5 seconds per target | CodeGenerator |
+| Config conversion time | < 2 seconds for all targets | ConfigConverter |
+| Integration test timeout | < 60 seconds per scenario | IntegrationRunner |
+| Frame preview rate | 15 fps | GUI.Application |
+| Window/Level response | < 100 ms | GUI.Application |
+| GUI startup time | < 5 seconds | GUI.Application |
+
+---
+
+## Quality Gates
+
+### QG-001: TRUST 5 Framework Compliance
+
+- **Tested**: 85%+ code coverage per tool (TDD for all new code)
+- **Readable**: English code comments, XML documentation on public APIs
+- **Unified**: Consistent C# coding style (EditorConfig), shared Common.Dto types
+- **Secured**: No secret exposure, input validation on all file inputs (PDF, YAML, JSON)
+- **Trackable**: Git-tracked with conventional commits, SPEC-TOOLS-001 traceability tags
+
+### QG-002: Tool Quality Review
+
+- All tools compile without errors or warnings
+- All generated code compiles without errors using target toolchain
+- CLI tools return correct exit codes (0 for success, 1 for failure)
+- GUI application passes manual usability review
+
+### QG-003: Integration Readiness
+
+- ConfigConverter output matches expected format for FPGA, SoC, and Host SDK
+- IntegrationRunner successfully executes with all four simulators (SPEC-SIM-001)
+- GUI.Application connects to Host SDK and displays frames
+
+---
+
+## Traceability
+
+### Parent Documents
+
+- **SPEC-ARCH-001**: P0 Architecture Decisions (technology stack, performance tiers)
+- **SPEC-SDK-001**: Host SDK API (IDetectorClient interface used by GUI.Application)
+- **SPEC-SIM-001**: Simulator system (pipeline used by IntegrationRunner)
+- **X-ray_Detector_Optimal_Project_Plan.md**: Section 5.3 Phase 4 (Tools Development)
+
+### Configuration References
+
+- **detector_config.yaml**: Single source of truth consumed by all tools
+- **config/schema/detector-config-schema.json**: JSON Schema for validation
+- **docs/config/conversion-mapping.md**: ConfigConverter mapping rules
+
+### Child Documents
+
+- Integration test scenarios (IT-01 through IT-10) executed by IntegrationRunner
+- Generated code artifacts consumed by FPGA, firmware, and SDK projects
 
 ---
 
@@ -279,6 +421,46 @@ All tools are **new code** and follow **TDD (RED-GREEN-REFACTOR)** per quality.y
 **THEN**: IT-01 through IT-10 execute sequentially
 **AND**: Aggregate report shows per-scenario status
 **AND**: Exit code reflects overall pass/fail
+
+---
+
+### AC-TOOLS-007: GUI Frame Preview
+
+**GIVEN**: GUI.Application connected to SoC simulator via IDetectorClient
+**WHEN**: Continuous scan is started at Intermediate-A tier (2048x2048@15fps)
+**THEN**: Frame preview displays at 15 fps
+**AND**: Window/Level adjustment updates preview within 100 ms
+**AND**: Status dashboard shows connection state, frames received, throughput
+
+---
+
+### AC-TOOLS-008: GUI Frame Save
+
+**GIVEN**: GUI.Application displaying a captured frame
+**WHEN**: User clicks Save Frame and selects TIFF format
+**THEN**: Frame is saved to selected path via SaveFrameAsync
+**AND**: Saved file round-trip matches displayed frame data
+**AND**: UI remains responsive during save operation
+
+---
+
+### AC-TOOLS-009: CodeGenerator C Header Output
+
+**GIVEN**: detector_config.yaml with Intermediate-A tier configuration
+**WHEN**: C header generation is executed
+**THEN**: Generated fpga_registers.h compiles with GCC without errors
+**AND**: Register addresses and bit field macros match config values
+**AND**: Header contains AUTO-GENERATED comment
+
+---
+
+### AC-TOOLS-010: ConfigConverter Cross-Validation
+
+**GIVEN**: detector_config.yaml with bandwidth exceeding CSI-2 limit (e.g., 5.0 Gbps)
+**WHEN**: Cross-validation is performed
+**THEN**: ConfigConverter reports bandwidth constraint violation
+**AND**: No target files are generated
+**AND**: Error message includes actual vs. maximum bandwidth values
 
 ---
 
