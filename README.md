@@ -290,11 +290,36 @@ cd config
 
 ## 문서
 
-- **아키텍처 설계 문서**: `docs/architecture/`
-- **API 문서**: `docs/api/`
-- **사용자 가이드**: `docs/user-guide/`
-- **개발 계획서**: `X-ray_Detector_Optimal_Project_Plan.md`
-- **MoAI-ADK 최적화 지침**: `.moai/docs/optimization-directives.md` - 컨텍스트 최적화 및 질문 빈도 개선 지침
+### 📚 핵심 문서
+- **프로젝트 계획서**: [`X-ray_Detector_Optimal_Project_Plan.md`](X-ray_Detector_Optimal_Project_Plan.md) - 28주 전체 개발 계획
+- **빠른 시작**: [`QUICKSTART.md`](QUICKSTART.md) - 빠른 시작 가이드
+- **치트시트**: [`CHEATSHEET.md`](CHEATSHEET.md) - 초고속 참조
+
+### 🏗️ 설계 문서
+- **아키텍처**: [`docs/architecture/`](docs/architecture/) - 시스템/FPGA/SoC/Host SDK 설계
+- **API 문서**: [`docs/api/`](docs/api/) - SPI/CSI-2/Ethernet/SDK API 레퍼런스
+- **SPEC 문서**: [`.moai/specs/`](.moai/specs/) - EARS 포맷 요구사항 (FPGA/FW/SDK/SIM/TOOLS)
+- **테스트 계획**: [`docs/testing/`](docs/testing/) - Unit/Integration/HIL/Verification 전략
+
+### 📖 개발 가이드
+- **개발 환경 설정**: [`docs/guides/development-setup.md`](docs/guides/development-setup.md)
+- **FPGA 빌드 가이드**: [`docs/guides/fpga-build-guide.md`](docs/guides/fpga-build-guide.md)
+- **펌웨어 빌드 가이드**: [`docs/guides/firmware-build-guide.md`](docs/guides/firmware-build-guide.md)
+- **SDK 빌드 가이드**: [`docs/guides/sdk-build-guide.md`](docs/guides/sdk-build-guide.md)
+- **시뮬레이터 빌드 가이드**: [`docs/guides/simulator-build-guide.md`](docs/guides/simulator-build-guide.md)
+- **도구 사용 가이드**: [`docs/guides/tool-usage-guide.md`](docs/guides/tool-usage-guide.md)
+
+### 🚀 배포 및 운영
+- **설치 가이드**: [`docs/guides/installation-guide.md`](docs/guides/installation-guide.md)
+- **배포 가이드**: [`docs/guides/deployment-guide.md`](docs/guides/deployment-guide.md)
+- **사용자 매뉴얼**: [`docs/guides/user-manual.md`](docs/guides/user-manual.md)
+- **문제 해결 가이드**: [`docs/guides/troubleshooting-guide.md`](docs/guides/troubleshooting-guide.md)
+
+### 🎯 프로젝트 관리
+- **프로젝트 로드맵**: [`docs/project/roadmap.md`](docs/project/roadmap.md) - M0-M6 마일스톤, W1-W28 일정
+- **용어집**: [`docs/project/glossary.md`](docs/project/glossary.md) - 기술 용어 정의
+- **기여 가이드**: [`CONTRIBUTING.md`](CONTRIBUTING.md) - 개발 워크플로우 및 규칙
+- **변경 이력**: [`CHANGELOG.md`](CHANGELOG.md) - 버전 히스토리
 
 ## 기여
 
@@ -303,13 +328,15 @@ cd config
 - TRUST 5 품질 프레임워크 준수
 - TDD/DDD Hybrid 개발 방법론
 
+자세한 내용은 [`CONTRIBUTING.md`](CONTRIBUTING.md)를 참조하세요.
+
 ## 라이선스
 
-[라이선스 정보 추가 필요]
+본 프로젝트는 독점 라이선스를 따릅니다. 자세한 내용은 [`LICENSE.md`](LICENSE.md)를 참조하세요.
 
 ## 연락처
 
-[연락처 정보 추가 필요]
+프로젝트 문의: [연락처 정보 추가 필요]
 
 ---
 

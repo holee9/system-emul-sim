@@ -1,0 +1,415 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://moai.kr/schemas/detector-config-schema.json",
+  "title": "X-ray Detector Panel Configuration",
+  "description": "Single source of truth configuration schema for the X-ray Detector Panel System. All target-specific configurations are derived from this file.",
+  "type": "object",
+  "required": ["panel", "fpga", "controller", "host"],
+  "additionalProperties": false,
+  "properties": {
+    "panel": {
+      "type": "object",
+      "description": "X-ray detector panel physical characteristics",
+      "required": ["rows", "cols", "pixel_pitch_um", "bit_depth"],
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 4096,
+          "default": 2048,
+          "description": "Number of pixel rows (height). Min tier: 1024, Target: 2048, Max: 3072"
+        },
+        "cols": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 4096,
+          "default": 2048,
+          "description": "Number of pixel columns (width). Min tier: 1024, Target: 2048, Max: 3072"
+        },
+        "pixel_pitch_um": {
+          "type": "number",
+          "minimum": 50,
+          "maximum": 500,
+          "default": 150,
+          "description": "Pixel pitch in micrometers. Typical medical imaging: 100-200 um"
+        },
+        "bit_depth": {
+          "type": "integer",
+          "enum": [14, 16],
+          "default": 16,
+          "description": "ADC bit depth per pixel. 14-bit for minimum tier, 16-bit for target/max tiers"
+        }
+      }
+    },
+    "fpga": {
+      "type": "object",
+      "description": "FPGA hardware configuration (Xilinx Artix-7 XC7A35T-FGG484)",
+      "required": ["timing", "line_buffer", "data_interface", "spi"],
+      "additionalProperties": false,
+      "properties": {
+        "timing": {
+          "type": "object",
+          "description": "Panel scan timing parameters (microseconds)",
+          "required": ["gate_on_us", "gate_off_us", "roic_settle_us", "adc_conv_us"],
+          "additionalProperties": false,
+          "properties": {
+            "gate_on_us": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1000,
+              "default": 10.0,
+              "description": "Gate-ON duration in microseconds for X-ray exposure"
+            },
+            "gate_off_us": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1000,
+              "default": 5.0,
+              "description": "Gate-OFF duration in microseconds between lines"
+            },
+            "roic_settle_us": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 100,
+              "default": 1.0,
+              "description": "ROIC settling time in microseconds after gate transition"
+            },
+            "adc_conv_us": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 100,
+              "default": 2.0,
+              "description": "ADC conversion time in microseconds per line"
+            }
+          }
+        },
+        "line_buffer": {
+          "type": "object",
+          "description": "Ping-Pong BRAM line buffer configuration",
+          "required": ["depth_lines", "bram_width_bits"],
+          "additionalProperties": false,
+          "properties": {
+            "depth_lines": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8,
+              "default": 2,
+              "description": "Number of line buffers (2 = Ping-Pong). Must be >= 2 for continuous streaming"
+            },
+            "bram_width_bits": {
+              "type": "integer",
+              "enum": [16, 32, 36],
+              "default": 16,
+              "description": "BRAM data width in bits. Matches pixel bit depth for RAW16"
+            }
+          }
+        },
+        "data_interface": {
+          "type": "object",
+          "description": "High-speed data interface from FPGA to SoC",
+          "required": ["primary", "csi2"],
+          "additionalProperties": false,
+          "properties": {
+            "primary": {
+              "type": "string",
+              "const": "csi2",
+              "description": "Primary data interface. Fixed to CSI-2 (USB 3.x is not feasible on Artix-7 35T)"
+            },
+            "csi2": {
+              "type": "object",
+              "description": "CSI-2 MIPI D-PHY configuration",
+              "required": ["lane_count", "data_type", "virtual_channel"],
+              "additionalProperties": false,
+              "properties": {
+                "lane_count": {
+                  "type": "integer",
+                  "enum": [1, 2, 4],
+                  "default": 4,
+                  "description": "Number of D-PHY data lanes. 4-lane provides ~4-5 Gbps aggregate"
+                },
+                "data_type": {
+                  "type": "string",
+                  "enum": ["RAW14", "RAW16"],
+                  "default": "RAW16",
+                  "description": "CSI-2 data type. RAW14 (0x2D) or RAW16 (0x2C)"
+                },
+                "virtual_channel": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3,
+                  "default": 0,
+                  "description": "CSI-2 virtual channel (VC0-VC3). VC0 for single-panel systems"
+                },
+                "lane_speed_mbps": {
+                  "type": "integer",
+                  "minimum": 400,
+                  "maximum": 1250,
+                  "default": 1000,
+                  "description": "Per-lane speed in Mbps. Artix-7 OSERDES limit: 1000-1250 Mbps"
+                },
+                "line_blanking_clocks": {
+                  "type": "integer",
+                  "minimum": 10,
+                  "maximum": 1000,
+                  "default": 100,
+                  "description": "Line blanking period in pixel clocks between CSI-2 line packets"
+                },
+                "frame_blanking_lines": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 10,
+                  "description": "Frame blanking period in line times between CSI-2 frames"
+                }
+              }
+            }
+          }
+        },
+        "spi": {
+          "type": "object",
+          "description": "SPI slave interface configuration for FPGA control",
+          "required": ["clock_hz", "mode"],
+          "additionalProperties": false,
+          "properties": {
+            "clock_hz": {
+              "type": "integer",
+              "minimum": 100000,
+              "maximum": 50000000,
+              "default": 50000000,
+              "description": "SPI clock frequency in Hz. Maximum 50 MHz"
+            },
+            "mode": {
+              "type": "integer",
+              "enum": [0, 1, 2, 3],
+              "default": 0,
+              "description": "SPI mode (CPOL, CPHA). Mode 0: CPOL=0, CPHA=0"
+            },
+            "word_size_bits": {
+              "type": "integer",
+              "enum": [8, 16, 32],
+              "default": 32,
+              "description": "SPI word size in bits for register access"
+            }
+          }
+        },
+        "protection": {
+          "type": "object",
+          "description": "FPGA protection logic configuration",
+          "additionalProperties": false,
+          "properties": {
+            "timeout_ms": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 100,
+              "description": "Watchdog timeout in milliseconds. Triggers safe shutdown if no SPI activity"
+            },
+            "overexposure_threshold": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "default": 60000,
+              "description": "Pixel value threshold for overexposure detection (16-bit scale)"
+            },
+            "overflow_action": {
+              "type": "string",
+              "enum": ["stop", "drop", "overwrite"],
+              "default": "stop",
+              "description": "Action when line buffer overflows: stop scanning, drop data, or overwrite oldest"
+            }
+          }
+        }
+      }
+    },
+    "controller": {
+      "type": "object",
+      "description": "SoC controller configuration (NXP i.MX8M Plus recommended)",
+      "required": ["platform", "ethernet"],
+      "additionalProperties": false,
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": ["imx8mp", "rk3588", "jetson_nano"],
+          "default": "imx8mp",
+          "description": "SoC platform identifier. imx8mp = NXP i.MX8M Plus (recommended)"
+        },
+        "ethernet": {
+          "type": "object",
+          "description": "Ethernet streaming configuration (SoC to Host PC)",
+          "required": ["speed", "protocol", "port"],
+          "additionalProperties": false,
+          "properties": {
+            "speed": {
+              "type": "string",
+              "enum": ["1gbe", "10gbe"],
+              "default": "10gbe",
+              "description": "Ethernet link speed. 10gbe required for target/max tiers. 1gbe for minimum tier only"
+            },
+            "protocol": {
+              "type": "string",
+              "enum": ["udp", "tcp"],
+              "default": "udp",
+              "description": "Transport protocol. UDP for low-latency streaming, TCP for reliable transfer"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1024,
+              "maximum": 65535,
+              "default": 8000,
+              "description": "UDP/TCP port number for frame data streaming"
+            },
+            "mtu": {
+              "type": "integer",
+              "minimum": 1500,
+              "maximum": 9000,
+              "default": 9000,
+              "description": "Maximum Transmission Unit in bytes. 9000 for jumbo frames (recommended with 10gbe)"
+            },
+            "payload_size": {
+              "type": "integer",
+              "minimum": 1024,
+              "maximum": 8192,
+              "default": 8192,
+              "description": "UDP payload size in bytes per packet"
+            }
+          }
+        },
+        "frame_buffer": {
+          "type": "object",
+          "description": "DDR4 frame buffer allocation",
+          "additionalProperties": false,
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 8,
+              "default": 4,
+              "description": "Number of frame buffers (ping-pong + double-buffering)"
+            },
+            "allocation_mb": {
+              "type": "integer",
+              "minimum": 8,
+              "maximum": 512,
+              "default": 128,
+              "description": "Total DDR4 allocation for frame buffers in MB"
+            }
+          }
+        },
+        "csi2_rx": {
+          "type": "object",
+          "description": "CSI-2 receiver configuration on SoC side",
+          "additionalProperties": false,
+          "properties": {
+            "interface_index": {
+              "type": "integer",
+              "enum": [0, 1],
+              "default": 0,
+              "description": "CSI-2 interface index on SoC (0 or 1 for dual-interface SoCs)"
+            },
+            "dma_burst_length": {
+              "type": "integer",
+              "enum": [64, 128, 256],
+              "default": 256,
+              "description": "DMA burst length in bytes for CSI-2 RX data transfer to DDR4"
+            }
+          }
+        }
+      }
+    },
+    "host": {
+      "type": "object",
+      "description": "Host PC SDK and application configuration",
+      "required": ["storage", "display"],
+      "additionalProperties": false,
+      "properties": {
+        "storage": {
+          "type": "object",
+          "description": "Frame storage configuration",
+          "required": ["format", "path"],
+          "additionalProperties": false,
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": ["tiff", "raw", "dicom"],
+              "default": "tiff",
+              "description": "Primary storage format. TIFF (lossless), RAW (unprocessed), DICOM (medical standard)"
+            },
+            "path": {
+              "type": "string",
+              "default": "./frames",
+              "description": "Directory path for frame file storage"
+            },
+            "compression": {
+              "type": "string",
+              "enum": ["none", "lzw", "zip"],
+              "default": "none",
+              "description": "TIFF compression method. 'none' for fastest write, 'lzw' for moderate compression"
+            },
+            "auto_save": {
+              "type": "boolean",
+              "default": false,
+              "description": "Automatically save each captured frame to disk"
+            }
+          }
+        },
+        "display": {
+          "type": "object",
+          "description": "Real-time display configuration",
+          "required": ["fps", "color_map"],
+          "additionalProperties": false,
+          "properties": {
+            "fps": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60,
+              "default": 15,
+              "description": "Display refresh rate in frames per second for live preview"
+            },
+            "color_map": {
+              "type": "string",
+              "enum": ["gray", "jet", "hot", "bone"],
+              "default": "gray",
+              "description": "Color mapping for 16-bit to display conversion"
+            },
+            "window_scale": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 2.0,
+              "default": 1.0,
+              "description": "Display window scale factor (1.0 = native resolution)"
+            }
+          }
+        },
+        "network": {
+          "type": "object",
+          "description": "Host network receive configuration",
+          "additionalProperties": false,
+          "properties": {
+            "receive_buffer_mb": {
+              "type": "integer",
+              "minimum": 8,
+              "maximum": 256,
+              "default": 64,
+              "description": "UDP receive buffer size in MB for packet reassembly"
+            },
+            "receive_threads": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8,
+              "default": 2,
+              "description": "Number of receive threads for multi-threaded packet processing"
+            },
+            "packet_timeout_ms": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 5000,
+              "default": 1000,
+              "description": "Timeout in ms for missing packets before declaring frame incomplete"
+            }
+          }
+        }
+      }
+    }
+  }
+}
