@@ -23,8 +23,8 @@ The SPI interface is the sole control channel between the SoC and FPGA. Pixel da
 | SPI mode | Mode 0 (CPOL=0, CPHA=0) |
 | Bit order | MSB first |
 | Clock speed | Up to 50 MHz |
-| Word size | 8-bit per SPI byte |
-| Transaction size | 32 bits (4 bytes) |
+| Word size | 16 bits per SPI word |
+| Transaction size | 32 bits (2 x 16-bit words) |
 | Chip select | Active low (CS_N) |
 | Bus driver | spi-imx kernel driver on SoC |
 | User-space device | /dev/spidev0.0 |
@@ -43,57 +43,62 @@ The SPI interface is the sole control channel between the SoC and FPGA. Pixel da
 
 ## 2. Transaction Format
 
-Every SPI transaction consists of exactly 4 bytes transferred simultaneously on MOSI and MISO.
+Every SPI transaction consists of exactly 32 bits transferred as two 16-bit words (bits_per_word=16) on MOSI and MISO.
 
-### 2.1 Byte Layout
+### 2.1 Word Layout
 
 ```
-Byte 0          Byte 1          Byte 2          Byte 3
-+---------------+---------------+---------------+---------------+
-| ADDR[7:0]     | R/W flag      | DATA[15:8]    | DATA[7:0]     |
-+---------------+---------------+---------------+---------------+
-  Register addr   0=Read,1=Write  Data MSB         Data LSB
+Word 0 (16-bit)                  Word 1 (16-bit)
++----------------+----------------+---------------------------+
+| ADDR[7:0]      | R/W flag[7:0]  | DATA[15:0]                |
++----------------+----------------+---------------------------+
+  Register addr    0x00=Read         16-bit register data
+                   0x01=Write
 ```
 
-- **Byte 0 (ADDR)**: 8-bit register address (0x00 to 0xFF)
-- **Byte 1 (R/W)**: 0x00 for read, 0x01 for write
-- **Byte 2 (DATA MSB)**: Upper 8 bits of 16-bit data
-- **Byte 3 (DATA LSB)**: Lower 8 bits of 16-bit data
+- **Word 0, Byte 0 (ADDR)**: 8-bit register address (0x00 to 0xFF)
+- **Word 0, Byte 1 (R/W)**: 0x00 for read, 0x01 for write
+- **Word 1 (DATA)**: 16-bit data field (MSB first on wire)
 
 ### 2.2 Write Transaction
 
-The SoC sends all 4 bytes. The FPGA ignores the MISO output during writes.
+The SoC sends 2 x 16-bit words. The FPGA ignores the MISO output during writes.
 
 ```
 CS_N  _____|________________________________|_____
 SCLK  _____|/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\|_____
-MOSI  -----|  ADDR  | 0x01 | DATA_H | DATA_L |-----
-MISO  -----| (don't care)                   |-----
+MOSI  -----| Word0: ADDR | 0x01 | Word1: DATA[15:0] |-----
+MISO  -----| (don't care)                          |-----
+           |<--- 16 clk --->|<----- 16 clk ------->|
 ```
 
-**Example: Write 0x0001 to CONTROL register (address 0x03)**
+**Example: Write 0x0001 to CONTROL register (address 0x21)**
 
-```
-TX bytes: [0x03] [0x01] [0x00] [0x01]
-RX bytes: (ignored)
+```c
+uint16_t tx[2] = {(0x21 << 8) | 0x01, 0x0001};
+// On wire: [0x21][0x01][0x00][0x01]
 ```
 
 ### 2.3 Read Transaction
 
-The SoC sends the address and read flag. The FPGA drives MISO with the register data during bytes 2 and 3.
+The SoC sends Word 0 (address + read flag). The FPGA drives MISO with the 16-bit register data during Word 1.
 
 ```
 CS_N  _____|________________________________|_____
 SCLK  _____|/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\|_____
-MOSI  -----|  ADDR  | 0x00 | 0x00   | 0x00  |-----
-MISO  -----| (don't care)  | DATA_H | DATA_L|-----
+MOSI  -----| Word0: ADDR | 0x00 | Word1: 0x0000 |-----
+MISO  -----| (don't care)      | Word1: DATA[15:0]|---
+           |<--- 16 clk --->|<----- 16 clk ------->|
 ```
 
-**Example: Read STATUS register (address 0x02)**
+**Example: Read STATUS register (address 0x20)**
 
-```
-TX bytes: [0x02] [0x00] [0x00] [0x00]
-RX bytes: [xx]   [xx]   [STATUS_H] [STATUS_L]
+```c
+uint16_t tx[2] = {(0x20 << 8) | 0x00, 0x0000};
+uint16_t rx[2] = {0};
+// On wire TX: [0x20][0x00][0x00][0x00]
+// On wire RX: [xx][xx][STATUS_H][STATUS_L]
+// Result: status = rx[1]
 ```
 
 ---

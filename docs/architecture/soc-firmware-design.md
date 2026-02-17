@@ -198,7 +198,7 @@ int spi_fd = open("/dev/spidev0.0", O_RDWR);
 
 // Configure SPI parameters
 uint8_t mode = SPI_MODE_0;          // CPOL=0, CPHA=0
-uint8_t bits = 8;                   // 8 bits per word
+uint8_t bits = 16;                  // 16 bits per word
 uint32_t speed = 50000000;          // 50 MHz
 
 ioctl(spi_fd, SPI_IOC_WR_MODE, &mode);
@@ -209,34 +209,35 @@ ioctl(spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
 #### 3.2.2 Register Read/Write Functions
 
 ```c
-// Write FPGA register: [8-bit addr][8-bit W flag][16-bit data]
+// Write FPGA register: Word0=[8-bit addr][8-bit W=0x01], Word1=[16-bit data]
 int fpga_reg_write(int spi_fd, uint8_t addr, uint16_t data) {
-    uint8_t tx[4] = {
-        addr,                       // Register address
-        0x01,                       // Write flag
-        (data >> 8) & 0xFF,         // Data MSB
-        data & 0xFF                 // Data LSB
+    uint16_t tx[2] = {
+        ((uint16_t)addr << 8) | 0x01,  // Word0: address + write flag
+        data                            // Word1: 16-bit register data
     };
     struct spi_ioc_transfer xfer = {
         .tx_buf = (unsigned long)tx,
         .len = 4,
         .speed_hz = 50000000,
+        .bits_per_word = 16,
     };
     return ioctl(spi_fd, SPI_IOC_MESSAGE(1), &xfer);
 }
 
-// Read FPGA register: [8-bit addr][8-bit R flag][16-bit response]
+// Read FPGA register: Word0=[8-bit addr][8-bit R=0x00], Word1=[16-bit response]
 int fpga_reg_read(int spi_fd, uint8_t addr, uint16_t *data) {
-    uint8_t tx[4] = { addr, 0x00, 0x00, 0x00 };  // Read flag = 0
-    uint8_t rx[4] = { 0 };
+    uint16_t tx[2] = {((uint16_t)addr << 8) | 0x00, 0x0000};
+    uint16_t rx[2] = {0};
     struct spi_ioc_transfer xfer = {
         .tx_buf = (unsigned long)tx,
         .rx_buf = (unsigned long)rx,
         .len = 4,
         .speed_hz = 50000000,
+        .bits_per_word = 16,
     };
     int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(1), &xfer);
-    *data = (rx[2] << 8) | rx[3];
+    if (ret >= 0)
+        *data = rx[1];  // FPGA drives DATA during Word1
     return ret;
 }
 ```
@@ -588,17 +589,17 @@ struct __attribute__((packed)) ResponsePacket {
 // Poll FPGA status every 100 us (in spi_control thread)
 void fpga_status_poll(int spi_fd) {
     uint16_t status;
-    fpga_reg_read(spi_fd, 0x04, &status);  // STATUS register
+    fpga_reg_read(spi_fd, 0x20, &status);  // STATUS register
 
     if (status & 0x04) {  // Error bit set
         uint16_t error_flags;
-        fpga_reg_read(spi_fd, 0xA0, &error_flags);  // ERROR_FLAGS register
+        fpga_reg_read(spi_fd, 0x80, &error_flags);  // ERROR_FLAGS register
 
         log_error("FPGA error: flags=0x%04X, code=%d",
-                  error_flags, (status >> 3) & 0x1F);
+                  error_flags, (status >> 7) & 0x0F);
 
-        // Attempt recovery
-        fpga_reg_write(spi_fd, 0x00, 0x0010);  // Write error_clear
+        // Attempt recovery: write-1-clear all error flags
+        fpga_reg_write(spi_fd, 0x80, 0x00FF);
     }
 }
 ```
