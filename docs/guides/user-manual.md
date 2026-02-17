@@ -1,7 +1,7 @@
 # User Manual
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ## Table of Contents
@@ -527,6 +527,7 @@ For detailed hardware diagnostics, see the [Troubleshooting Guide](troubleshooti
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete user manual with quick start, GUI walkthrough, CLI operation, and monitoring |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix FPGA error codes (Section 8.5) to match spi-register-map.md bit definitions. Corrected SPI_TIMEOUT->WATCHDOG(0x80), FRAME_INCOMPLETE->ROIC_FAULT(0x10), SYSTEM_ERROR->CONFIG_ERROR(0x40). |
+| 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
 
 ---
 
@@ -536,3 +537,24 @@ For detailed hardware diagnostics, see the [Troubleshooting Guide](troubleshooti
 - Reviewer: manager-quality
 - Status: Approved (with corrections applied)
 - TRUST 5: T:4 R:5 U:4 S:4 T:4
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (4/5)**: Quick start guide is reproducible step-by-step. CLI command examples with all options are verifiable. SDK code examples are complete and compilable. Minor gap: no test to confirm battery fuel gauge (BQ40z50) SMBus register values are accurate.
+- **Readable (5/5)**: Excellent structure with numbered quick start, GUI walkthrough tables, and clearly delineated sections. Performance tier table is concise and decision-oriented.
+- **Unified (4/5)**: Consistent GUI panel documentation style. SDK code patterns follow a consistent connect/configure/capture/save structure. Performance tier values are consistent with project ground truth (Minimum 0.21 Gbps, Intermediate 1.01 Gbps, Final 2.26 Gbps).
+- **Secured (4/5)**: No credential exposure. Notes that WiFi must not carry frame data. Does not address TLS or authentication for the SDK connection.
+- **Trackable (4/5)**: Revision history with two entries. FPGA error codes in Section 8.5 fully corrected and consistent with the canonical register map.
+
+**Corrections Applied**
+
+None required.
+
+**Minor Observations (non-blocking)**
+
+- Section 3.1 Connection Panel lists "Port field" with default 8000, which is the UDP data port. The TCP control port (8001) and UDP discovery port (8002) are not surfaced in the GUI description. This is acceptable for a user manual (internal ports are transparent to the operator), but could note that control uses TCP 8001 in an advanced section.
+- Section 4 CLI options table shows `--port` default as 8000 (data port). The discovery mechanism used in "Discover Devices" uses UDP 8002 but this is not visible to the CLI user, which is correct behavior.

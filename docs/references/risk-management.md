@@ -1,7 +1,7 @@
 # Risk Management Guide
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 **Author**: MoAI Documentation Agent
 **Framework**: ISO 14971 (Medical Device Risk Management)
@@ -574,3 +574,35 @@ A risk can be closed when:
 - Corrections Applied:
   - R-002: Fixed incorrect claim that 400 Mbps supports 2048x2048@30fps. Corrected to "up to 2048x2048@15fps". Rationale: 2048x2048x16x30fps = 2.01 Gbps raw, which exceeds 1.6 Gbps total at 400 Mbps/lane. Intermediate-B (30fps) requires 800 Mbps/lane.
 - Notes: Risk scores (R-002=12, R-008=12) match project key risks. ISO 14971 framework accurately applied. Yocto Scarthgap 5.0 + Linux 6.6.52 confirmed in R-003.
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (4/5)**: Risk scores, FPGA resource numbers, and bandwidth figures are verifiable against hardware ground truth. Probability and impact assessments are subjective by nature but well-justified. Residual risk calculations are arithmetically correct.
+- **Readable (5/5)**: Consistent risk register format across all entries. Each risk has a standardized attribute table, description, mitigation actions, and residual risk assessment. ISO 14971 framework application is clearly explained.
+- **Unified (4/5)**: Risk entries follow a consistent template. Minor: R-005 fallback path decision tree uses a slightly different visual style than other sections, but this does not affect clarity.
+- **Secured (5/5)**: Medical device risk context (ISO 14971) is correctly applied. No sensitive technical details that could aid adversaries are exposed. Security-related risks are appropriately documented.
+- **Trackable (4/5)**: All risks have unique IDs, owners, and phase assignments. Status lifecycle is defined. Version history not yet established; added in this review cycle.
+
+**Corrections Applied**
+
+No additional corrections required in this review cycle. The previous review (manager-quality) already corrected R-002 bandwidth claim for 400 Mbps support scope.
+
+**Minor Observations (non-blocking)**
+
+- R-001 upgrade path LUT counts (XC7A50T: 32,600, XC7A75T: 47,200, XC7A100T: 63,400) are standard Xilinx product line specifications and are accurate.
+- R-003 BQ40z50 I2C address 0x0b is consistent with the hardware ground truth (SMBus I2C addr 0x0b).
+- R-008 RAW16 data type hex value 0x2E is consistent with the CSI-2 specification and project ground truth.
+
+---
+
+## Revision History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2026-02-17 | MoAI Documentation Agent | Initial document creation |
+| 1.0.1 | 2026-02-17 | manager-quality | Approved with corrections. R-002 bandwidth claim corrected (400M supports up to 2048x2048@15fps, not 30fps). |
+| 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No additional technical corrections. Added Review Notes and Revision History. |

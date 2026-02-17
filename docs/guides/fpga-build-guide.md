@@ -1,7 +1,7 @@
 # FPGA Build and Synthesis Guide
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ---
@@ -401,3 +401,25 @@ ssh root@192.168.1.100 "detector_cli status"
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent | Complete FPGA build and synthesis guide |
+| 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (5/5)**: Full simulation test suite table (FV-01 through FV-06) with testbench names, module under test, and key assertions. Post-programming DEVICE_ID read verifies bitstream loading. Resource utilization check against 60% LUT budget is scriptable.
+- **Readable (5/5)**: Prerequisites table clearly states device part string `xc7a35tfgg484-1`. Resource budget table (LUTs: 20,800, BRAMs: 50, DSP: 90) matches ground truth. Build steps are well-separated into Simulation, Synthesis, Implementation, Bitstream, and Program sections.
+- **Unified (5/5)**: Vivado version 2023.2 used consistently. Part string `xc7a35tfgg484-1` matches ground truth. IP configuration (4-lane, RAW16, 800/400 Mbps) is correct.
+- **Secured (4/5)**: Production build guidance correctly removes ILA/VIO debug probes. Bitstream encryption mentioned as optional. No hardcoded credentials.
+- **Trackable (4/5)**: Single revision entry. TCL scripts are named and referenced consistently. No issue/PR reference.
+
+**Corrections Applied**
+
+None required.
+
+**Minor Observations (non-blocking)**
+
+- The DSP48E1 count in the Resource Budget table shows 90. Ground truth specifies 90 DSPs, which matches. The budget column shows 54 (60% of 90), which is correct.
+- Coverage targets (Line >= 95%, Branch >= 90%, FSM 100%) are listed in the Test section but there is no automated mechanism described to enforce them from Vivado. Consider referencing the simulation coverage flow with ModelSim/Questa functional coverage directives.

@@ -1,7 +1,7 @@
 # Installation Guide
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ## Table of Contents
@@ -255,7 +255,7 @@ vivado -mode batch -source fpga/scripts/program_fpga.tcl \
 If Vivado is not in your PATH, specify the full path:
 
 ```bash
-/tools/Xilinx/Vivado/2024.1/bin/vivado -mode batch \
+/tools/Xilinx/Vivado/2023.2/bin/vivado -mode batch \
     -source fpga/scripts/program_fpga.tcl \
     -tclargs fpga/output/csi2_detector_top.bit
 ```
@@ -377,7 +377,7 @@ Open Registry Editor and navigate to `HKLM\SYSTEM\CurrentControlSet\Services\AFD
 
 ```bash
 sudo ufw allow 8000/udp comment "Detector frame data"
-sudo ufw allow 8001/udp comment "Detector control"
+sudo ufw allow 8001/tcp comment "Detector control"
 ```
 
 **Windows (PowerShell, run as Administrator):**
@@ -386,7 +386,7 @@ sudo ufw allow 8001/udp comment "Detector control"
 netsh advfirewall firewall add rule name="XrayDetector Data" `
     dir=in action=allow protocol=UDP localport=8000
 netsh advfirewall firewall add rule name="XrayDetector Control" `
-    dir=in action=allow protocol=UDP localport=8001
+    dir=in action=allow protocol=TCP localport=8001
 ```
 
 ---
@@ -489,7 +489,7 @@ dotnet run --project tools/IntegrationRunner -- --scenario IT-01 --verbose
 | Port | Protocol | Direction | Purpose |
 |------|----------|-----------|---------|
 | 8000 | UDP | SoC → Host | Frame pixel data |
-| 8001 | UDP | Host → SoC | Scan control commands |
+| 8001 | TCP | Host → SoC | Scan control commands |
 | 22 | TCP | Host → SoC | SSH management |
 
 ---
@@ -560,6 +560,7 @@ dotnet remove package XrayDetector.SDK
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete installation guide with hardware assembly and verification sequence |
+| 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Fix Vivado path: 2024.1 → 2023.2 (section 4.1). Fix control port protocol: 8001 TCP not UDP (section 7.2 port table, section 5.5 ufw/netsh rules). |
 
 ---
 
@@ -569,3 +570,27 @@ dotnet remove package XrayDetector.SDK
 - Reviewer: manager-quality
 - Status: Approved
 - TRUST 5: T:5 R:5 U:5 S:4 T:4
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (5/5)**: Full end-to-end verification checklist (Section 6.6) with 8 concrete steps and expected outputs. SPI register reads, service status checks, and IT-01/IT-03 integration tests are all directly executable.
+- **Readable (5/5)**: Installation order is clear (Sections 1-5 in sequence). Hardware BOM table, port reference table, and troubleshooting tables are easy to scan. ASCII architecture diagram provides visual overview.
+- **Unified (5/5)**: Consistent IP scheme (192.168.1.1 Host, 192.168.1.100 SoC). Hardware specifications (Artix-7 XC7A35T-FGG484, VAR-SOM-MX8M-PLUS, Linux 6.6.52, Yocto Scarthgap 5.0) match ground truth throughout.
+- **Secured (4/5)**: Firewall configuration for both Linux and Windows is provided. Default root login warning noted. No hardcoded credentials. Minor: UDP buffer increase section modifies kernel parameters without security justification.
+- **Trackable (4/5)**: Revision history updated. Architecture diagram references all three system layers. No issue/PR reference.
+
+**Corrections Applied**
+
+1. Section 4.1: Vivado path corrected from `2024.1` to `2023.2` (project standard is Vivado 2023.2).
+2. Section 5.5 Linux ufw: `8001/udp` corrected to `8001/tcp` - control port is TCP per ground truth.
+3. Section 5.5 Windows netsh: `protocol=UDP localport=8001` corrected to `protocol=TCP localport=8001`.
+4. Section 7.2 Port Reference table: port 8001 Protocol corrected from `UDP` to `TCP`.
+
+**Minor Observations (non-blocking)**
+
+- Section 7.2 lists port 8001 direction as "Host → SoC" with description "Scan control commands". This is correct per the system architecture diagram in Section 1.1. Consistent with deployment-guide.md.
+- The iperf3 test in Section 6.4 uses `-u` flag (UDP) on port 5201, which is separate from the control port 8001. This is correct and unrelated to the TCP/UDP correction above.

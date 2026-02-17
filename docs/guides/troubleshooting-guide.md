@@ -1,7 +1,7 @@
 # Troubleshooting Guide
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ## Table of Contents
@@ -212,9 +212,12 @@ dmesg | grep -i "csi"
 1. Check FPC cable connection (Section 3.2).
 2. Verify the FPGA CSI-2 TX is operational:
    ```bash
-   # CSI2_LANE_SPEED register = 0x60 (bit[0]: 0=400Mbps, 1=800Mbps)
+   # CSI2_LANE_COUNT register = 0x60 (number of active lanes)
    detector_cli read-reg 0x60
-   # Expected: 0x0000 (400 Mbps/lane) or 0x0001 (800 Mbps/lane)
+   # Expected: 0x0004 (4 lanes)
+   # CSI2_LANE_SPEED register = 0x61 (speed code: 0x64=400Mbps, 0x7D=800Mbps)
+   detector_cli read-reg 0x61
+   # Expected: 0x0064 (400 Mbps/lane) or 0x007D (800 Mbps/lane)
    # Check CSI2_STATUS register = 0x70 (bit[0]: phy_ready)
    detector_cli read-reg 0x70
    # Expected: bit[0]=1 (phy_ready) when D-PHY is initialized
@@ -267,7 +270,7 @@ When experiencing instability at 800M lane speed (CSI2_LANE_SPEED=0x61, value=1)
 
 **Step 1: Verify Lane Speed Configuration**
 ```bash
-detector_cli read-reg 0x61  # CSI2_LANE_SPEED: 0=400M, 1=800M
+detector_cli read-reg 0x61  # CSI2_LANE_SPEED: 0x64=400Mbps, 0x7D=800Mbps
 ```
 
 **Step 2: Check CSI-2 Link Status**
@@ -805,6 +808,7 @@ Attachments:
 | 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete troubleshooting guide with diagnostic commands, issue categories, and log collection procedures |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix register addresses throughout: STATUS=0x20, CONTROL=0x21, FRAME_COUNT_LO=0x30, TIMING_GATE_ON=0x50, TIMING_GATE_OFF=0x51, CSI2_LANE_SPEED=0x60, CSI2_STATUS=0x70, ERROR_FLAGS=0x80. Corrected ERROR_FLAGS bit definitions to match spi-register-map.md. |
 | 1.1.0 | 2026-02-17 | manager-docs | Add 800M D-PHY Debugging Procedures section, Error Recovery State Machine, and Log Analysis Guide. |
+| 1.1.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Fix Section 4.1: CSI2_LANE_SPEED register corrected from 0x60 to 0x61; 0x60 is CSI2_LANE_COUNT. Speed code values corrected to 0x64=400Mbps, 0x7D=800Mbps per canonical register map. Same correction applied to 800M D-PHY Debugging step 1. |
 
 ---
 
@@ -814,3 +818,30 @@ Attachments:
 - Reviewer: manager-quality
 - Status: Approved (with corrections applied)
 - TRUST 5: T:5 R:5 U:4 S:4 T:4
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (5/5)**: Every diagnostic step includes a concrete command and expected output. Register read commands are specific to actual register addresses. Error recovery procedures are stepwise and verifiable.
+- **Readable (5/5)**: Well-organized with table of contents, clear section headings, and a quick diagnostic reference at the top. Error code table with severity guide is immediately actionable.
+- **Unified (4/5)**: Consistent command format using `detector_cli` throughout. Error Recovery State Machine uses a clear tiered escalation structure. Minor inconsistency: Section 11 "Log Collection" has a subsection "Log Analysis Guide" appearing before the numbered subsections 11.1-11.3.
+- **Secured (4/5)**: No credential exposure. Correctly notes that WiFi must not carry frame data. Does not address encryption or authentication for the diagnostic CLI.
+- **Trackable (4/5)**: Three revision entries with clear change descriptions. Register addresses cross-referenced to spi-register-map.md.
+
+**Corrections Applied**
+
+1. Section 4.1 (v4l2 No Device) — CSI2_LANE_SPEED register address corrected:
+   - Old: `# CSI2_LANE_SPEED register = 0x60` with `detector_cli read-reg 0x60`
+   - New: `# CSI2_LANE_COUNT register = 0x60` and `# CSI2_LANE_SPEED register = 0x61` with `detector_cli read-reg 0x61`
+   - Register 0x60 is CSI2_LANE_COUNT; CSI2_LANE_SPEED is at 0x61 per canonical register map.
+2. Section 4.1 and 800M D-PHY Debugging Step 1 — Speed code values corrected:
+   - Old: `0=400M, 1=800M` (binary flag representation)
+   - New: `0x64=400Mbps, 0x7D=800Mbps` (actual register values per canonical register map)
+
+**Minor Observations (non-blocking)**
+
+- The Log Analysis Guide subsection appears between sections 11 and 11.1 rather than as a numbered subsection. Consider renaming to "11.0 Log Analysis Guide" or restructuring as 11.1 for consistency.
+- The normal startup log pattern in Section 11 shows "UDP command socket bound to port 8001" which refers to the TCP control port. The log label "UDP command" may be misleading since the control channel is TCP 8001, not UDP.

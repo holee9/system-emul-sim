@@ -1,7 +1,7 @@
 # Software Simulator Build and Validation Guide
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ---
@@ -365,3 +365,25 @@ diff fpga/sim/golden_reference.bin fpga/sim/rtl_output.bin \
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent | Complete software simulator build and validation guide |
+| 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (4/5)**: All build and run commands are reproducible. Deterministic output verification with `diff` is well documented. Golden reference comparison process is clear. Minor gap: no explicit CI invocation example for the full simulator suite.
+- **Readable (5/5)**: Pipeline diagram clearly illustrates the simulator chain. Integration scenario table provides a quick reference. ILA signal debugging section has sufficient detail.
+- **Unified (5/5)**: Consistent structure with sdk-build-guide.md. Configuration via detector_config.yaml is consistently reinforced as the single source of truth.
+- **Secured (4/5)**: No credential exposure. Simulator seed and deterministic mode appropriately documented for reproducibility. Does not address access control for golden reference files.
+- **Trackable (4/5)**: Revision history present. Integration scenarios IT-01 through IT-10 are referenced. No direct link to SPEC documents.
+
+**Corrections Applied**
+
+None required.
+
+**Minor Observations (non-blocking)**
+
+- The ground truth Simulator Suite names "SocSimulator" as one of the three core simulators, while this document uses "McuSimulator" throughout. The actual implementation directory is `McuSimulator/`. This is an acceptable naming divergence (MCU is a more precise hardware term for the SoC firmware layer), but the ground truth reference should be reconciled in project memory.
+- The integration scenario table correctly maps IT-02 to "2048x2048, 16-bit, 15fps — medium-A configuration", consistent with the Intermediate-A performance tier definition.

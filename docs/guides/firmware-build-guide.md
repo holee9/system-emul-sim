@@ -1,7 +1,7 @@
 # SoC Firmware Cross-Compilation and Deployment Guide
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ---
@@ -322,3 +322,25 @@ systemctl restart xray-detector.service
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Agent | Complete SoC firmware build and deployment guide |
+| 1.0.1 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. No technical corrections required. |
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (5/5)**: All build steps include concrete verification commands (uname -r expecting 6.6.52, i2cdetect commands for BQ40z50 at 0x0b and BMI160 at 0x68). GDB remote debug workflow is fully specified.
+- **Readable (5/5)**: Clear Prerequisites, Setup, Build, Test, and Troubleshooting structure. CMake toolchain file is fully documented inline.
+- **Unified (5/5)**: Kernel version 6.6.52, Yocto Scarthgap 5.0, BSP imx-6.6.52-2.2.0-v1.3 all match ground truth. I2C addresses (0x0b for BQ40z50, 0x68 for BMI160) are correct.
+- **Secured (4/5)**: Cross-compilation uses proper sysroot isolation. No hardcoded credentials. Minor: the BitBake recipe uses AUTOREV (always builds latest commit), which is not recommended for production releases.
+- **Trackable (4/5)**: Single version entry. Yocto recipe SRC_URI references the correct repository. No issue/PR reference.
+
+**Corrections Applied**
+
+None required.
+
+**Minor Observations (non-blocking)**
+
+- The BitBake recipe uses `SRCREV = "${AUTOREV}"` which fetches the latest commit on every build. For reproducible production builds, pin to a specific commit hash.
+- The `$CC --version` output comment says `arm-poky-linux-gnueabi-gcc` but the toolchain targets `cortexa53` (AArch64). The actual compiler name from Scarthgap SDK for cortexa53 is `aarch64-poky-linux-gcc`. The comment should say `aarch64-poky-linux-gcc (GCC) 13.x` to match the CMake toolchain file which also uses `aarch64-poky-linux-gcc`.

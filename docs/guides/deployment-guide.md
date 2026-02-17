@@ -1,7 +1,7 @@
 # Deployment Guide
 
 **Document Version**: 1.0.0
-**Status**: Reviewed
+**Status**: Reviewed - Approved
 **Last Updated**: 2026-02-17
 
 ## Table of Contents
@@ -662,9 +662,9 @@ sudo chmod 640 /etc/detector/detector_config.yaml
 sudo chown root:detector /etc/detector/detector_config.yaml
 ```
 
-### UDP Command Channel Security
+### TCP Command Channel Security
 
-The detector uses HMAC-SHA256 authentication on the command port (8001).
+The detector uses HMAC-SHA256 authentication on the command port (TCP 8001).
 Configure the shared key during deployment:
 
 ```bash
@@ -681,7 +681,7 @@ sudo chown root:detector /etc/detector/command_auth_key
 ```bash
 # Allow only necessary ports
 sudo ufw allow from <host_ip>/32 to any port 8000 proto udp  # Data stream
-sudo ufw allow from <host_ip>/32 to any port 8001 proto udp  # Command channel
+sudo ufw allow from <host_ip>/32 to any port 8001 proto tcp  # Command channel (TCP)
 sudo ufw allow from 224.0.0.0/4 to any port 8002 proto udp  # Discovery (multicast)
 sudo ufw deny in on eth1  # Block other inbound on data interface
 sudo ufw enable
@@ -708,7 +708,7 @@ iptables -P INPUT DROP
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT    # SSH
-iptables -A INPUT -p udp --dport 8001 -j ACCEPT  # Control (from Host PC)
+iptables -A INPUT -p tcp --dport 8001 -j ACCEPT  # Control (from Host PC, TCP)
 # Frame data (8000) is outbound only
 iptables-save > /etc/iptables.rules
 EOF
@@ -732,6 +732,7 @@ EOF
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | MoAI Docs Agent | Complete deployment guide with environment management, rollback, and security hardening |
 | 1.0.1 | 2026-02-17 | manager-quality | Fix health_check.sh: ERROR_FLAGS address corrected from 0x04 to 0x80. Update Key Registers table: STATUS=0x20 (not 0x02), ERROR_FLAGS=0x80 (not 0x04), FRAME_COUNT_LO=0x30 (not 0x10). |
+| 1.0.2 | 2026-02-17 | manager-docs (doc-approval-sprint) | Reviewed → Approved. Fix control port protocol: 8001 is TCP not UDP (section heading, ufw rule, iptables rule). |
 
 ---
 
@@ -741,3 +742,26 @@ EOF
 - Reviewer: manager-quality
 - Status: Approved (with corrections applied)
 - TRUST 5: T:5 R:5 U:4 S:5 T:4
+
+---
+
+## Review Notes
+
+**TRUST 5 Assessment**
+
+- **Testable (5/5)**: All deployment steps include explicit verification commands with expected outputs. Health check script, DEVICE_ID reads, and integration test invocations are all concrete and runnable.
+- **Readable (5/5)**: Document is well-structured with numbered sections, clear tables, and inline comments in code blocks. Deployment environments and port references are clearly documented.
+- **Unified (4/5)**: Consistent use of environment names, register addresses, and IP scheme throughout. Minor inconsistency in Section 14 heading (previously referenced "UDP" for TCP-based control port, now corrected).
+- **Secured (5/5)**: Comprehensive security hardening section with non-root service account, HMAC-SHA256 authentication, SSH key-only access, firewall rules, and production checklist.
+- **Trackable (4/5)**: Full revision history with version entries. The deployment environments table and rollback procedures provide clear audit trail. Minor: no explicit reference to change request or issue ID.
+
+**Corrections Applied**
+
+1. Section "UDP Command Channel Security" heading renamed to "TCP Command Channel Security" - control port 8001 is TCP per ground truth, not UDP.
+2. Section 14 ufw firewall rule: `port 8001 proto udp` corrected to `proto tcp`.
+3. Section 14.2 iptables rule: `-p udp --dport 8001` corrected to `-p tcp --dport 8001`.
+
+**Minor Observations (non-blocking)**
+
+- The discovery multicast rule (`port 8002 proto udp`) references a port not listed in the ground truth port reference. This may be a placeholder for a future feature; no correction applied as it does not conflict with ground truth.
+- Section 14.3 checklist refers to "Firewall: only ports 22, 8001 inbound" without specifying protocols; the iptables rules in 14.2 now correctly reflect TCP for both.
