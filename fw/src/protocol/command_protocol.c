@@ -16,6 +16,8 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
 
 /* Command Protocol context */
 static cmd_protocol_ctx_t cmd_ctx = {
@@ -88,6 +90,57 @@ static int validate_command_frame(const command_frame_t *cmd) {
 }
 
 /**
+ * @brief Calculate HMAC-SHA256 for response frame
+ *
+ * Computes HMAC over bytes 0-11 (magic, sequence, status) + payload
+ * using pre-shared key from cmd_ctx.hmac_key
+ *
+ * @param resp Response frame
+ * @param payload_len Payload length
+ * @return 0 on success, -1 on failure
+ */
+static int calculate_response_hmac(response_frame_t *resp, size_t payload_len) {
+    if (resp == NULL) {
+        return -1;
+    }
+
+    /* Prepare HMAC data: bytes 0-11 (excluding HMAC field) + payload */
+    size_t hmac_data_len = 12 + payload_len;  /* 12 bytes before HMAC + payload */
+    uint8_t *hmac_data = (uint8_t *)malloc(hmac_data_len);
+    if (hmac_data == NULL) {
+        return -1;
+    }
+
+    /* Copy bytes 0-11 (magic, sequence, status, payload_len) */
+    memcpy(hmac_data, resp, 12);
+    /* Copy payload if present */
+    if (payload_len > 0) {
+        memcpy(hmac_data + 12, resp->payload, payload_len);
+    }
+
+    /* Calculate HMAC-SHA256 using OpenSSL */
+    unsigned int hmac_len = HMAC_SIZE;
+    unsigned char *result = HMAC(
+        EVP_sha256(),                              /* SHA-256 hash function */
+        cmd_ctx.hmac_key,                          /* Key */
+        strlen(cmd_ctx.hmac_key),                  /* Key length */
+        hmac_data,                                 /* Data to authenticate */
+        hmac_data_len,                             /* Data length */
+        resp->hmac,                                /* Output HMAC */
+        &hmac_len                                  /* Output length */
+    );
+
+    free(hmac_data);
+
+    if (result == NULL) {
+        memset(resp->hmac, 0, HMAC_SIZE);
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
  * @brief Build response frame
  */
 static int build_response(uint32_t sequence, uint16_t status,
@@ -113,8 +166,10 @@ static int build_response(uint32_t sequence, uint16_t status,
         memcpy(resp->payload, payload, payload_len);
     }
 
-    /* Calculate HMAC (simplified - in real implementation use OpenSSL HMAC) */
-    memset(resp->hmac, 0, HMAC_SIZE);
+    /* Calculate HMAC-SHA256 using OpenSSL */
+    if (calculate_response_hmac(resp, payload_len) != 0) {
+        return -1;
+    }
 
     *resp_len = required_len;
     return 0;
@@ -205,7 +260,14 @@ int cmd_validate_magic(const uint8_t *buf, size_t len) {
 }
 
 /**
- * @brief Validate HMAC
+ * @brief Validate HMAC-SHA256
+ *
+ * Validates HMAC over command frame bytes 0-11 + payload
+ * using pre-shared key
+ *
+ * @param cmd Command to validate
+ * @param key HMAC key
+ * @return 0 on success, -EBADMSG on HMAC mismatch, -EINVAL on error
  */
 int cmd_validate_hmac(const command_frame_t *cmd, const char *key) {
     if (!cmd_ctx.initialized) {
@@ -216,16 +278,45 @@ int cmd_validate_hmac(const command_frame_t *cmd, const char *key) {
         return -EINVAL;
     }
 
-    /* In real implementation, use OpenSSL HMAC() API
-     * For now, just check that HMAC is not all zeros */
-    for (int i = 0; i < HMAC_SIZE; i++) {
-        if (cmd->hmac[i] != 0) {
-            return 0;  /* Non-zero HMAC - accept */
-        }
+    /* Prepare HMAC data: bytes 0-11 (excluding HMAC field) + payload */
+    size_t hmac_data_len = 12 + cmd->payload_len;
+    uint8_t *hmac_data = (uint8_t *)malloc(hmac_data_len);
+    if (hmac_data == NULL) {
+        return -EINVAL;
     }
 
-    /* All zeros - invalid HMAC */
-    return -EBADMSG;
+    /* Copy bytes 0-11 (magic, sequence, command_id, payload_len) */
+    memcpy(hmac_data, cmd, 12);
+    /* Copy payload if present */
+    if (cmd->payload_len > 0) {
+        memcpy(hmac_data + 12, cmd->payload, cmd->payload_len);
+    }
+
+    /* Calculate expected HMAC-SHA256 using OpenSSL */
+    unsigned char calculated_hmac[HMAC_SIZE];
+    unsigned int hmac_len = HMAC_SIZE;
+    unsigned char *result = HMAC(
+        EVP_sha256(),                              /* SHA-256 hash function */
+        key,                                        /* Key */
+        strlen(key),                                /* Key length */
+        hmac_data,                                 /* Data to authenticate */
+        hmac_data_len,                             /* Data length */
+        calculated_hmac,                           /* Output HMAC */
+        &hmac_len                                  /* Output length */
+    );
+
+    free(hmac_data);
+
+    if (result == NULL) {
+        return -EBADMSG;
+    }
+
+    /* Compare HMACs using constant-time comparison */
+    if (CRYPTO_memcmp(calculated_hmac, cmd->hmac, HMAC_SIZE) != 0) {
+        return -EBADMSG;  /* HMAC mismatch */
+    }
+
+    return 0;  /* HMAC valid */
 }
 
 /**

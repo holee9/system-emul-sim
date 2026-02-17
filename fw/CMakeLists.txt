@@ -43,6 +43,7 @@ endif()
 # Find required packages
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(OpenSSL REQUIRED)  # For HMAC-SHA256
 
 # Find libraries via pkg-config (if available)
 pkg_check_modules(YAML libyaml REQUIRED)
@@ -124,8 +125,8 @@ target_link_libraries(detector_daemon
     PRIVATE
         Threads::Threads
         ${YAML_LIBRARIES}
-        # OpenSSL for HMAC-SHA256 (when security is implemented)
-        # PkgConfig::OPENSSL
+        OpenSSL::SSL
+        OpenSSL::Crypto
 )
 
 # Install target
@@ -236,6 +237,15 @@ if(BUILD_TESTS AND CMOCKA_FOUND)
     target_include_directories(test_bq40z50_driver PRIVATE ${CMAKE_SOURCE_DIR}/include)
     target_link_libraries(test_bq40z50_driver PRIVATE ${CMOCKA_LIBRARIES} Threads::Threads)
     add_test(NAME test_bq40z50_driver COMMAND test_bq40z50_driver)
+
+    # Command protocol tests
+    add_executable(test_command_protocol
+        tests/unit/test_command_protocol.c
+        src/protocol/command_protocol.c
+    )
+    target_include_directories(test_command_protocol PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(test_command_protocol PRIVATE ${CMOCKA_LIBRARIES} OpenSSL::Crypto)
+    add_test(NAME test_command_protocol COMMAND test_command_protocol)
 
     # Add more test executables as implementation progresses...
 

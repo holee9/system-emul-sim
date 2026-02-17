@@ -22,6 +22,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
 
 /* Magic numbers per REQ-FW-025, REQ-FW-026 */
 #define MAGIC_COMMAND   0xBEEFCAFEu  /* Host -> FPGA */
@@ -150,6 +152,9 @@ static void test_cmd_validate_response_magic(void **state) {
 static void test_cmd_validate_hmac_valid(void **state) {
     (void)state;
 
+    /* Initialize protocol with test key */
+    cmd_protocol_init(test_hmac_key);
+
     command_frame_t cmd = {
         .magic = MAGIC_COMMAND,
         .sequence = 1,
@@ -157,11 +162,25 @@ static void test_cmd_validate_hmac_valid(void **state) {
         .payload_len = 0,
     };
 
-    /* Set valid HMAC in mock */
-    mock_hmac_set_valid(true);
+    /* Calculate HMAC using OpenSSL (same as implementation) */
+    unsigned char hmac[HMAC_SIZE];
+    unsigned int hmac_len = HMAC_SIZE;
+    HMAC(EVP_sha256(),
+         test_hmac_key,
+         strlen(test_hmac_key),
+         (uint8_t *)&cmd,
+         12,  /* bytes 0-11 */
+         hmac,
+         &hmac_len);
 
+    /* Copy calculated HMAC to command */
+    memcpy(cmd.hmac, hmac, HMAC_SIZE);
+
+    /* Validate HMAC - should succeed */
     int result = cmd_validate_hmac(&cmd, test_hmac_key);
     assert_int_equal(result, 0);
+
+    cmd_protocol_deinit();
 }
 
 /**
@@ -172,6 +191,9 @@ static void test_cmd_validate_hmac_valid(void **state) {
 static void test_cmd_validate_hmac_invalid(void **state) {
     (void)state;
 
+    /* Initialize protocol with test key */
+    cmd_protocol_init(test_hmac_key);
+
     command_frame_t cmd = {
         .magic = MAGIC_COMMAND,
         .sequence = 1,
@@ -179,12 +201,81 @@ static void test_cmd_validate_hmac_invalid(void **state) {
         .payload_len = 0,
     };
 
-    memset(cmd.hmac, 0xFF, HMAC_SIZE);
+    /* Set invalid HMAC (all zeros) */
+    memset(cmd.hmac, 0x00, HMAC_SIZE);
 
-    mock_hmac_set_valid(false);
-
+    /* Validate HMAC - should fail */
     int result = cmd_validate_hmac(&cmd, test_hmac_key);
     assert_int_equal(result, -EBADMSG);  /* Authentication failed */
+
+    cmd_protocol_deinit();
+}
+
+/**
+ * @test FW_UT_07_006: Response HMAC generation
+ * @pre Build response with payload
+ * @post HMAC is correctly calculated and not zero
+ */
+static void test_cmd_response_hmac_generation(void **state) {
+    (void)state;
+
+    /* Initialize protocol with test key */
+    cmd_protocol_init(test_hmac_key);
+
+    command_frame_t cmd = {
+        .magic = MAGIC_COMMAND,
+        .sequence = 42,
+        .command_id = CMD_GET_STATUS,
+        .payload_len = 0,
+    };
+
+    uint8_t resp_buf[256];
+    size_t resp_len = sizeof(resp_buf);
+
+    /* Build response */
+    int result = cmd_handle_command(&cmd, resp_buf, &resp_len);
+    assert_int_equal(result, 0);
+
+    response_frame_t *resp = (response_frame_t *)resp_buf;
+
+    /* Verify HMAC is not all zeros */
+    bool all_zero = true;
+    for (int i = 0; i < HMAC_SIZE; i++) {
+        if (resp->hmac[i] != 0) {
+            all_zero = false;
+            break;
+        }
+    }
+    assert_false(all_zero);  /* HMAC should be calculated */
+
+    /* Verify we can recalculate and match the HMAC */
+    unsigned char calculated_hmac[HMAC_SIZE];
+    unsigned int hmac_len = HMAC_SIZE;
+
+    /* Prepare HMAC data: bytes 0-11 + payload */
+    size_t hmac_data_len = 12 + resp->payload_len;
+    uint8_t *hmac_data = (uint8_t *)malloc(hmac_data_len);
+    assert_non_null(hmac_data);
+
+    memcpy(hmac_data, resp, 12);
+    if (resp->payload_len > 0) {
+        memcpy(hmac_data + 12, resp->payload, resp->payload_len);
+    }
+
+    HMAC(EVP_sha256(),
+         test_hmac_key,
+         strlen(test_hmac_key),
+         hmac_data,
+         hmac_data_len,
+         calculated_hmac,
+         &hmac_len);
+
+    free(hmac_data);
+
+    /* Compare HMACs */
+    assert_memory_equal(resp->hmac, calculated_hmac, HMAC_SIZE);
+
+    cmd_protocol_deinit();
 }
 
 /* ==========================================================================
@@ -666,6 +757,7 @@ int main(void) {
         /* HMAC validation tests */
         cmocka_unit_test(test_cmd_validate_hmac_valid),
         cmocka_unit_test(test_cmd_validate_hmac_invalid),
+        cmocka_unit_test(test_cmd_response_hmac_generation),
 
         /* Replay protection tests */
         cmocka_unit_test(test_cmd_replay_valid_sequence),

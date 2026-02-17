@@ -31,6 +31,9 @@
 #include <sys/resource.h>
 #include <pthread.h>
 #include <sys/syscall.h>
+#include <pwd.h>
+#include <grp.h>
+#include <syslog.h>
 
 #include "health_monitor.h"
 #include "config/config_loader.h"
@@ -213,35 +216,82 @@ static int setup_signal_handlers(void) {
  *
  * REQ-FW-102: Non-root execution with capability constraints
  * Retains: CAP_NET_BIND_SERVICE, CAP_SYS_NICE
+ *
+ * Process:
+ * 1. Keep required capabilities in permitted and effective sets
+ * 2. Drop supplementary groups
+ * 3. Set GID to detector group
+ * 4. Set UID to detector user
+ * 5. Verify privilege drop succeeded
  */
 static int drop_privileges(void) {
-    /* Keep required capabilities */
+    struct passwd *pw;
+    struct group *gr;
+
+    /* Lookup detector user */
+    pw = getpwnam(DETECTOR_USER);
+    if (!pw) {
+        syslog(LOG_ERR, "User '%s' not found", DETECTOR_USER);
+        return -1;
+    }
+
+    /* Lookup detector group */
+    gr = getgrnam(DETECTOR_GROUP);
+    if (!gr) {
+        syslog(LOG_ERR, "Group '%s' not found", DETECTOR_GROUP);
+        return -1;
+    }
+
+    /* Keep required capabilities before dropping root */
     cap_t caps = cap_init();
     cap_value_t cap_list[2] = { CAP_NET_BIND_SERVICE, CAP_SYS_NICE };
 
     if (cap_set_flag(caps, CAP_PERMITTED, 2, cap_list, CAP_SET) < 0) {
-        perror("cap_set_flag PERMITTED");
+        syslog(LOG_ERR, "cap_set_flag PERMITTED failed: %m");
         cap_free(caps);
         return -1;
     }
 
     if (cap_set_flag(caps, CAP_EFFECTIVE, 2, cap_list, CAP_SET) < 0) {
-        perror("cap_set_flag EFFECTIVE");
+        syslog(LOG_ERR, "cap_set_flag EFFECTIVE failed: %m");
         cap_free(caps);
         return -1;
     }
 
     if (cap_set_proc(caps) < 0) {
-        perror("cap_set_proc");
+        syslog(LOG_ERR, "cap_set_proc failed: %m");
         cap_free(caps);
         return -1;
     }
 
     cap_free(caps);
 
-    /* Switch to detector user */
-    /* TODO: Implement user/group lookup and setuid/setgid */
-    /* This requires getpwnam() and initialization */
+    /* Drop supplementary groups (clear all groups) */
+    if (setgroups(0, NULL) < 0) {
+        syslog(LOG_ERR, "setgroups failed: %m");
+        return -1;
+    }
+
+    /* Set GID to detector group */
+    if (setgid(gr->gr_gid) < 0) {
+        syslog(LOG_ERR, "setgid failed: %m");
+        return -1;
+    }
+
+    /* Set UID to detector user */
+    if (setuid(pw->pw_uid) < 0) {
+        syslog(LOG_ERR, "setuid failed: %m");
+        return -1;
+    }
+
+    /* Verify privilege drop succeeded */
+    if (setuid(0) == 0) {
+        syslog(LOG_ERR, "Privilege drop failed - still have root access");
+        return -1;
+    }
+
+    syslog(LOG_INFO, "Privileges dropped to user '%s' (UID %d, GID %d)",
+           DETECTOR_USER, pw->pw_uid, gr->gr_gid);
 
     return 0;
 }
