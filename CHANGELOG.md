@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- SPEC documents for all subsystems (FPGA, FW, SDK, SIM, TOOLS)
-- Architecture design documents (system, FPGA, SoC firmware, Host SDK)
-- Development guides (setup, FPGA build, firmware build, SDK build, simulator, tools, installation, deployment)
-- Project documentation (CONTRIBUTING, CHANGELOG, roadmap, glossary)
-- ABYZ-Lab-ADK project configuration and workflow rules
+- Common.Dto implementation with ISimulator interface and DTOs (FrameData, LineData, Csi2Packet, UdpPacket, SpiTransaction)
+- 97.08% code coverage with 53 passing tests for Common.Dto
+- Comprehensive XML documentation comments for all public APIs
+- tools/Common/README.md with usage examples and API documentation
+
+### Changed
+- Performance target updated from 3072x3072@30fps to 3072x3072@15fps (CSI-2 bandwidth constraint)
 
 ### Changed
 - Performance target updated from 3072x3072@30fps to 3072x3072@15fps (CSI-2 bandwidth constraint)
