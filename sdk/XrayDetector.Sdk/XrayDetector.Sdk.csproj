@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>XrayDetector</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>System Emul-Sim Team</Authors>
+    <Description>X-ray Detector Panel System Host SDK</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Required NuGet packages -->
+    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+    <!-- LibTiff and fo-dicom will be added in TASK-005 (Image Processing phase) -->
+  </ItemGroup>
+
+</Project>
