@@ -2,10 +2,10 @@
 
 ---
 id: SPEC-TOOLS-001
-version: 1.0.0
-status: approved
+version: 1.0.1
+status: partial
 created: 2026-02-17
-updated: 2026-02-17
+updated: 2026-02-18
 author: ABYZ-Lab Agent (analyst)
 priority: medium
 milestone: M5
@@ -17,6 +17,7 @@ gate_week: W23
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (analyst) | Initial SPEC creation for development tools |
+| 1.0.1 | 2026-02-18 | manager-docs | Documentation sync v1.0.1: Status changed to "partial". ParameterExtractor and GUI.Application implemented. CodeGenerator, ConfigConverter, IntegrationRunner deferred. |
 
 ---
 

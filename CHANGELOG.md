@@ -9,14 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Added (Phase 2 Documentation Sync - 2026-02-18)
+- SDK DicomEncoder implementation (sdk/XrayDetector.Sdk/Core/Processing/DicomEncoder.cs)
+- SDK DicomEncoder unit tests (sdk/XrayDetector.Sdk.Tests/Core/Processing/DicomEncoderTests.cs)
+- ParameterExtractor WPF tool (tools/ParameterExtractor/)
+- GUI.Application unified WPF tool (tools/GUI.Application/)
+- Phase 2 sync report (.moai/reports/sync-report-20260218-185121.md)
+
+### Changed (Phase 2 Documentation Sync - 2026-02-18)
+- SPEC-SDK-001: v1.0.0 → v1.1.1, status: "approved" → "implemented"
+  - Added DicomEncoder implementation notes
+  - Updated history with Phase 2 sync entry
+- SPEC-TOOLS-001: v1.0.0 → v1.0.1, status: "approved" → "partial"
+  - Documented completed tools: ParameterExtractor, GUI.Application
+  - Documented deferred tools: CodeGenerator, ConfigConverter, IntegrationRunner
+- SPEC-FW-001: v1.3.0 → v1.3.1
+  - Added fw/README.md and fw/ARCHITECTURE.md sync history
+  - Updated CHANGELOG.md entry
+
+### Risk Register (Phase 2 Documentation Sync - 2026-02-18)
+- R-TOOLS-003: ConfigConverter test failures (5/42 tests failing, 88% pass rate)
+- R-TOOLS-004: CodeGenerator template system requires further development
+- R-TOOLS-005: IntegrationRunner requires simulator integration for full functionality
+
+### Added (Previous)
 - SoC Firmware documentation (fw/README.md, fw/ARCHITECTURE.md)
 - Comprehensive firmware architecture documentation with module breakdown
 - Firmware development methodology guidelines (TDD for new code, DDD for HAL integration)
 - Yocto build system instructions and deployment guide
 - Security architecture documentation (fw/SECURITY_IMPROVEMENTS.md)
 
-### Changed
+### Changed (Previous)
 - SPEC-FW-001 status updated from "approved" to "implemented"
 - Documentation synchronized with firmware implementation progress
 - Firmware README.md updated with security architecture section

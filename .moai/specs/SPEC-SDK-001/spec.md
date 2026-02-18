@@ -2,10 +2,10 @@
 
 ---
 id: SPEC-SDK-001
-version: 1.0.0
-status: approved
+version: 1.1.0
+status: implemented
 created: 2026-02-17
-updated: 2026-02-17
+updated: 2026-02-18
 author: ABYZ-Lab Agent (architect)
 priority: high
 milestone: M2
@@ -530,6 +530,8 @@ public interface IDetectorClient : IAsyncDisposable
 | 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial SPEC creation for Host SDK requirements |
 | 1.0.1 | 2026-02-17 | manager-quality | Fixed CRIT-007: AC-008 expanded with field-by-field CRC scope and offset reference; Protocol Constraints updated with Frame Header CRC row and algorithm details |
 | 1.1.0 | 2026-02-17 | ABYZ-Lab Agent | MAJOR-007: Expanded Platform Constraints table to explicitly list 10 GbE as required for Mid-B tier and above. Added note that 1 GbE (~0.94 Gbps effective) supports only Minimum and Mid-A tiers. Added requirement for SDK to warn when network interface cannot sustain configured tier data rate. |
+| 1.1.1 | 2026-02-18 | manager-docs | Documentation sync v1.1.1: Status changed to "implemented". Added DicomEncoder.cs implementation note. Updated CHANGELOG.md. |
+| 1.1.1 | 2026-02-18 | manager-docs | Documentation sync v1.1.1: Status changed to "implemented". Added DicomEncoder.cs implementation note. Updated CHANGELOG.md. |
 
 ---
 
