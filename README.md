@@ -136,7 +136,54 @@
 
 ## 소프트웨어 구조
 
-프로젝트는 10개의 모듈과 8개의 테스트 프로젝트로 구성됩니다:
+프로젝트는 Host SDK를 포함한 모듈로 구성됩니다:
+
+### Host SDK (XrayDetector.Sdk) ✅ 완료 (2026-02-18)
+
+.NET 8.0+ 기반 Host PC SDK로, 네트워크를 통한 검출기 제어 API를 제공합니다.
+
+```
+sdk/XrayDetector.Sdk/
+├── Common/Dto/                    # 공유 데이터 타입 ✅
+│   ├── DetectorStatus.cs          # 연결 상태, 스캔 상태
+│   ├── FrameMetadata.cs           # 프레임 메타데이터
+│   ├── PacketHeader.cs            # 패킷 헤더 (CRC-16/CCITT)
+│   └── UdpCommand.cs              # UDP 커맨드 (PING, START, STOP 등)
+├── Core/Communication/            # UDP 통신 ✅
+│   ├── UdpSocketClient.cs         # UdpClient 래퍼
+│   └── PacketReceiver.cs          # System.IO.Pipelines 고속 수신
+├── Core/Reassembly/               # 프레임 재조립 ✅
+│   ├── Crc16CcittValidator.cs      # CRC-16/CCITT 검증 (0x8408)
+│   ├── ReassemblyBuffer.cs        # 순서 섞인 패킷 정렬
+│   └── FrameReassembler.cs        # 완료 프레임 조립
+├── Core/Processing/               # 이미지 처리 ✅
+│   ├── ImageEncoder.cs            # TIFF 16-bit, RAW + JSON
+│   ├── FrameStatistics.cs         # Min/Max/Mean (지연 계산)
+│   └── WindowLevelMapper.cs       # 16-bit → 8-bit 매핑
+├── Core/Discovery/                # 디바이스 검색 ✅
+│   └── DeviceDiscovery.cs         # UDP broadcast 검색
+├── Models/                        # 데이터 모델 ✅
+│   └── Frame.cs                   # 프레임 (ArrayPool<ushort>, IDisposable)
+└── Implementation/                # 클라이언트 구현 ✅
+    ├── IDetectorClient.cs         # 8 methods + 3 events
+    └── DetectorClient.cs          # 연결, 구성, 취듕, 저장
+```
+
+**주요 기능**:
+- IDetectorClient 인터페이스 (8개 메서드): `ConnectAsync`, `DisconnectAsync`, `ConfigureAsync`, `StartAcquisitionAsync`, `StopAcquisitionAsync`, `CaptureFrameAsync`, `StreamFramesAsync`, `SaveFrameAsync`, `GetStatusAsync`
+- 3개 이벤트: `FrameReceived`, `ErrorOccurred`, `ConnectionChanged`
+- CRC-16/CCITT 검증 (다항식 0x8408, 초기값 0xFFFF)
+- Out-of-order 패킷 처리 (순서 섞인 패킷 정렬)
+- 누락 패킷 처리 (2초 타임아웃 후 zero-fill)
+- TIFF 16-bit, RAW + JSON 사이드카 저장
+- UDP broadcast 디바이스 검색 (port 8002)
+- GC 압력 최소화 (ArrayPool<ushort>)
+
+**테스트**: 215개 통과 (0 실패, 0 스킵), 커버리지 67%
+
+---
+
+프로젝트는 시뮬레이터 모듈로도 구성됩니다:
 
 ```
 Solution/
@@ -161,7 +208,8 @@ Solution/
 | FpgaSimulator | ✅ 완료 | 85%+ | 85 passing |
 | McuSimulator | ✅ 완료 | 85%+ | 35 passing |
 | HostSimulator | ✅ 완료 | 85%+ | 36 passing |
-| **합계** | **M2 완료** | **85%+** | **261 passing** |
+| **Host SDK** (XrayDetector.Sdk) | ✅ 완료 | 67% | 215 passing |
+| **합계** | **M2 완료 + SDK 완료** | **85%+** | **476 passing** |
 
 ### 의존성 규칙
 
