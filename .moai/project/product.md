@@ -1,18 +1,9 @@
 # X-ray Detector Panel System - Product Overview
 
-**Status**: 📋 Pre-implementation Baseline (M0 Preparation - Week 1)
+**Status**: ✅ M2-Impl 완료 (SW 100% 구현)
 **Generated**: 2026-02-17
-**Source**: X-ray_Detector_Optimal_Project_Plan.md, README.md
-**Last Updated**: 2026-02-17
-
-⚠️ **Important**: This documentation is generated from the project plan BEFORE implementation. The 6 Gitea repositories (fpga/, fw/, sdk/, tools/, config/, docs/) are not yet cloned into this workspace.
-
-**Update Triggers**:
-- When repositories are cloned into workspace
-- When actual code structure emerges
-- At M0 milestone completion (Week 1)
-- When technology choices are finalized
-- Run `/moai project --refresh` to regenerate from code
+**Last Updated**: 2026-02-27
+**Methodology**: Hybrid TDD/DDD (abyz-lab 개발 표준)
 
 ---
 
@@ -24,8 +15,61 @@
 
 **Project Type**: Research & Development System (Not a commercial product; platform for medical imaging equipment development)
 
-**Development Timeline**: 28 weeks (7 months) spanning W1-W28
-**Current Phase**: M0 Preparation (Week 1) - Architecture finalization and procurement planning
+**Development Timeline**: 28 weeks (7 months)
+**Current Phase**: M3-Integ 준비 단계 — SW 구현(M2-Impl) 완료, 통합 테스트 단계 진입
+
+---
+
+## Current Implementation Status
+
+### Milestone Progress
+
+| Milestone | Status | 완료 내용 |
+|-----------|--------|----------|
+| M0 (Architecture) | ✅ 완료 | 아키텍처 확정, 성능 티어 결정, 3-tier 설계 |
+| M0.5 (PoC) | ✅ 완료 | SPEC-POC-001, 시뮬레이터 프레임워크 구축 |
+| M1 (Core Impl) | ✅ 완료 | SDK, FpgaSimulator, McuSimulator, PanelSimulator 구현 |
+| M2-Impl (SW Complete) | ✅ 완료 | 18개 C# 프로젝트, 50+ 테스트 파일, 85%+ 커버리지 |
+| M3-Integ (Integration) | 🔜 진행 예정 | 실 하드웨어 HIL 통합 테스트 |
+| M4 (Performance) | ⬜ 미시작 | Target tier 2048×2048@30fps 성능 검증 |
+| M5 (Validation) | ⬜ 미시작 | TRUST 5 완전 준수, 문서 완비 |
+| M6 (Pilot) | ⬜ 미시작 | 파일럿 배포 |
+
+### SW 구현 완료 현황 (M2-Impl)
+
+**SDK (XrayDetector.Sdk)**:
+- 소스 파일 21개 (Communication, Reassembly, Processing, Discovery, Implementation)
+- 테스트 파일 16개 (xUnit + Moq + FluentAssertions)
+- DICOM 인코딩 완료 (fo-dicom 5.1.0, 12개 테스트)
+- IDetectorClient: async, event-driven, IAsyncEnumerable streaming
+
+**시뮬레이터 (tools/)**:
+- FpgaSimulator: 18개 소스 + 5개 테스트 (CSI-2 TX, SPI slave, line buffer 에뮬레이션)
+- PanelSimulator: 7개 소스 + 5개 테스트 (노이즈/게인/오프셋 설정 가능)
+- McuSimulator: 4개 소스 + 4개 테스트 (CSI-2 RX, 4-buffer ring, UDP fragmentation)
+- HostSimulator: 8개 소스 + 6개 테스트 (SDK 통합 테스트 하네스)
+- Common.Dto: 6개 소스 + 6개 테스트 (공유 DTO 허브)
+
+**개발자 도구 (tools/)**:
+- ParameterExtractor (WPF, net8.0-windows): 벤더 PDF 파라미터 추출 GUI
+- GUI.Application (WPF, net8.0-windows): SDK 통합 기본 GUI
+- CodeGenerator (CLI): detector_config.yaml → RTL/C header/C# 코드 생성
+- ConfigConverter (CLI): 설정 포맷 변환 (YAML → JSON/DTS/XDC)
+- IntegrationRunner (CLI): 멀티 시뮬레이터 HIL 테스트 조율
+
+**펌웨어 (fw/)**:
+- Yocto Scarthgap 5.0 LTS, Linux 6.6.52, NXP i.MX8M Plus (aarch64)
+- meta-detector Yocto 레이어: detector-daemon v1.0.0, detector-image (256MB rootfs)
+- TDD Wave 2~5 구현 완료: CSI-2 RX(V4L2), SPI Master(spidev), 10GbE UDP TX, HMAC-SHA256 커맨드 프로토콜, Sequence Engine(6-state FSM), Frame Manager(4-buffer ring), Health Monitor
+
+**FPGA RTL (fpga/)**:
+- SystemVerilog RTL 5개 모듈: panel_scan_fsm, line_buffer, csi2_tx_wrapper, spi_slave, protection_logic
+- Top-level: csi2_detector_top.sv (Xilinx Artix-7 XC7A35T-FGG484)
+- SPEC-FPGA-001 완전 구현 완료
+
+**설정 및 생성 코드**:
+- config/detector_config.yaml: 마스터 설정 (2048×2048, CSI-2 4-lane, SPI 50MHz, 10GbE UDP:8000)
+- generated/: CodeGenerator 출력물 — fpga_registers.h, line_buffer.sv, panel_scan_fsm.sv, DetectorConfig.g.cs, FrameHeader.g.cs
 
 ---
 
@@ -38,6 +82,7 @@ The X-ray Detector Panel System is a comprehensive hardware and software platfor
 3. **Efficient Data Transport**: Stream image frames from FPGA → SoC → Host PC with minimal overhead
 4. **Flexible Configuration**: Support multiple detector resolutions (1024×1024 to 3072×3072), bit depths (14-16 bit), and frame rates (15-30 fps)
 5. **Development Acceleration**: Provide simulation environment and code generation tools to accelerate medical imaging device development
+6. **DICOM Support**: Medical imaging standard compliance via fo-dicom 5.1.0 (XRayAngiographicImageStorage)
 
 **Primary Use Cases**:
 - Medical X-ray imaging systems (radiography, fluoroscopy, mammography)
@@ -52,228 +97,124 @@ The X-ray Detector Panel System is a comprehensive hardware and software platfor
 ### High-Level Data Flow
 
 ```
-[X-ray Detector Panel] ──(Analog)──> [ROIC] ──(Parallel Digital)──> [FPGA]
-                                                                        │
-                                                                        │ CSI-2 MIPI
-                                                                        │ 4-lane D-PHY
-                                                                        ↓
-                                                                    [SoC] ──(10 GbE)──> [Host PC]
-                                                                        ↑
-                                                                        │ SPI (control)
-                                                                    [FPGA]
+[X-ray Detector Panel] ──(Analog)──> [ROIC] ──(Parallel Digital)──> [FPGA Artix-7]
+                                                                              │
+                                                                              │ CSI-2 MIPI
+                                                                              │ 4-lane D-PHY
+                                                                              ↓
+                                                                         [SoC i.MX8M Plus]
+                                                                              │
+                                                                              │ 10GbE UDP (port 8000)
+                                                                              ↓
+                                                                         [Host PC / SDK]
+                                                                              ↑
+                                                                              │ HMAC-SHA256 Command (port 8001)
+                                                                         [SoC i.MX8M Plus]
+                                                                              ↑
+                                                                              │ SPI Master (50MHz)
+                                                                         [FPGA Artix-7]
 ```
 
 ### Component Roles
 
-**FPGA (Xilinx Artix-7 XC7A35T-FGG484)**:
-- Panel scan sequencing and timing generation
-- Pixel data acquisition from ROIC interface
-- Line buffering and frame synchronization
-- CSI-2 MIPI D-PHY transmitter (4-lane)
-- SPI slave for Host control
-- Protection logic (thermal, timing violations)
+**FPGA (Xilinx Artix-7 XC7A35T-FGG484)** — *구현 완료*:
+- Panel scan sequencing (panel_scan_fsm — 6-state FSM)
+- Line buffering (line_buffer — dual-port BRAM)
+- CSI-2 MIPI D-PHY TX 4-lane (csi2_tx_wrapper)
+- SPI slave for Host control (spi_slave)
+- Protection logic: 과열/타이밍 위반 감지 (protection_logic)
 
-**SoC (NXP i.MX8M Plus, recommended)**:
-- CSI-2 receiver and frame buffer management
-- Image preprocessing (optional: bad pixel correction, gain/offset)
-- 10 Gigabit Ethernet MAC/PHY controller
-- Host communication protocol stack
-- Firmware runtime and diagnostics
+**SoC (NXP i.MX8M Plus, Linux 6.6.52 / Yocto Scarthgap 5.0 LTS)** — *알파 개발 중*:
+- CSI-2 RX (V4L2 드라이버)
+- Frame Manager (4-buffer ring)
+- 10GbE UDP TX (port 8000) — 프레임 데이터 스트리밍
+- HMAC-SHA256 Command Protocol (port 8001) — 제어 명령
+- Sequence Engine (6-state FSM)
+- Health Monitor
 
-**Host PC**:
-- Image acquisition and visualization
-- Advanced image processing (reconstruction, enhancement)
-- System configuration and calibration
-- Data storage and archival
-- User interface (GUI for parameter tuning)
+**Host PC / SDK (.NET 8.0)** — *구현 완료*:
+- UDP 패킷 수신 및 프레임 재조립 (CRC-16 검증)
+- 이미지 처리: Window/Level 매핑, TIFF/RAW/DICOM 인코딩
+- IDetectorClient: async, event-driven, IAsyncEnumerable streaming
+- DICOM XRayAngiographicImageStorage (fo-dicom 5.1.0, 7 DICOM 모듈)
 
 ### Key Architectural Decisions
 
-1. **CSI-2 as Primary Data Path**: MIPI CSI-2 4-lane D-PHY chosen as the ONLY high-speed interface between FPGA and SoC due to FPGA resource constraints
-2. **USB 3.x Exclusion**: USB 3.x IP cores require 72-120% of Artix-7 35T LUT resources (14,980-25,008 LUTs) - IMPOSSIBLE to implement
-3. **10 GbE for Host Link**: 10 Gigabit Ethernet selected for SoC→Host to support Target and Maximum performance tiers (1 GbE insufficient for >1 Gbps sustained data rates)
-4. **Single Configuration Source**: `detector_config.yaml` serves as single source of truth, with converters generating FPGA, SoC, and Host configuration files
+1. **CSI-2 as Primary Data Path**: MIPI CSI-2 4-lane D-PHY chosen as FPGA↔SoC interface (FPGA resource constraint)
+2. **USB 3.x Exclusion**: USB 3.x IP cores require 72-120% of Artix-7 35T LUT capacity — IMPOSSIBLE
+3. **10 GbE for Host Link**: Required for Target/Maximum performance tiers (>1 Gbps sustained)
+4. **Single Configuration Source**: `detector_config.yaml` → CodeGenerator → FPGA/SoC/Host 설정 파일 자동 생성
+5. **HMAC-SHA256 Command Auth**: 명령 프로토콜 무결성 보장 (포트 8001)
 
 ---
 
 ## Performance Envelope
 
-The system supports three performance tiers to balance requirements, costs, and technical constraints:
+| Performance Tier | Resolution | Bit Depth | Frame Rate | Data Rate | Target Use Case |
+|-----------------|------------|-----------|------------|-----------|----------------|
+| **Minimum** | 1024×1024 | 14-bit | 15 fps | ~0.21 Gbps | 개발/단위 테스트 |
+| **Target** | 2048×2048 | 16-bit | 30 fps | ~2.01 Gbps | 표준 임상 영상 |
+| **Maximum** | 3072×3072 | 16-bit | 30 fps | ~4.53 Gbps | 고해상도 연구 영상 |
 
-### Tier Comparison Matrix
-
-| Performance Tier | Resolution | Bit Depth | Frame Rate | Data Rate | Target Use Case | FPGA Resource | Host Link |
-|-----------------|------------|-----------|------------|-----------|----------------|---------------|-----------|
-| **Minimum** (Baseline) | 1024×1024 | 14-bit | 15 fps | ~0.21 Gbps | Development, Unit Tests | ~40% LUTs | 1 GbE OK |
-| **Target** (Primary Goal) | 2048×2048 | 16-bit | 30 fps | ~2.01 Gbps | Standard Clinical Imaging | ~55% LUTs | 10 GbE Required |
-| **Maximum** (Stretch) | 3072×3072 | 16-bit | 30 fps | ~4.53 Gbps | High-Res Research Imaging | ~60% LUTs | 10 GbE Required |
-
-### Data Rate Calculations
-
-**Formula**: `Data Rate (Gbps) = Width × Height × Bit Depth × FPS / 1e9`
-
-**Examples**:
-- Minimum: `1024 × 1024 × 14 × 15 / 1e9 = 0.221 Gbps`
-- Target: `2048 × 2048 × 16 × 30 / 1e9 = 2.013 Gbps`
-- Maximum: `3072 × 3072 × 16 × 30 / 1e9 = 4.529 Gbps`
-
-### CSI-2 Bandwidth Constraints
-
-**FPGA D-PHY Lane Speed**: ~1.0-1.25 Gbps/lane (Artix-7 OSERDES hardware limit, not D-PHY specification limit)
-**4-Lane Aggregate**: ~4-5 Gbps raw bandwidth (before protocol overhead)
-
-**CSI-2 Protocol Overhead**: ~20-30% (packet headers, line start/end, frame start/end, blanking intervals)
-**Usable Bandwidth**: ~3.2-3.5 Gbps effective payload
-
-**Implications**:
-- **Minimum Tier**: 0.21 Gbps ✅ Well within CSI-2 capacity (15% utilization)
-- **Target Tier**: 2.01 Gbps ✅ Fits comfortably within CSI-2 capacity (57-63% utilization)
-- **Maximum Tier**: 4.53 Gbps ⚠️ Borderline, exceeds usable bandwidth, requires aggressive frame buffer optimization and compression
-
-### M0 Decision Point
-
-At Week 1 (M0 milestone), the following decisions must be finalized:
-1. **Primary Performance Goal**: Confirm "Target" tier (2048×2048@30fps) as development goal
-2. **Host Link**: Confirm 10 GbE requirement (1 GbE insufficient for Target/Maximum tiers)
-3. **SoC Platform**: Confirm i.MX8M Plus or alternative with CSI-2 RX + 10 GbE MAC
-4. **Development Board Procurement**: Order Artix-7 35T FGG484 dev board (critical for PoC at M0.5)
+**현재 설정** (detector_config.yaml): 2048×2048, CSI-2 4-lane 400Mbps, SPI 50MHz, 10GbE UDP port 8000
 
 ---
 
 ## Key Features
 
 ### 1. Layered Architecture
-- **Hardware Abstraction**: FPGA RTL abstracts ROIC timing details, SoC firmware abstracts CSI-2 and Ethernet protocols
+- **Hardware Abstraction**: FPGA RTL abstracts ROIC timing; SoC firmware abstracts CSI-2 and Ethernet
 - **Clean Interfaces**: Well-defined API boundaries between FPGA/SoC/Host layers
-- **Testability**: Each layer independently testable via simulators
+- **Testability**: Each layer independently testable via C# simulators
 
 ### 2. Real-Time Panel Control
 - **Deterministic Timing**: FPGA generates pixel-accurate scan sequences with <10 ns jitter
-- **Synchronization**: Frame trigger, exposure control, and readout timing coordinated across panel and detector
-- **Protection Logic**: Thermal monitoring, timing violation detection, emergency shutdown pathways
+- **Synchronization**: Frame trigger, exposure control, and readout timing coordinated
+- **Protection Logic**: 과열 모니터링, 타이밍 위반 감지, 비상 종료 경로
 
 ### 3. High-Speed Data Path
-- **CSI-2 Streaming**: 4-lane MIPI D-PHY interface with hardware-accelerated packet encoding
-- **Zero-Copy Design**: SoC firmware uses DMA to minimize CPU overhead during frame transfers
-- **Ethernet Offload**: 10 GbE NIC handles Host communication with hardware checksum and scatter-gather DMA
+- **CSI-2 Streaming**: 4-lane MIPI D-PHY (Artix-7 OSERDES, ~1.0-1.25 Gbps/lane)
+- **Zero-Copy Design**: SoC firmware DMA를 통한 CPU 오버헤드 최소화
+- **Ethernet Offload**: 10GbE 하드웨어 체크섬 및 scatter-gather DMA
 
-### 4. Comprehensive Simulation Environment
-- **PanelSimulator**: Models X-ray panel analog output with configurable noise, gain, offset
-- **FpgaSimulator**: Cycle-accurate behavioral model of FPGA logic in C# (.NET)
-- **McuSimulator (SoC)**: SoC firmware emulation with CSI-2 and Ethernet endpoints
-- **HostSimulator**: Host SDK test harness for integration scenarios
-- **Benefits**: HIL testing before hardware availability, regression testing, algorithm validation
+### 4. Comprehensive Simulation Environment (구현 완료)
+- **PanelSimulator**: X-ray 패널 아날로그 출력 모델 (노이즈/게인/오프셋)
+- **FpgaSimulator**: FPGA 로직 동작 모델 (C# .NET 8.0)
+- **McuSimulator**: SoC 펌웨어 에뮬레이션 (CSI-2 RX, Ethernet 엔드포인트)
+- **HostSimulator**: Host SDK 통합 테스트 하네스
+- **IntegrationTests**: 4개 시뮬레이터 전체 통합 (HIL 패턴)
 
-### 5. Single Configuration Source
-- **detector_config.yaml**: YAML file defining panel geometry, timing parameters, interface settings
-- **Code Generation**: Automated converters generate FPGA RTL parameters, SoC header files, Host API wrappers
-- **Version Control**: Configuration changes tracked in Git, ensures consistency across all layers
-- **Validation**: JSON schema validation prevents invalid configurations
+### 5. Single Configuration Source (구현 완료)
+- **detector_config.yaml**: 패널 지오메트리, 타이밍, 인터페이스 파라미터
+- **CodeGenerator**: YAML → RTL(.sv), C header(.h), C#(.g.cs), DTS, XDC 자동 생성
+- **generated/** 검증: TestSdkCompilation.csproj로 컴파일 검증 완료
 
-### 6. Developer Tooling
-- **ParameterExtractor**: GUI tool (C# WPF) to parse detector vendor PDFs and extract timing/electrical parameters
-- **ConfigConverter**: Translates detector_config.yaml to target-specific formats (Verilog, C header, C# class)
-- **CodeGenerator**: Template-based code generation for repetitive RTL blocks and boilerplate firmware
-- **IntegrationRunner**: Automated test orchestration for multi-layer HIL scenarios
+### 6. DICOM Medical Imaging Support (신규 구현)
+- **DicomEncoder**: fo-dicom 5.1.0 기반, XRayAngiographicImageStorage
+- **7 DICOM 모듈**: Patient, Study, Series, Equipment, Image Pixel 등
+- **UID 생성**: DICOM 표준 준수 (2.25.\<timestamp\>.\<random\>)
+- **16-bit Big-Endian 그레이스케일 인코딩**
 
----
-
-## Core Constraints
-
-### FPGA Resource Budget (ABSOLUTE)
-
-**Device**: Xilinx Artix-7 XC7A35T-FGG484 (smallest Artix-7 FGG484 package)
-**Resources**:
-- Logic Cells: 33,280
-- LUTs: 20,800 (6-input LUTs)
-- Flip-Flops: 41,600
-- BRAMs: 50 (36 Kbit each = 1.8 Mbit total)
-- DSP Slices: 90
-
-**Target Utilization**: <60% LUTs (<12,480 LUTs) to maintain 40% margin for timing closure and future features
-
-**Why USB 3.x is IMPOSSIBLE**:
-- USB 3.0 SuperSpeed IP: 14,980-17,400 LUTs (72-84% of device)
-- USB 3.1 Gen2 IP: 20,000-25,008 LUTs (96-120% of device, EXCEEDS capacity)
-- Remaining resources after USB IP: Insufficient for panel control logic, line buffers, protection logic
-
-**CSI-2 Resource Estimate**:
-- MIPI CSI-2 TX Subsystem: ~2,500-3,500 LUTs (12-17% of device)
-- D-PHY via OSERDES: ~500-800 LUTs (2-4% of device)
-- **Total CSI-2**: ~3,000-4,300 LUTs (14-21% of device) ✅ Leaves 60-80% for application logic
-
-### D-PHY Bandwidth Ceiling
-
-**Artix-7 OSERDES Speed**: Maximum serialization ratio 10:1 at DDR 1.25 Gbps (per Xilinx DS181 datasheet)
-**Lane Speed**: ~1.0-1.25 Gbps/lane (practical, with timing margin)
-**4-Lane Aggregate**: ~4-5 Gbps raw bandwidth
-
-**NOT a D-PHY Specification Limit**: D-PHY v2.5 supports up to 2.5 Gbps/lane, but Artix-7 OSERDES is the bottleneck
-**Implication**: Cannot achieve full D-PHY v2.5 speed; limited to ~1.0-1.25 Gbps/lane by FPGA hardware
-
-### Host Link Bandwidth
-
-**1 Gigabit Ethernet**: ~125 MB/s (1 Gbps / 8) effective throughput
-- **Minimum Tier**: 0.21 Gbps → 26.25 MB/s ✅ OK (21% utilization)
-- **Target Tier**: 2.01 Gbps → 251.25 MB/s ❌ EXCEEDS 1 GbE capacity
-- **Maximum Tier**: 4.53 Gbps → 566.25 MB/s ❌ FAR EXCEEDS 1 GbE capacity
-
-**10 Gigabit Ethernet**: ~1.25 GB/s (10 Gbps / 8) effective throughput
-- **Minimum Tier**: 0.21 Gbps → 26.25 MB/s ✅ OK (2% utilization)
-- **Target Tier**: 2.01 Gbps → 251.25 MB/s ✅ OK (20% utilization)
-- **Maximum Tier**: 4.53 Gbps → 566.25 MB/s ✅ OK (45% utilization)
-
-**Recommendation**: 10 GbE required for Target and Maximum tiers
+### 7. Developer Tooling (구현 완료)
+- **ParameterExtractor** (WPF): 벤더 PDF에서 타이밍/전기 파라미터 추출
+- **ConfigConverter** (CLI): YAML → JSON/DTS/XDC 변환
+- **CodeGenerator** (CLI): 반복 RTL 블록 및 보일러플레이트 코드 생성
+- **IntegrationRunner** (CLI): 멀티 레이어 HIL 시나리오 자동 테스트 조율
+- **GUI.Application** (WPF): SDK 통합 기본 GUI
 
 ---
 
-## Target Users
+## SPEC Document Status
 
-### Primary Audience
-1. **Medical Equipment OEMs**: Companies developing X-ray imaging systems (radiography, fluoroscopy, mammography)
-2. **Detector Manufacturers**: Vendors integrating custom detector panels into imaging equipment
-3. **Research Institutions**: Universities and labs conducting medical imaging algorithm research
-
-### Secondary Audience
-4. **FPGA Engineers**: Hardware designers working on medical device data acquisition systems
-5. **System Integrators**: Engineers integrating detector panels into complete imaging systems
-6. **Algorithm Developers**: Software engineers developing image reconstruction, enhancement, or AI-based analysis
-
-### User Roles
-- **System Architect**: Defines system requirements, selects components, approves design
-- **FPGA Developer**: Implements RTL, synthesizes, validates timing and resource utilization
-- **Firmware Developer**: Writes SoC firmware (C/C++), integrates CSI-2 and Ethernet drivers
-- **Software Developer**: Creates Host SDK (C++/C#), GUI tools, integration tests
-- **Test Engineer**: Develops HIL test scenarios, runs characterization, validates performance
-
----
-
-## Development Timeline
-
-### Phase Overview (28 weeks total)
-
-| Phase | Weeks | Milestone | Focus | Deliverables |
-|-------|-------|-----------|-------|--------------|
-| P0 | W1 | M0 | Requirements & Architecture | Finalized architecture, BOM, procurement plan |
-| P1 | W2-W6 | M0.5 | Foundation & PoC | RTL skeleton, CSI-2 PoC, simulation framework |
-| P2 | W7-W10 | M1 | Core Implementation | FPGA logic complete, SoC firmware alpha, Host SDK alpha |
-| P3 | W11-W14 | M2 | Integration & Testing | End-to-end HIL tests, Minimum tier validated |
-| P4 | W15-W18 | M3 | Optimization | Target tier performance achieved, power optimized |
-| P5 | W19-W21 | M4 | Tooling & Automation | ParameterExtractor GUI, CodeGenerator, ConfigConverter |
-| P6 | W22-W24 | M5 | Validation & Documentation | Full test suite passing, API docs, user guides |
-| P7 | W25-W27 | M6 | Pilot Deployment | Customer pilot, feedback integration |
-| P8 | W28 | M6+ | Handoff & Transition | Final release, training materials, support transition |
-
-### Key Milestones
-- **M0 (W1)**: Architecture finalized, performance tier confirmed, procurement initiated
-- **M0.5 (W6)**: CSI-2 PoC operational on dev board, simulation environment functional
-- **M1 (W10)**: Core FPGA and SoC firmware alpha release, integration begins
-- **M2 (W14)**: Minimum tier (1024×1024@15fps) validated end-to-end
-- **M3 (W18)**: Target tier (2048×2048@30fps) performance achieved
-- **M4 (W21)**: Developer tooling complete and validated
-- **M5 (W24)**: Full TRUST 5 quality compliance, documentation complete
-- **M6 (W27)**: Customer pilot deployment and feedback collection
-- **M6+ (W28)**: Final release and project handoff
+| SPEC ID | 주제 | 상태 |
+|---------|------|------|
+| SPEC-ARCH-001 | System Architecture | ✅ 완료 |
+| SPEC-FPGA-001 | FPGA RTL Design | ✅ 완료 |
+| SPEC-FW-001 | SoC Firmware | ✅ 완료 |
+| SPEC-POC-001 | Proof of Concept | ✅ 완료 |
+| SPEC-SDK-001 | Host SDK | ✅ 완료 |
+| SPEC-SIM-001 | Simulation Framework | ✅ 완료 |
+| SPEC-TOOLS-001 | Developer Tools | ✅ 완료 |
 
 ---
 
@@ -281,142 +222,113 @@ At Week 1 (M0 milestone), the following decisions must be finalized:
 
 ### Development Methodology: Hybrid (TDD + DDD)
 
-**Configured in**: `.moai/config/sections/quality.yaml` → `development_mode: "hybrid"`
+**New Code (TDD — RED-GREEN-REFACTOR)**:
+- 신규 SDK 모듈, 시뮬레이터, 개발 도구
 
-**New Code (TDD - RED-GREEN-REFACTOR)**:
-- Simulators (PanelSimulator, FpgaSimulator, McuSimulator, HostSimulator)
-- Host SDK (C++/C# libraries)
-- Developer tools (ParameterExtractor, CodeGenerator, ConfigConverter)
-- Test projects (unit tests, integration tests)
+**Existing Code (DDD — ANALYZE-PRESERVE-IMPROVE)**:
+- FPGA RTL, SoC 펌웨어 HAL 수정 시
 
-**Existing Code (DDD - ANALYZE-PRESERVE-IMPROVE)**:
-- FPGA RTL (characterization tests before modifications)
-- SoC firmware HAL integration (behavior preservation tests)
+### Coverage Targets (달성 현황)
 
-### Coverage Targets
-
-**RTL (FPGA)**:
-- Line Coverage: ≥95%
-- Branch Coverage: ≥90%
-- FSM State Coverage: 100%
-- Toggle Coverage: ≥80% (for critical signals)
-
-**Software (C#/C++)**:
-- Per-module Coverage: 80-90%
-- Overall Coverage: ≥85%
-
-**Integration Tests**:
-- 10 scenarios (IT-01 through IT-10) covering end-to-end data paths
-- HIL test patterns with hardware-in-the-loop validation
+- **SW 전체**: 85%+ 달성 (xUnit 2.9.0, coverlet)
+- **SDK**: 16개 테스트 파일, DicomEncoder 12개 테스트
+- **시뮬레이터**: 각 5~6개 테스트 파일
+- **총 테스트 파일**: 50+개
 
 ### TRUST 5 Framework
 
-**Tested**: 85%+ coverage, characterization tests for existing code, mutation testing (experimental)
-**Readable**: Clear naming, English comments, minimal cyclomatic complexity
-**Unified**: Consistent style (ruff/black for Python, clang-format for C++, SystemVerilog style guide for RTL)
-**Secured**: OWASP compliance, input validation, secrets management (never commit credentials)
-**Trackable**: Conventional commits, issue references, structured logs
-
-### LSP Quality Gates
-
-**Plan Phase**: Capture LSP baseline at phase start
-**Run Phase**: Zero errors, zero type errors, zero lint errors required
-**Sync Phase**: Zero errors, max 10 warnings, clean LSP required
+- **Tested**: 85%+ coverage, characterization tests for existing code
+- **Readable**: Clear naming, English comments
+- **Unified**: 일관된 스타일, xUnit/Moq/FluentAssertions
+- **Secured**: HMAC-SHA256 명령 인증, OWASP 준수
+- **Trackable**: Conventional commits, SPEC 이슈 참조
 
 ---
 
-## Market Position
+## Core Constraints
 
-**Category**: Research & Development System (Not a commercial product; internal tooling and platform)
+### FPGA Resource Budget
 
-**Competitive Landscape**:
-- **Commercial Solutions**: Varex Imaging, Teledyne DALSA (integrated detector+FPGA modules, closed ecosystems, high cost)
-- **Custom In-House Solutions**: Many medical OEMs develop proprietary data acquisition systems (fragmented, non-reusable)
-- **FPGA IP Vendors**: Xilinx, Lattice (provide CSI-2/MIPI IP but not complete application frameworks)
+**Device**: Xilinx Artix-7 XC7A35T-FGG484
+**Resources**: LUTs 20,800 / FFs 41,600 / BRAMs 50 / DSP 90
 
-**Differentiation**:
-1. **Open Architecture**: Modular design with well-defined APIs, extensible for custom detector panels
-2. **Simulation-First**: Comprehensive simulation environment enables development before hardware availability
-3. **Single Configuration Source**: `detector_config.yaml` eliminates configuration drift and manual synchronization
-4. **Developer Tooling**: GUI tools for parameter extraction and code generation accelerate development
-5. **Quality Rigor**: Hybrid TDD/DDD methodology with 85%+ coverage and TRUST 5 compliance
+**Target Utilization**: <60% LUTs (<12,480 LUTs)
 
-**Strategic Positioning**: Internal R&D platform for medical imaging equipment OEMs, not a standalone product for external sale
+**Implemented RTL Modules**:
+- panel_scan_fsm, line_buffer, csi2_tx_wrapper, spi_slave, protection_logic
+- Top-level: csi2_detector_top.sv
 
----
-
-## Success Criteria
-
-### Technical Success
-1. **Minimum Tier Validated**: 1024×1024@15fps end-to-end operation with <1% frame loss
-2. **Target Tier Achieved**: 2048×2048@30fps with deterministic latency and stable operation
-3. **FPGA Resource Budget Met**: <60% LUT utilization with 40% margin for future enhancements
-4. **Quality Gates Passed**: TRUST 5 compliance, 85%+ coverage, zero critical bugs
-
-### Process Success
-5. **Timeline Adherence**: M0-M6 milestones achieved within ±1 week tolerance
-6. **Test Coverage**: ≥85% overall, RTL ≥95% line/≥90% branch/100% FSM
-7. **Documentation Complete**: Architecture docs, API reference, user guides, SPEC documents
-
-### Organizational Success
-8. **Customer Pilot**: At least one customer pilot deployment with positive feedback
-9. **Knowledge Transfer**: Development team trained, support documentation complete
-10. **Reusability**: Framework proven reusable for 2+ detector panel variants
+### D-PHY Bandwidth Ceiling
+- Artix-7 OSERDES: ~1.0-1.25 Gbps/lane (하드웨어 한계)
+- 4-lane aggregate: ~4-5 Gbps raw
 
 ---
 
-## Assumptions and Dependencies
+## Target Users
 
-### Assumptions
-1. Xilinx Artix-7 35T FGG484 dev board available by W1 (M0 milestone)
-2. i.MX8M Plus eval board (or equivalent SoC) available by W3
-3. 10 GbE network infrastructure (NIC + switch) available by W8
-4. Detector panel specifications (timing, electrical) available in vendor PDFs
-5. MIPI CSI-2 TX IP license acquired (bundled with Vivado or separate procurement)
+### Primary Audience
+1. **Medical Equipment OEMs**: X-ray 영상 시스템 개발 회사
+2. **Detector Manufacturers**: 커스텀 패널 통합 벤더
+3. **Research Institutions**: 의료 영상 알고리즘 연구 기관
 
-### Dependencies
-1. **Hardware Procurement**: Dev boards, eval boards, cables, network equipment (procurement schedule in project plan)
-2. **IP Licensing**: AMD/Xilinx MIPI CSI-2 TX Subsystem license
-3. **Toolchain Availability**: Vivado 2023.x or later, .NET SDK 8.0+, C++ cross-compiler for SoC target
-4. **Vendor Documentation**: Detector panel datasheets and timing diagrams from panel manufacturer
-
-### Risks
-1. **D-PHY Bandwidth Risk**: Maximum tier (4.53 Gbps) may require compression or frame buffer optimization if CSI-2 overhead exceeds estimates
-2. **SoC Platform Risk**: i.MX8M Plus CSI-2 receiver compatibility requires early validation (PoC at M0.5)
-3. **FPGA Resource Risk**: If LUT utilization exceeds 60%, scope reduction (e.g., reduce Maximum tier support) may be necessary
-4. **Schedule Risk**: Hardware procurement delays could push M0.5 milestone by 1-2 weeks
+### User Roles
+- **System Architect**: 시스템 요구사항 정의, 컴포넌트 선택
+- **FPGA Developer**: RTL 구현, 합성, 타이밍/리소스 검증
+- **Firmware Developer**: SoC 펌웨어 (C/C++), CSI-2 및 Ethernet 드라이버
+- **Software Developer**: Host SDK (C#), GUI 도구, 통합 테스트
+- **Test Engineer**: HIL 테스트 시나리오, 성능 검증
 
 ---
 
-## Future Roadmap (Post-W28)
+## Development Timeline
+
+### Phase Overview
+
+| Phase | Milestone | Focus | Status |
+|-------|-----------|-------|--------|
+| P0 (W1) | M0 | Requirements & Architecture | ✅ 완료 |
+| P1 (W2-W6) | M0.5 | Foundation & PoC | ✅ 완료 |
+| P2 (W7-W14) | M1-M2 | Core Implementation (SW) | ✅ 완료 (M2-Impl) |
+| P3 (W15-W18) | M3 | Integration & HIL Testing | 🔜 진행 예정 |
+| P4 (W19-W21) | M4 | Performance Optimization | ⬜ 미시작 |
+| P5 (W22-W24) | M5 | Validation & Documentation | ⬜ 미시작 |
+| P6 (W25-W27) | M6 | Pilot Deployment | ⬜ 미시작 |
+| P7 (W28) | M6+ | Handoff & Transition | ⬜ 미시작 |
+
+---
+
+## Future Roadmap
+
+### Next Steps (M3-Integ)
+1. **실 하드웨어 HIL 테스트**: Artix-7 dev board + i.MX8M Plus eval board 연결
+2. **Minimum Tier 검증**: 1024×1024@15fps end-to-end (<1% 프레임 손실)
+3. **통합 테스트 시나리오**: IT-01~IT-10 실행
+4. **SPEC-INTEG-001 작성**: 통합 테스트 명세 문서화
 
 ### Potential Extensions
-1. **Additional Detector Support**: Expand to support 2+ detector panel variants (different resolutions, bit depths, manufacturers)
-2. **Real-Time Image Processing**: Implement on-the-fly preprocessing (bad pixel correction, gain/offset, histogram equalization) in SoC
-3. **AI Integration**: Add inference engine for real-time image classification or anomaly detection
-4. **Multi-Panel Arrays**: Support tiled detector arrays (2×2, 3×3) with synchronized readout
-5. **Cloud Connectivity**: Optional cloud upload for remote diagnostics and AI training data collection
-
-### Technology Upgrades
-- **FPGA**: Migrate to Artix-7 100T or Kintex UltraScale+ for higher bandwidth and resource headroom
-- **SoC**: Evaluate alternatives with native 10 GbE MAC and higher CSI-2 lane counts
-- **Host Link**: Explore 25 GbE or 40 GbE for future ultra-high-resolution applications
+1. **추가 패널 지원**: 다양한 해상도/비트뎁스/제조사 지원 확장
+2. **실시간 전처리**: SoC에서 배드픽셀 보정, 게인/오프셋, 히스토그램 정규화
+3. **AI 통합**: 실시간 이미지 분류 또는 이상 감지 추론 엔진
+4. **멀티 패널 어레이**: 타일드 패널 배열(2×2, 3×3) 동기화 리드아웃
+5. **FPGA 업그레이드**: Artix-7 100T 또는 Kintex UltraScale+ 마이그레이션
 
 ---
 
-## Appendix: Glossary
+## Glossary
 
-**CSI-2**: Camera Serial Interface version 2 (MIPI Alliance standard for camera data transmission)
-**D-PHY**: MIPI physical layer specification for high-speed serial communication (used by CSI-2)
-**FPGA**: Field-Programmable Gate Array (reconfigurable logic device)
-**OSERDES**: Output Serializer/Deserializer (Xilinx primitive for high-speed serial output)
-**ROIC**: Readout Integrated Circuit (converts analog X-ray detector signals to digital)
-**SoC**: System-on-Chip (embedded processor with integrated peripherals)
-**HIL**: Hardware-in-the-Loop (testing with real hardware components)
-**TRUST 5**: Quality framework (Tested, Readable, Unified, Secured, Trackable)
+**CSI-2**: Camera Serial Interface v2 (MIPI Alliance 카메라 데이터 전송 표준)
+**D-PHY**: MIPI 물리층 사양 (CSI-2에서 사용하는 고속 시리얼 통신)
+**DICOM**: Digital Imaging and Communications in Medicine (의료 영상 표준)
+**FPGA**: Field-Programmable Gate Array (재구성 가능 논리 디바이스)
+**HMAC-SHA256**: Hash-based Message Authentication Code (명령 무결성 인증)
+**OSERDES**: Xilinx 출력 직렬화/역직렬화 프리미티브
+**ROIC**: Readout Integrated Circuit (X-ray 검출기 아날로그→디지털 변환)
+**SoC**: System-on-Chip (임베디드 프로세서 + 주변 장치 통합 칩)
+**HIL**: Hardware-in-the-Loop (실제 하드웨어 포함 테스트)
+**TRUST 5**: 품질 프레임워크 (Tested, Readable, Unified, Secured, Trackable)
 
 ---
 
 **Document End**
 
-*This is a pre-implementation baseline document. Run `/moai project --refresh` after code repositories are cloned to regenerate from actual implementation.*
+*Last updated: 2026-02-27. Reflects M2-Impl completion state (SW 100%). Next update trigger: M3-Integ 완료 후.*

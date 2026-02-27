@@ -51,7 +51,7 @@ The SoC firmware implements a real-time data acquisition and streaming system ru
 └───────────────────────────────┬─────────────────────────────┘
                                 │
 ┌───────────────────────────────▼─────────────────────────────┐
-│              X-ray Detector Panel (3072×3072)                │
+│         X-ray Detector Panel (2048×2048 Target)              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -230,7 +230,7 @@ FREE -> DMA -> FILLED -> SENDING -> FREE
 **Buffer Allocation** (REQ-FW-050):
 - 4 buffers in DDR4
 - Buffer size = `rows × cols × 2 bytes` (RAW16)
-- Example: 3072×3072×2 = 18 MB per buffer, 72 MB total
+- Example: 2048×2048×2 = 8 MB per buffer, 32 MB total (Target tier; Maximum tier: 3072×3072 planned)
 
 **Zero-Copy Flow**:
 1. CSI-2 RX acquires buffer via MMAP (FREE -> DMA)
@@ -352,7 +352,7 @@ Offset | Size | Field | Description
 **Fragmentation** (REQ-FW-040):
 - Max payload per packet: 8192 bytes
 - 32-byte header + up to 8160 bytes pixel data
-- Target tier example: 18 MB frame / 8160 = 1024 packets
+- Target tier example: 8 MB frame / 8160 = ~1000 packets (2048×2048×2 bytes)
 
 **Performance** (REQ-FW-041):
 - All packets sent within 1 frame period (66.7 ms at 15 fps)
@@ -523,14 +523,14 @@ For comprehensive security implementation details, see [SECURITY_IMPROVEMENTS.md
 
 **DDR4 Buffer Ring**:
 - 4 buffers × rows × cols × 2 bytes
-- Target tier: 4 × 3072 × 3072 × 2 = 72 MB
-- Intermediate-A: 4 × 2048 × 2048 × 2 = 32 MB
+- Target tier: 4 × 2048 × 2048 × 2 = 32 MB
+- Maximum tier (planned): 4 × 3072 × 3072 × 2 = 72 MB
 
 **Additional Memory**:
 - Network buffers: 16 MB (kernel socket buffers)
 - Configuration: 1 MB
 - Runtime counters: < 1 MB
-- **Total**: ~90 MB at target tier
+- **Total**: ~49 MB at target tier
 
 ## Configuration Schema
 

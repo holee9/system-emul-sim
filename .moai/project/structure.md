@@ -1,908 +1,493 @@
 # X-ray Detector Panel System - Project Structure
 
-**Status**: 📋 Planned Structure (Not Yet Implemented)
+**Status**: ✅ 실제 구현된 구조 (M2-Impl 완료)
 **Generated**: 2026-02-17
-**Source**: X-ray_Detector_Optimal_Project_Plan.md Section 5.2, 5.3
-**Last Updated**: 2026-02-17
-
-⚠️ **Critical**: This documents the PLANNED structure. The 6 Gitea repositories are separate and NOT cloned into this workspace yet.
-
-**Current Directory Status**:
-- 📄 Documentation: README.md, project plans, guides
-- ⚙️ Configuration: .moai/ configuration files
-- ❌ Source Code: None (pre-implementation phase)
-
-**Update Triggers**:
-- When repositories are cloned: `git clone <gitea-url>/fpga.git` (repeat for 6 repos)
-- When actual module structure differs from plan
-- When configuration schema (detector_config.yaml) is finalized
+**Last Updated**: 2026-02-27
 
 ---
 
 ## Table of Contents
 
-1. [Multi-Repository Architecture](#multi-repository-architecture)
-2. [Software Module Organization](#software-module-organization)
-3. [FPGA Block Hierarchy](#fpga-block-hierarchy)
-4. [Configuration Management](#configuration-management)
-5. [Build System](#build-system)
-6. [Test Organization](#test-organization)
-7. [Future Integration Plan](#future-integration-plan)
+1. [Repository Overview](#repository-overview)
+2. [실제 디렉토리 구조](#실제-디렉토리-구조)
+3. [SDK 모듈 구성](#sdk-모듈-구성)
+4. [Tools 모듈 구성](#tools-모듈-구성)
+5. [Firmware 구성](#firmware-구성)
+6. [FPGA RTL 구성](#fpga-rtl-구성)
+7. [설정 및 생성 코드](#설정-및-생성-코드)
+8. [모듈 의존성 그래프](#모듈-의존성-그래프)
+9. [테스트 구성](#테스트-구성)
+10. [빌드 시스템](#빌드-시스템)
 
 ---
 
-## Multi-Repository Architecture
+## Repository Overview
 
-The project is organized into **6 separate Gitea repositories** to enable parallel development, clear ownership boundaries, and independent release cycles.
+단일 Git 저장소에 전체 프로젝트가 통합되어 있습니다.
 
-### Repository Overview
+| 디렉토리 | 기술 | 내용 | 상태 |
+|---------|------|------|------|
+| **fpga/** | SystemVerilog | RTL 모듈, 테스트벤치, 제약 파일 | ✅ SPEC-FPGA-001 완료 |
+| **fw/** | C11 / Yocto | SoC 펌웨어, meta-detector Yocto 레이어 | 🔶 알파 개발 중 |
+| **sdk/** | C# .NET 8.0 | Host SDK 라이브러리 | ✅ SPEC-SDK-001 완료 |
+| **tools/** | C# .NET 8.0 | 시뮬레이터, GUI 도구, CLI 유틸리티 | ✅ SPEC-TOOLS-001 완료 |
+| **config/** | YAML/JSON/DTS/XDC | 단일 소스 설정 파일 | ✅ 생성 완료 |
+| **generated/** | C#/C/SV | CodeGenerator 자동 출력물 | ✅ 컴파일 검증 완료 |
+| **.moai/** | Markdown/YAML | 프로젝트 문서, SPEC, 설정 | ✅ 7개 SPEC 완료 |
 
-| Repository | Technology | Content | Responsible Role | Lines of Code (Est.) |
-|-----------|-----------|---------|-----------------|---------------------|
-| **fpga/** | SystemVerilog | RTL modules, testbenches, constraints | FPGA Engineer | ~5,000 RTL + ~8,000 TB |
-| **fw/** | C/C++ | SoC firmware, HAL, drivers | Firmware Developer | ~10,000 C/C++ |
-| **sdk/** | C++, C# | Host SDK libraries, API wrappers | Software Developer | ~8,000 C++ + ~6,000 C# |
-| **tools/** | C# .NET 8.0+ | Simulators, GUI, code generators | Software Developer | ~15,000 C# |
-| **config/** | YAML, JSON | detector_config.yaml, schemas, converters | System Architect | ~2,000 Python/C# |
-| **docs/** | Markdown | Architecture docs, API reference, guides | Technical Writer | ~10,000 MD |
-
-**Total Estimated LOC**: ~64,000 lines (excluding tests and generated code)
-
-### Repository Responsibilities
-
-#### fpga/ - FPGA RTL and Verification
-**Purpose**: Hardware description and verification for Xilinx Artix-7 XC7A35T FPGA
-
-**Structure**:
-```
-fpga/
-├── rtl/
-│   ├── top/
-│   │   └── panel_acquisition_top.sv          # Top-level module
-│   ├── control/
-│   │   ├── spi_slave.sv                      # SPI control interface
-│   │   └── panel_scan_fsm.sv                 # Panel sequencing state machine
-│   ├── acquisition/
-│   │   ├── roic_interface.sv                 # ROIC parallel data capture
-│   │   └── line_buffer.sv                    # Dual-port BRAM line buffer
-│   ├── streaming/
-│   │   ├── csi2_tx_wrapper.sv                # MIPI CSI-2 TX subsystem wrapper
-│   │   └── dphy_lane_controller.sv           # D-PHY lane management
-│   └── protection/
-│       ├── thermal_monitor.sv                # Temperature sensor interface
-│       └── timing_watchdog.sv                # Timing violation detector
-├── tb/
-│   ├── panel_acquisition_tb.sv               # Top-level testbench
-│   ├── spi_slave_tb.sv                       # SPI unit test
-│   └── integration/
-│       └── csi2_validation_tb.sv             # CSI-2 protocol checker
-├── constraints/
-│   ├── timing.xdc                            # Timing constraints
-│   ├── pinout.xdc                            # FGG484 pinout mapping
-│   └── physical.xdc                          # Floorplanning, placement
-├── ip/
-│   └── mipi_csi2_tx/                         # AMD/Xilinx IP configuration
-└── scripts/
-    ├── build.tcl                             # Vivado batch build script
-    └── simulate.tcl                          # Simulation automation
-```
-
-**Key Files**:
-- `rtl/top/panel_acquisition_top.sv`: Top-level FPGA design (~500 lines)
-- `rtl/streaming/csi2_tx_wrapper.sv`: CSI-2 transmitter integration (~300 lines)
-- `constraints/timing.xdc`: Clock definitions, input/output delays (~200 lines)
-
-**Build Output**: `panel_acquisition.bit` (FPGA bitstream), `panel_acquisition.ltx` (ILA debug probes)
+**총 .csproj 파일**: 18개 (no solution file)
+**총 테스트 파일**: 50+개
+**코드 커버리지**: 85%+
 
 ---
 
-#### fw/ - SoC Firmware
-**Purpose**: Embedded C/C++ firmware for NXP i.MX8M Plus (or equivalent SoC)
+## 실제 디렉토리 구조
 
-**Structure**:
 ```
-fw/
-├── src/
-│   ├── main.c                                # Firmware entry point
-│   ├── hal/
-│   │   ├── csi2_receiver.c                   # CSI-2 RX driver
-│   │   ├── ethernet_driver.c                 # 10 GbE MAC driver
-│   │   └── spi_master.c                      # SPI master for FPGA control
-│   ├── protocol/
-│   │   ├── frame_handler.c                   # Frame buffer management
-│   │   └── host_protocol.c                   # Host communication protocol
-│   └── diagnostics/
-│       ├── health_monitor.c                  # System health checks
-│       └── logging.c                         # Structured logging
-├── include/
-│   ├── csi2_receiver.h
-│   ├── ethernet_driver.h
-│   └── frame_handler.h
-├── tests/
-│   ├── test_csi2_receiver.c                  # CSI-2 RX unit test
-│   └── test_frame_handler.c                  # Frame buffer unit test
-├── third_party/
-│   ├── FreeRTOS/                             # Real-time OS (if used)
-│   └── lwip/                                 # Lightweight TCP/IP stack
-└── build/
-    └── CMakeLists.txt                        # CMake build configuration
-```
-
-**Key Files**:
-- `src/hal/csi2_receiver.c`: CSI-2 receiver HAL (~800 lines)
-- `src/protocol/frame_handler.c`: Frame buffer and DMA management (~1,200 lines)
-- `src/hal/ethernet_driver.c`: 10 GbE transmit logic (~600 lines)
-
-**Build Output**: `firmware.elf` (ELF binary), `firmware.bin` (raw binary for flashing)
-
----
-
-#### sdk/ - Host SDK
-**Purpose**: Host PC libraries (C++ and C#) for system control and image acquisition
-
-**Structure**:
-```
-sdk/
-├── cpp/
-│   ├── include/
-│   │   ├── detector_control.hpp              # Detector control API
-│   │   ├── image_acquisition.hpp             # Image acquisition API
-│   │   └── configuration.hpp                 # Configuration management
+system-emul-sim/
+├── sdk/
+│   ├── XrayDetector.Sdk/                         # Host SDK 핵심 라이브러리
+│   │   ├── XrayDetector.Sdk.csproj               # net8.0, System.IO.Pipelines, fo-dicom
+│   │   ├── Core/
+│   │   │   ├── Communication/                    # UDP 통신 레이어
+│   │   │   ├── Reassembly/                       # 프레임 재조립 (CRC-16 검증)
+│   │   │   └── Processing/
+│   │   │       ├── ImageEncoder.cs               # TIFF/RAW 인코딩
+│   │   │       ├── WindowLevelMapper.cs          # 윈도우/레벨 매핑
+│   │   │       └── DicomEncoder.cs               # DICOM XRayAngiographicImageStorage (신규)
+│   │   ├── Discovery/                            # 디바이스 검색
+│   │   ├── Implementation/
+│   │   │   └── IDetectorClient.cs                # async, IAsyncEnumerable streaming
+│   │   └── Models/
+│   │       └── Frame.cs                          # 프레임 데이터 모델
+│   └── XrayDetector.Sdk.Tests/
+│       ├── XrayDetector.Sdk.Tests.csproj         # xUnit 2.9.0, Moq 4.20.70, FluentAssertions
+│       ├── Core/Processing/
+│       │   ├── ImageEncoderTests.cs
+│       │   ├── WindowLevelMapperTests.cs
+│       │   └── DicomEncoderTests.cs              # 12개 테스트 케이스 (신규)
+│       └── Models/
+│           └── FrameTests.cs
+│
+├── tools/
+│   ├── Common.Dto/                               # 공유 DTO 허브 (의존성 없음)
+│   │   ├── Common.Dto.csproj
+│   │   ├── FrameData.cs
+│   │   ├── ConfigurationDto.cs
+│   │   ├── DiagnosticsDto.cs
+│   │   └── Common.Dto.Tests/
+│   │       └── (6개 테스트 파일)
+│   │
+│   ├── FpgaSimulator/
+│   │   ├── FpgaSimulator.Core/                   # FPGA 동작 모델
+│   │   │   ├── FpgaSimulator.Core.csproj         # 18개 소스 파일
+│   │   │   ├── Csi2Transmitter.cs                # CSI-2 TX 에뮬레이션
+│   │   │   ├── SpiSlave.cs                       # SPI slave 에뮬레이션
+│   │   │   └── LineBuffer.cs                     # 라인 버퍼 에뮬레이션
+│   │   └── FpgaSimulator.Tests/
+│   │       └── (5개 테스트 파일)
+│   │
+│   ├── PanelSimulator/                           # X-ray 패널 아날로그 모델
+│   │   ├── PanelSimulator.Core/
+│   │   │   ├── PanelSimulator.Core.csproj        # 7개 소스 파일
+│   │   │   └── NoiseGenerator.cs                 # 노이즈/게인/오프셋 주입
+│   │   └── PanelSimulator.Tests/
+│   │       └── (5개 테스트 파일)
+│   │
+│   ├── McuSimulator/                             # SoC 펌웨어 에뮬레이션
+│   │   ├── McuSimulator.Core/
+│   │   │   ├── McuSimulator.Core.csproj          # 4개 소스 파일
+│   │   │   ├── Csi2Receiver.cs                   # CSI-2 RX 에뮬레이션
+│   │   │   └── EthernetEndpoint.cs               # UDP 엔드포인트 에뮬레이션
+│   │   └── McuSimulator.Tests/
+│   │       └── (4개 테스트 파일)
+│   │
+│   ├── HostSimulator/                            # Host SDK 통합 테스트 하네스
+│   │   ├── HostSimulator.Core/
+│   │   │   ├── HostSimulator.Core.csproj         # 8개 소스 파일
+│   │   │   └── ImageValidator.cs                 # 프레임 무결성 검증
+│   │   └── HostSimulator.Tests/
+│   │       └── (6개 테스트 파일)
+│   │
+│   ├── IntegrationTests/                         # 전체 통합 테스트 (4개 시뮬레이터 통합)
+│   │   └── IntegrationTests.csproj
+│   │
+│   ├── GUI.Application/                          # WPF 기본 GUI (net8.0-windows)
+│   │   └── src/GUI.Application/
+│   │       ├── GUI.Application.csproj            # CommunityToolkit.Mvvm, Serilog
+│   │       ├── App.xaml.cs
+│   │       ├── Views/MainWindow.xaml
+│   │       └── ViewModels/MainViewModel.cs
+│   │
+│   ├── ParameterExtractor/                       # WPF 파라미터 추출 도구 (net8.0-windows)
+│   │   └── src/ParameterExtractor.Wpf/
+│   │       ├── ParameterExtractor.Wpf.csproj     # iTextSharp(AGPL), YamlDotNet, Serilog
+│   │       ├── App.xaml.cs
+│   │       ├── Views/MainWindow.xaml
+│   │       └── ViewModels/MainWindowViewModel.cs
+│   │
+│   ├── CodeGenerator/                            # CLI 코드 생성기
+│   │   └── src/CodeGenerator.Cli/
+│   │       ├── CodeGenerator.Cli.csproj          # System.CommandLine, YamlDotNet
+│   │       └── (9개 테스트)
+│   │
+│   ├── ConfigConverter/                          # CLI 설정 포맷 변환기
+│   │   └── src/ConfigConverter.Cli/
+│   │       ├── ConfigConverter.Cli.csproj        # YamlDotNet
+│   │       └── (37/42 테스트 통과)
+│   │
+│   └── IntegrationRunner/                        # CLI 통합 테스트 조율기
+│       └── src/IntegrationRunner.Cli/
+│           └── IntegrationRunner.Cli.csproj      # System.CommandLine
+│
+├── fw/                                           # SoC 펌웨어 (C11)
+│   ├── ARCHITECTURE.md                           # 710줄 아키텍처 문서
+│   ├── README.md                                 # Yocto 빌드 가이드
 │   ├── src/
-│   │   ├── detector_control.cpp
-│   │   ├── image_acquisition.cpp
-│   │   └── ethernet_transport.cpp            # 10 GbE transport layer
-│   └── tests/
-│       ├── test_detector_control.cpp         # Unit tests
-│       └── test_image_acquisition.cpp
-├── csharp/
-│   ├── DetectorSDK/
-│   │   ├── DetectorControl.cs                # C# wrapper around C++ SDK
-│   │   ├── ImageAcquisition.cs
-│   │   └── Configuration.cs
-│   ├── DetectorSDK.Tests/
-│   │   ├── DetectorControlTests.cs           # xUnit tests
-│   │   └── ImageAcquisitionTests.cs
-│   └── DetectorSDK.sln                       # Visual Studio solution
-└── examples/
-    ├── cpp/
-    │   └── simple_capture.cpp                # C++ example: capture single frame
-    └── csharp/
-        └── SimpleCaptureApp/                 # C# WPF example app
+│   │   ├── main.c
+│   │   ├── csi2_rx.c                             # V4L2 CSI-2 RX
+│   │   ├── spi_master.c                          # spidev SPI Master
+│   │   ├── udp_tx.c                              # 10GbE UDP TX (port 8000)
+│   │   ├── cmd_protocol.c                        # HMAC-SHA256 Command (port 8001)
+│   │   ├── sequence_engine.c                     # 6-state FSM
+│   │   ├── frame_manager.c                       # 4-buffer ring
+│   │   └── health_monitor.c
+│   ├── tests/
+│   │   ├── (10개 단위 테스트 파일)
+│   │   ├── mocks/                                # V4L2/spidev/YAML mock
+│   │   └── integration/
+│   ├── deploy/
+│   │   └── detector-daemon_1.0.bb               # 구형 레시피 (레거시)
+│   └── meta-detector/                            # Yocto 레이어
+│       ├── conf/
+│       │   └── layer.conf                        # collection: detector, priority 10
+│       ├── recipes-detector/
+│       │   ├── detector-daemon/
+│       │   │   └── detector-daemon_1.0.0.bb      # CMake + systemd inherit
+│       │   └── packagegroup-detector/
+│       │       └── packagegroup-detector.bb
+│       └── recipes-core/
+│           └── images/
+│               └── detector-image.bb             # core-image-minimal + 256MB rootfs
+│
+├── fpga/                                         # FPGA RTL (SystemVerilog)
+│   ├── csi2_detector_top.sv                      # Top-level 모듈
+│   ├── panel_scan_fsm.sv                         # 패널 시퀀싱 6-state FSM
+│   ├── line_buffer.sv                            # Dual-port BRAM 라인 버퍼
+│   ├── csi2_tx_wrapper.sv                        # MIPI CSI-2 TX wrapper
+│   ├── spi_slave.sv                              # SPI control interface
+│   ├── protection_logic.sv                       # 과열/타이밍 보호 로직
+│   ├── tb/
+│   │   ├── panel_scan_fsm_tb.sv
+│   │   ├── line_buffer_tb.sv
+│   │   ├── csi2_tx_wrapper_tb.sv
+│   │   ├── spi_slave_tb.sv
+│   │   ├── protection_logic_tb.sv
+│   │   └── integration_tb.sv
+│   └── constraints/
+│       └── (XDC 제약 파일)
+│
+├── config/                                       # 단일 소스 설정 파일
+│   ├── detector_config.yaml                      # 마스터 설정 (2048×2048, CSI-2 4-lane)
+│   ├── detector_config.json                      # Host SDK용 JSON 버전
+│   ├── detector_config.dts                       # Auto-generated (2026-02-18)
+│   └── detector_config.xdc                       # Auto-generated (2026-02-18)
+│
+├── generated/                                    # CodeGenerator 자동 출력물
+│   ├── fpga_registers.h                          # C header (FPGA 레지스터 맵)
+│   ├── line_buffer.sv                            # RTL 파라미터 모듈
+│   ├── panel_scan_fsm.sv                         # RTL 파라미터 모듈
+│   ├── DetectorConfig.g.cs                       # C# 설정 클래스 (SystemEmulSim.Sdk)
+│   ├── FrameHeader.g.cs                          # C# 프레임 헤더 클래스
+│   └── TestSdkCompilation/
+│       └── TestSdkCompilation.csproj             # 컴파일 검증 프로젝트
+│
+└── .moai/
+    ├── project/
+    │   ├── product.md                            # 프로젝트 개요 (이 문서의 형제)
+    │   ├── structure.md                          # 이 문서
+    │   └── tech.md                               # 기술 스택
+    ├── specs/
+    │   ├── SPEC-ARCH-001/                        # plan.md + spec.md + acceptance.md
+    │   ├── SPEC-FPGA-001/
+    │   ├── SPEC-FW-001/
+    │   ├── SPEC-POC-001/
+    │   ├── SPEC-SDK-001/
+    │   ├── SPEC-SIM-001/
+    │   └── SPEC-TOOLS-001/
+    └── config/sections/
+        ├── quality.yaml                          # development_mode: hybrid
+        ├── language.yaml                         # conversation_language: ko
+        └── user.yaml
 ```
-
-**Key Files**:
-- `cpp/src/image_acquisition.cpp`: Frame capture and buffering (~1,500 lines)
-- `csharp/DetectorSDK/ImageAcquisition.cs`: C# interop wrapper (~800 lines)
-
-**Build Output**:
-- `libdetector_sdk.so` (Linux shared library)
-- `DetectorSDK.dll` (.NET assembly)
-- `DetectorSDK.1.0.0.nupkg` (NuGet package)
 
 ---
 
-#### tools/ - Developer Tools
-**Purpose**: Simulation, GUI, code generation utilities (C# .NET 8.0+)
+## SDK 모듈 구성
 
-**Structure**:
+### XrayDetector.Sdk (21개 소스 파일)
+
 ```
-tools/
-├── PanelSimulator/
-│   ├── PanelSimulator.cs                     # X-ray panel analog output model
-│   └── NoiseGenerator.cs                     # Configurable noise injection
-├── FpgaSimulator/
-│   ├── FpgaSimulator.cs                      # Cycle-accurate FPGA behavioral model
-│   ├── Csi2Transmitter.cs                    # CSI-2 TX emulation
-│   └── SpiSlave.cs                           # SPI slave emulation
-├── McuSimulator/
-│   ├── McuSimulator.cs                       # SoC firmware emulation
-│   ├── Csi2Receiver.cs                       # CSI-2 RX emulation
-│   └── EthernetEndpoint.cs                   # 10 GbE endpoint emulation
-├── HostSimulator/
-│   ├── HostSimulator.cs                      # Host SDK test harness
-│   └── ImageValidator.cs                     # Frame integrity validation
-├── ParameterExtractor/
-│   ├── MainWindow.xaml                       # WPF GUI (C#)
-│   ├── PdfParser.cs                          # Extract parameters from vendor PDFs
-│   └── YamlExporter.cs                       # Export to detector_config.yaml
-├── CodeGenerator/
-│   ├── TemplateEngine.cs                     # Mustache/Liquid template rendering
-│   ├── VerilogGenerator.cs                   # Generate RTL parameter modules
-│   └── CHeaderGenerator.cs                   # Generate C header files
-├── ConfigConverter/
-│   ├── YamlToVerilog.cs                      # detector_config.yaml → RTL params
-│   ├── YamlToCHeader.cs                      # detector_config.yaml → C header
-│   └── YamlToCSharp.cs                       # detector_config.yaml → C# class
-├── IntegrationRunner/
-│   ├── TestOrchestrator.cs                   # Coordinate multi-simulator HIL tests
-│   └── ScenarioLoader.cs                     # Load test scenarios from JSON
-├── GUI.Application/
-│   ├── MainWindow.xaml                       # Primary GUI (C# WPF)
-│   ├── ViewModels/                           # MVVM view models
-│   └── Controls/                             # Custom WPF controls
-└── Common.Dto/
-    ├── FrameData.cs                          # Shared DTO for frame data
-    ├── ConfigurationDto.cs                   # Shared DTO for configuration
-    └── DiagnosticsDto.cs                     # Shared DTO for diagnostics
+Core/Communication/
+  ├── UdpReceiver.cs              # UDP 패킷 수신 (port 8000)
+  └── CommandClient.cs            # HMAC-SHA256 명령 클라이언트 (port 8001)
+
+Core/Reassembly/
+  ├── FrameReassembler.cs         # 패킷 → 프레임 재조립
+  └── CrcValidator.cs             # CRC-16 검증
+
+Core/Processing/
+  ├── ImageEncoder.cs             # TIFF/RAW 인코딩
+  ├── WindowLevelMapper.cs        # 16-bit → 8-bit W/L 매핑
+  └── DicomEncoder.cs             # DICOM 인코딩 (fo-dicom 5.1.0) [신규]
+
+Discovery/
+  └── DetectorDiscovery.cs        # 디바이스 자동 검색
+
+Implementation/
+  └── IDetectorClient.cs          # 비동기 인터페이스 (IAsyncEnumerable)
+
+Models/
+  └── Frame.cs                    # 프레임 데이터 모델
 ```
 
-**Key Files**:
-- `FpgaSimulator/FpgaSimulator.cs`: Behavioral FPGA model (~2,500 lines)
-- `ParameterExtractor/PdfParser.cs`: PDF text extraction and regex parsing (~1,000 lines)
-- `CodeGenerator/TemplateEngine.cs`: Template rendering engine (~800 lines)
+### DicomEncoder 상세
 
-**Build Output**:
-- `PanelSimulator.exe`, `FpgaSimulator.exe`, etc. (standalone executables)
-- `ParameterExtractor.exe` (GUI tool)
-- `IntegrationRunner.exe` (CLI test orchestrator)
+- **표준**: DICOM XRayAngiographicImageStorage
+- **구현**: fo-dicom 5.1.0
+- **DICOM 모듈**: Patient, Study, Series, Equipment, Image Pixel, VOI LUT, SOP Common
+- **UID 생성**: `2.25.<timestamp>.<random>` (DICOM 표준)
+- **인코딩**: 16-bit big-endian 그레이스케일
+- **테스트**: 12개 케이스 (기본값, 커스텀 메타데이터, 대용량 프레임, 경계 조건)
 
 ---
 
-#### config/ - Configuration Management
-**Purpose**: Single source of truth for system configuration and schema validation
+## Tools 모듈 구성
 
-**Structure**:
+### 시뮬레이터 의존성
+
 ```
-config/
-├── detector_config.yaml                      # Master configuration file
-├── schemas/
-│   ├── detector_config.schema.json           # JSON schema for YAML validation
-│   └── validation_rules.yaml                 # Custom validation rules
-├── converters/
-│   ├── yaml_to_verilog.py                    # Python converter (alternative)
-│   ├── yaml_to_c_header.py
-│   └── yaml_to_csharp.py
-├── templates/
-│   ├── verilog_params.v.mustache             # Verilog template
-│   ├── c_header.h.mustache                   # C header template
-│   └── csharp_class.cs.mustache              # C# class template
-└── examples/
-    ├── example_1024x1024.yaml                # Example: Minimum tier config
-    ├── example_2048x2048.yaml                # Example: Target tier config
-    └── example_3072x3072.yaml                # Example: Maximum tier config
+Common.Dto (의존성 없음 — 허브)
+    ├── PanelSimulator.Core
+    ├── FpgaSimulator.Core
+    ├── McuSimulator.Core (+ FpgaSimulator.Core 의존: 실제 HW 토폴로지 미러링)
+    └── HostSimulator.Core
+        └── IntegrationTests (4개 시뮬레이터 전체 통합)
 ```
 
-**Key Files**:
-- `detector_config.yaml`: Master configuration (~500 lines, YAML)
-- `schemas/detector_config.schema.json`: JSON schema validation (~300 lines)
-- `converters/yaml_to_verilog.py`: Converter to Verilog parameters (~400 lines)
+### GUI 도구
 
-**Build Output**:
-- `fpga_params.vh` (Verilog header)
-- `detector_config.h` (C header)
-- `DetectorConfig.cs` (C# class)
+| 도구 | 타겟 | 주요 의존성 | 역할 |
+|------|------|------------|------|
+| GUI.Application | net8.0-windows | CommunityToolkit.Mvvm, Serilog | SDK 통합 기본 GUI |
+| ParameterExtractor.Wpf | net8.0-windows | iTextSharp(AGPL⚠️), YamlDotNet, Serilog | 벤더 PDF 파라미터 추출 |
+
+> ⚠️ **라이선스 주의**: ParameterExtractor의 iTextSharp는 AGPL 라이선스입니다.
+
+### CLI 도구
+
+| 도구 | 주요 의존성 | 역할 |
+|------|------------|------|
+| CodeGenerator.Cli | System.CommandLine, YamlDotNet | YAML → RTL/C/C# 코드 생성 |
+| ConfigConverter.Cli | YamlDotNet | YAML → JSON/DTS/XDC 변환 |
+| IntegrationRunner.Cli | System.CommandLine | HIL 테스트 시나리오 조율 |
 
 ---
 
-#### docs/ - Documentation
-**Purpose**: Architecture documentation, API reference, user guides
+## Firmware 구성
 
-**Structure**:
+### 핵심 모듈 (C11, NXP i.MX8M Plus aarch64)
+
+| 모듈 | 파일 | 역할 |
+|------|------|------|
+| CSI-2 RX | csi2_rx.c | V4L2 드라이버 인터페이스 |
+| SPI Master | spi_master.c | spidev를 통한 FPGA 제어 |
+| 10GbE UDP TX | udp_tx.c | 프레임 UDP 스트리밍 (port 8000) |
+| Command Protocol | cmd_protocol.c | HMAC-SHA256 명령 인증 (port 8001) |
+| Sequence Engine | sequence_engine.c | 6-state FSM (IDLE→INIT→READY→CAPTURE→TRANSFER→ERROR) |
+| Frame Manager | frame_manager.c | 4-buffer ring (zero-copy DMA) |
+| Health Monitor | health_monitor.c | 시스템 상태 모니터링 |
+
+### Yocto 레이어 (meta-detector)
+
 ```
-docs/
-├── architecture/
-│   ├── system-overview.md                    # High-level architecture
-│   ├── fpga-design.md                        # FPGA architecture deep dive
-│   ├── firmware-architecture.md              # SoC firmware design
-│   └── host-sdk-design.md                    # Host SDK architecture
-├── api-reference/
-│   ├── fpga-registers.md                     # FPGA SPI register map
-│   ├── host-sdk-api.md                       # Host SDK API reference (C++)
-│   └── csharp-api.md                         # C# SDK API reference
-├── guides/
-│   ├── getting-started.md                    # Quick start guide
-│   ├── configuration-guide.md                # detector_config.yaml guide
-│   ├── testing-guide.md                      # How to run tests
-│   └── troubleshooting.md                    # Common issues and solutions
-├── references/
-│   ├── csi2-protocol.md                      # CSI-2 protocol summary
-│   ├── dphy-timing.md                        # D-PHY timing diagrams
-│   └── fpga-resources.md                     # Artix-7 resource utilization
-└── diagrams/
-    ├── system-block-diagram.svg              # SVG system diagram
-    └── data-flow.svg                         # SVG data flow diagram
+meta-detector/
+├── conf/layer.conf               collection: detector, priority 10
+│                                 LAYERCOMPAT: scarthgap
+├── recipes-detector/
+│   ├── detector-daemon_1.0.0.bb  CMake + systemd
+│   └── packagegroup-detector.bb
+└── recipes-core/images/
+    └── detector-image.bb         core-image-minimal 기반, 256MB rootfs
 ```
 
-**Key Files**:
-- `architecture/system-overview.md`: System architecture (~2,000 lines)
-- `api-reference/host-sdk-api.md`: Host SDK API docs (~3,000 lines)
-- `guides/getting-started.md`: Quick start guide (~800 lines)
+**빌드 환경**: Yocto Scarthgap 5.0 LTS, Linux 6.6.52, GCC aarch64-linux-gnu
 
 ---
 
-## Software Module Organization
+## FPGA RTL 구성
 
-### Module Dependency Graph
+### 모듈 목록 (SystemVerilog, Xilinx Artix-7 XC7A35T-FGG484)
+
+| 모듈 | 파일 | 역할 | 추정 LUT |
+|------|------|------|---------|
+| csi2_detector_top | csi2_detector_top.sv | Top-level 통합 | ~1,000 |
+| panel_scan_fsm | panel_scan_fsm.sv | 패널 시퀀싱 6-state FSM | ~800 |
+| line_buffer | line_buffer.sv | Dual-port BRAM 라인 버퍼 | ~400 |
+| csi2_tx_wrapper | csi2_tx_wrapper.sv | MIPI CSI-2 TX subsystem | ~2,500 |
+| spi_slave | spi_slave.sv | SPI 제어 인터페이스 | ~300 |
+| protection_logic | protection_logic.sv | 과열/타이밍 보호 | ~350 |
+
+**목표 LUT 사용률**: <60% (<12,480 LUTs) — 현재 설계 기준 ~26% (application logic only)
+
+### 클록 도메인
+
+1. **clk_panel** (~50 MHz): 패널 스캔 타이밍
+2. **clk_csi2** (~250 MHz): CSI-2 패킷 생성
+3. **clk_dphy** (~1.0-1.25 GHz): D-PHY 직렬화 (OSERDES DDR)
+4. **clk_spi** (~50 MHz): SPI slave 인터페이스
+
+---
+
+## 설정 및 생성 코드
+
+### 단일 소스 패턴
 
 ```
-┌──────────────────┐
-│   Common.Dto    │  ← Hub: Shared data transfer objects
-└────────┬─────────┘
-         │
-    ┌────┴─────────────┬──────────────────┬───────────────┬────────────────┐
-    │                  │                  │               │                │
-┌───▼────────┐   ┌────▼────────┐   ┌────▼─────┐   ┌────▼──────┐   ┌────▼─────────┐
-│ PanelSim   │   │  FpgaSim    │   │  McuSim  │   │ HostSim   │   │ ParamExtract │
-└────────────┘   └─────────────┘   └──────────┘   └───────────┘   └──────────────┘
-                                                                              │
-    ┌────────────────────────────────────────────────────────────────────────┘
+detector_config.yaml (마스터 설정)
     │
-┌───▼──────────┐   ┌──────────────┐   ┌─────────────┐   ┌──────────────┐
-│ CodeGen      │   │ ConfigConv   │   │ IntegRunner │   │ GUI.App      │
-└──────────────┘   └──────────────┘   └─────────────┘   └──────────────┘
+    ├──> CodeGenerator CLI ──> generated/
+    │        │                   ├── fpga_registers.h    (C header)
+    │        │                   ├── line_buffer.sv      (RTL 파라미터)
+    │        │                   ├── panel_scan_fsm.sv   (RTL 파라미터)
+    │        │                   ├── DetectorConfig.g.cs (C# 클래스)
+    │        │                   └── FrameHeader.g.cs    (C# 클래스)
+    │        │
+    └──> ConfigConverter CLI ──> config/
+                                  ├── detector_config.json (Host SDK용)
+                                  ├── detector_config.dts  (Auto-generated)
+                                  └── detector_config.xdc  (Auto-generated)
 ```
 
-### Module Descriptions
+**현재 설정값** (detector_config.yaml):
+- 패널: 2048×2048, 16-bit, 30fps
+- CSI-2: 4-lane, 400Mbps
+- SPI: 50MHz
+- 10GbE: UDP port 8000 (데이터), port 8001 (명령)
 
-**Common.Dto (Data Transfer Objects)**:
-- Purpose: Shared interfaces and DTOs to prevent circular dependencies
-- Content: FrameData, ConfigurationDto, DiagnosticsDto, TimingParameters
-- Dependencies: None (hub module)
-- Language: C# (.NET 8.0)
-- Estimated LOC: ~500
-
-**PanelSimulator**:
-- Purpose: Models X-ray panel analog output with configurable noise, gain, offset
-- Dependencies: Common.Dto
-- Language: C# (.NET 8.0)
-- Estimated LOC: ~1,200
-
-**FpgaSimulator**:
-- Purpose: Cycle-accurate behavioral model of FPGA logic (CSI-2 TX, SPI slave, line buffer)
-- Dependencies: Common.Dto
-- Language: C# (.NET 8.0)
-- Estimated LOC: ~2,500
-
-**McuSimulator (SoC Simulator)**:
-- Purpose: Emulates SoC firmware (CSI-2 RX, Ethernet endpoint, frame buffer)
-- Dependencies: Common.Dto
-- Language: C# (.NET 8.0)
-- Estimated LOC: ~2,000
-
-**HostSimulator**:
-- Purpose: Host SDK test harness for integration scenarios
-- Dependencies: Common.Dto, Host SDK (C# wrapper)
-- Language: C# (.NET 8.0)
-- Estimated LOC: ~1,500
-
-**ParameterExtractor**:
-- Purpose: GUI tool (C# WPF) to parse detector vendor PDFs and extract parameters
-- Dependencies: Common.Dto
-- Language: C# WPF (.NET 8.0)
-- Estimated LOC: ~2,000
-
-**CodeGenerator**:
-- Purpose: Template-based code generation for RTL blocks and boilerplate firmware
-- Dependencies: Common.Dto
-- Language: C# (.NET 8.0)
-- Estimated LOC: ~1,500
-
-**ConfigConverter**:
-- Purpose: Converts detector_config.yaml to FPGA RTL params, SoC C headers, Host C# classes
-- Dependencies: Common.Dto
-- Language: C# (.NET 8.0) or Python
-- Estimated LOC: ~1,200
-
-**IntegrationRunner**:
-- Purpose: Automated test orchestration for multi-layer HIL scenarios
-- Dependencies: All simulators, Common.Dto
-- Language: C# (.NET 8.0)
-- Estimated LOC: ~1,800
-
-**GUI.Application**:
-- Purpose: Primary user interface for system control, parameter tuning, image visualization
-- Dependencies: Host SDK (C# wrapper), Common.Dto
-- Language: C# WPF (.NET 8.0)
-- Estimated LOC: ~3,000
+> **Note**: ARCHITECTURE.md 다이어그램에는 3072×3072가 표기되어 있으나, 실제 구현 기준(detector_config.yaml)은 2048×2048입니다. 최종 결정 시 문서 동기화 필요.
 
 ---
 
-## FPGA Block Hierarchy
+## 모듈 의존성 그래프
 
-### RTL Module Breakdown (with LUT Estimates)
+```
+XrayDetector.Sdk
+    │  (System.IO.Pipelines, fo-dicom 5.1.0)
+    └──> GUI.Application (SDK 통합 브릿지)
 
-| Module | Purpose | Estimated LUTs | % of 20,800 LUTs | Criticality |
-|--------|---------|---------------|-----------------|-------------|
-| **panel_scan_fsm** | Panel sequencing state machine | ~800 | 3.8% | High |
-| **roic_interface** | Parallel data capture from ROIC | ~600 | 2.9% | High |
-| **line_buffer** | Dual-port BRAM line buffer (ping-pong) | ~400 | 1.9% | Medium |
-| **spi_slave** | SPI control interface | ~300 | 1.4% | Medium |
-| **csi2_tx_wrapper** | MIPI CSI-2 TX subsystem integration | ~2,500 | 12.0% | Critical |
-| **dphy_lane_controller** | D-PHY lane management (OSERDES) | ~800 | 3.8% | High |
-| **thermal_monitor** | Temperature sensor interface | ~200 | 1.0% | Low |
-| **timing_watchdog** | Timing violation detector | ~150 | 0.7% | Low |
-| **panel_acquisition_top** | Top-level integration, clock domains | ~1,000 | 4.8% | High |
-| **Glue Logic & Misc** | Interconnect, debug probes, resets | ~500 | 2.4% | Low |
-| **TOTAL (Application Logic)** | | **~7,250** | **~34.9%** | |
-| **CSI-2 IP (AMD/Xilinx)** | MIPI CSI-2 TX IP core | ~3,000 | 14.4% | Critical |
-| **GRAND TOTAL** | | **~10,250** | **~49.3%** | |
+Common.Dto (의존성 없음)
+    ├──> PanelSimulator.Core
+    ├──> FpgaSimulator.Core
+    ├──> McuSimulator.Core ──> FpgaSimulator.Core
+    ├──> HostSimulator.Core
+    └──> IntegrationTests (4개 시뮬레이터 전체)
 
-**Target Utilization**: <60% (<12,480 LUTs) → **10,250 LUTs = 49.3%** ✅ **Meets target with 10.7% margin**
-
-### Clock Domain Structure
-
-**Primary Clocks**:
-1. **clk_panel** (e.g., 50 MHz): Panel scan timing, ROIC interface
-2. **clk_csi2** (e.g., 250 MHz): CSI-2 packet generation, line buffer read
-3. **clk_dphy** (e.g., 1.0-1.25 GHz): D-PHY serialization (OSERDES DDR)
-4. **clk_spi** (e.g., 50 MHz max): SPI slave interface
-
-**Clock Domain Crossings (CDCs)**:
-- Panel domain → CSI-2 domain: Asynchronous FIFO (line buffer)
-- SPI domain → Panel domain: Dual-clock synchronizer (control registers)
-
-**Timing Constraints**:
-- Panel clock: Relaxed timing (50 MHz = 20 ns period)
-- CSI-2 clock: Moderate timing (250 MHz = 4 ns period)
-- D-PHY clock: Tight timing (1.25 GHz = 0.8 ns period, OSERDES timing critical)
-
-### BRAM Utilization
-
-**Line Buffer**:
-- Dual-port BRAM (ping-pong buffer)
-- Size: 1 line × maximum width × bit depth = 3072 pixels × 16 bits = 49,152 bits = ~48 Kbit
-- BRAMs used: 2 (36 Kbit each) = 2/50 = 4% ✅
-
-**CSI-2 TX FIFO**:
-- AMD/Xilinx IP internal FIFO
-- Size: ~8-16 Kbit (configurable)
-- BRAMs used: 1-2 (estimated)
-
-**TOTAL BRAMs**: ~3-4 / 50 = **~6-8%** ✅ **Well within budget**
-
-### Protection Logic
-
-**Thermal Monitor**:
-- Interface to on-board temperature sensor (I2C or SPI)
-- Threshold comparator: Shutdown if T > 85°C
-
-**Timing Watchdog**:
-- Monitors panel scan FSM state transitions
-- Triggers error flag if state machine stalls for >10 ms
-- Resets FSM on timeout
-
-**Emergency Shutdown Path**:
-- Hardware-based shutdown (no firmware involvement)
-- Disables panel power, resets all state machines
+CodeGenerator.Cli ──> generated/ (자동 생성 코드)
+ConfigConverter.Cli ──> config/ (JSON/DTS/XDC)
+```
 
 ---
 
-## Configuration Management
+## 테스트 구성
 
-### detector_config.yaml - Single Source of Truth
+### 테스트 계층
 
-**Purpose**: Centralized configuration file defining panel geometry, timing, interfaces, performance tiers
+**Level 1: 단위 테스트 (Unit Tests)**
+- C# xUnit 2.9.0 + Moq 4.20.70 + FluentAssertions
+- SDK: 16개 테스트 파일 (DicomEncoderTests 포함)
+- 시뮬레이터: 각 4~6개 테스트 파일
+- CLI 도구: 각 9~42개 테스트
 
-**Schema** (example excerpt):
-```yaml
-# detector_config.yaml
-version: "1.0"
-metadata:
-  project: "X-ray Detector Panel System"
-  generated_by: "ParameterExtractor v1.0"
-  generated_date: "2026-02-17"
+**Level 2: 통합 테스트 (Integration Tests)**
+- IntegrationTests 프로젝트: 4개 시뮬레이터 전체 통합
+- 시나리오: IT-01~IT-10 (단일 프레임, 연속 캡처, SPI 구성, 버퍼 오버플로, 타임아웃 등)
 
-panel:
-  model: "Custom ROIC 2048x2048"
-  manufacturer: "Vendor XYZ"
-  resolution:
-    width: 2048
-    height: 2048
-  pixel_pitch_um: 150.0              # 150 microns
-  bit_depth: 16
-  frame_rate_fps: 30
+**Level 3: HIL 테스트 (Hardware-in-the-Loop)**
+- M3-Integ 단계에서 실제 하드웨어 연결 예정
 
-timing:
-  line_period_ns: 5000               # 5 microseconds per line
-  frame_period_ms: 33.33             # 30 fps → 33.33 ms/frame
-  readout_delay_ns: 200              # ROIC readout delay
+### RTL 테스트벤치 (SystemVerilog)
+- 모듈별 단위 테스트벤치 (5개)
+- 통합 테스트벤치 (integration_tb.sv)
 
-interfaces:
-  fpga_to_soc:
-    type: "CSI-2 MIPI D-PHY"
-    lanes: 4
-    lane_speed_gbps: 1.25
-  soc_to_host:
-    type: "10 GbE"
-    protocol: "UDP"
-    port: 50000
-  control:
-    type: "SPI"
-    clock_speed_mhz: 50
-    mode: 0                          # CPOL=0, CPHA=0
+### 펌웨어 테스트 (C)
+- 10개 단위 테스트 파일
+- V4L2/spidev/YAML mock 지원
+- 통합 테스트
 
-performance_tier: "target"           # "minimum", "target", "maximum"
-```
-
-**Conversion Flow**:
-```
-detector_config.yaml
-    │
-    ├──> ConfigConverter (C# or Python)
-    │       │
-    │       ├──> fpga_params.vh (Verilog header)
-    │       │      `define PANEL_WIDTH 2048
-    │       │      `define PANEL_HEIGHT 2048
-    │       │      `define BIT_DEPTH 16
-    │       │      `define LINE_PERIOD_NS 5000
-    │       │
-    │       ├──> detector_config.h (C header for SoC firmware)
-    │       │      #define PANEL_WIDTH 2048
-    │       │      #define PANEL_HEIGHT 2048
-    │       │      ...
-    │       │
-    │       └──> DetectorConfig.cs (C# class for Host SDK)
-    │              public class DetectorConfig {
-    │                  public int Width = 2048;
-    │                  public int Height = 2048;
-    │                  ...
-    │              }
-    │
-    └──> JSON Schema Validation (detector_config.schema.json)
-           ✅ Validated: All fields present, types correct, constraints met
-```
-
-**Validation Rules**:
-- `resolution.width` and `resolution.height`: Must be power of 2 or common resolution (1024, 2048, 3072)
-- `bit_depth`: Must be 12, 14, or 16
-- `frame_rate_fps`: Must be 15, 30, or 60
-- `interfaces.fpga_to_soc.lanes`: Must be 4 (fixed for this design)
-- `interfaces.fpga_to_soc.lane_speed_gbps`: Must be ≤1.25 (Artix-7 OSERDES limit)
-
-**Benefits**:
-- No configuration drift: All targets generated from single YAML file
-- Version control: YAML file tracked in Git
-- Validation: JSON schema prevents invalid configurations
-- Auditable: Changes visible in Git history
+### 테스트 커버리지 목표
+- SW 전체: 85%+ (달성)
+- RTL: 라인 커버리지 ≥95%, 브랜치 ≥90%, FSM 100%
 
 ---
 
-## Build System
+## 빌드 시스템
 
-### Per-Repository Build Tools
+### C# 프로젝트 빌드
 
-#### fpga/ - Vivado Batch Scripts
-```tcl
-# build.tcl (Vivado TCL script)
-# Source: fpga/scripts/build.tcl
+```bash
+# SDK 빌드 및 테스트
+cd sdk/
+dotnet build
+dotnet test
 
-# Set project parameters
-set project_name "panel_acquisition"
-set part "xc7a35tfgg484-1"
+# Tools 빌드 및 테스트
+cd tools/
+dotnet build
+dotnet test
 
-# Create project
-create_project $project_name ./$project_name -part $part
-
-# Add RTL sources
-add_files -fileset sources_1 [glob rtl/**/*.sv]
-add_files -fileset constrs_1 [glob constraints/*.xdc]
-
-# Add IP
-add_files -fileset sources_1 ip/mipi_csi2_tx/mipi_csi2_tx.xci
-
-# Set top module
-set_property top panel_acquisition_top [current_fileset]
-
-# Run synthesis
-launch_runs synth_1 -jobs 4
-wait_on_run synth_1
-
-# Run implementation
-launch_runs impl_1 -jobs 4
-wait_on_run impl_1
-
-# Generate bitstream
-launch_runs impl_1 -to_step write_bitstream -jobs 4
-wait_on_run impl_1
-
-# Export reports
-open_run impl_1
-report_utilization -file reports/utilization.rpt
-report_timing -file reports/timing.rpt
-report_power -file reports/power.rpt
-
-close_project
+# 개별 CLI 도구 실행
+dotnet run --project tools/CodeGenerator/src/CodeGenerator.Cli -- --config config/detector_config.yaml
+dotnet run --project tools/ConfigConverter/src/ConfigConverter.Cli -- --input config/detector_config.yaml
 ```
 
-**Build Command**:
+### Yocto 빌드 (SoC 펌웨어)
+
+```bash
+# meta-detector 레이어 빌드
+source poky/oe-init-build-env build-detector
+bitbake detector-image
+```
+
+**참고**: fw/README.md에 상세 빌드 가이드 포함
+
+### FPGA 빌드 (Vivado)
+
 ```bash
 cd fpga/
 vivado -mode batch -source scripts/build.tcl
 ```
 
-**Build Output**: `fpga/panel_acquisition/panel_acquisition.runs/impl_1/panel_acquisition_top.bit`
+**타겟 디바이스**: xc7a35tfgg484-1 (Xilinx Artix-7)
 
 ---
 
-#### fw/ - CMake Cross-Compilation
-```cmake
-# CMakeLists.txt (SoC firmware)
-# Source: fw/build/CMakeLists.txt
-
-cmake_minimum_required(VERSION 3.20)
-project(detector_firmware C CXX)
-
-# Cross-compile toolchain (example for ARM Cortex-A53)
-set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR aarch64)
-set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
-set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
-
-# Include directories
-include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories(${CMAKE_SOURCE_DIR}/third_party/FreeRTOS/include)
-
-# Source files
-file(GLOB_RECURSE SOURCES "src/*.c" "src/*.cpp")
-
-# Executable
-add_executable(firmware ${SOURCES})
-
-# Link libraries
-target_link_libraries(firmware pthread m)
-
-# Optimization flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra -std=c++17")
-```
-
-**Build Command**:
-```bash
-cd fw/build/
-cmake ..
-make -j4
-```
-
-**Build Output**: `fw/build/firmware.elf`, `fw/build/firmware.bin`
-
----
-
-#### sdk/ - Multi-Language Build (CMake + dotnet)
-
-**C++ SDK** (CMakeLists.txt):
-```cmake
-# sdk/cpp/CMakeLists.txt
-cmake_minimum_required(VERSION 3.20)
-project(detector_sdk CXX)
-
-# C++17 standard
-set(CMAKE_CXX_STANDARD 17)
-
-# Include directories
-include_directories(include)
-
-# Source files
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-
-# Shared library
-add_library(detector_sdk SHARED ${SOURCES})
-
-# Install targets
-install(TARGETS detector_sdk DESTINATION lib)
-install(DIRECTORY include/ DESTINATION include)
-```
-
-**Build Command**:
-```bash
-cd sdk/cpp/
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j4
-cmake --install build
-```
-
-**C# SDK** (DetectorSDK.csproj):
-```xml
-<!-- sdk/csharp/DetectorSDK/DetectorSDK.csproj -->
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>DetectorSDK</PackageId>
-    <Version>1.0.0</Version>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-  </ItemGroup>
-</Project>
-```
-
-**Build Command**:
-```bash
-cd sdk/csharp/
-dotnet build -c Release
-dotnet pack -c Release
-```
-
-**Build Output**: `sdk/csharp/bin/Release/DetectorSDK.1.0.0.nupkg`
-
----
-
-#### tools/ - .NET Solution Build
-```bash
-cd tools/
-dotnet build -c Release
-```
-
-**Build Output**: Executables for each tool (e.g., `PanelSimulator.exe`, `ParameterExtractor.exe`)
-
----
-
-## Test Organization
-
-### Test Hierarchy
-
-**Level 1: Unit Tests**
-- FPGA: SystemVerilog testbenches per module (`tb/*.sv`)
-- Firmware: C unit tests per HAL module (`fw/tests/*.c`)
-- SDK: C++ unit tests (`sdk/cpp/tests/*.cpp`), C# xUnit tests (`sdk/csharp/DetectorSDK.Tests/*.cs`)
-- Tools: C# xUnit tests (`tools/*.Tests/*.cs`)
-
-**Level 2: Integration Tests**
-- Multi-simulator HIL tests orchestrated by IntegrationRunner
-- 10 test scenarios (IT-01 through IT-10)
-
-**Level 3: Hardware-in-the-Loop (HIL) Tests**
-- Real FPGA dev board + SoC eval board + Host PC
-- Validation of Minimum, Target, Maximum performance tiers
-
-### Integration Test Scenarios (Planned)
-
-| Scenario | Description | Simulators Involved | Pass Criteria |
-|----------|-------------|-------------------|--------------|
-| **IT-01** | Single frame capture (Minimum tier) | Panel, FPGA, MCU, Host | Frame received intact, CRC valid |
-| **IT-02** | Continuous capture (30 fps, Target tier) | Panel, FPGA, MCU, Host | 300 frames captured, <1% loss |
-| **IT-03** | SPI configuration update | FPGA, MCU | Register write/read verified |
-| **IT-04** | CSI-2 protocol validation | FPGA, MCU | Packet headers correct, payload intact |
-| **IT-05** | Frame buffer overflow recovery | FPGA, MCU, Host | System recovers, no crash |
-| **IT-06** | Thermal shutdown trigger | FPGA | FPGA shuts down on T>85°C |
-| **IT-07** | Timing watchdog trigger | FPGA | FSM reset on stall >10 ms |
-| **IT-08** | Ethernet packet loss handling | MCU, Host | Retransmission succeeds |
-| **IT-09** | Maximum tier stress test | Panel, FPGA, MCU, Host | 3072×3072@30fps sustained for 60s |
-| **IT-10** | End-to-end latency measurement | Panel, FPGA, MCU, Host | Latency <50 ms (panel trigger → host display) |
-
----
-
-## Future Integration Plan
-
-### When Repositories Are Available
-
-#### Step 1: Clone Repositories
-
-**Example** (replace `<gitea-url>` with actual Gitea server):
-```bash
-cd D:/workspace-github/system-emul-sim
-
-# Clone all 6 repositories
-git clone <gitea-url>/fpga.git
-git clone <gitea-url>/fw.git
-git clone <gitea-url>/sdk.git
-git clone <gitea-url>/tools.git
-git clone <gitea-url>/config.git
-git clone <gitea-url>/docs.git
-
-# Verify structure
-ls -la
-# Expected:
-#   fpga/
-#   fw/
-#   sdk/
-#   tools/
-#   config/
-#   docs/
-#   README.md
-#   X-ray_Detector_Optimal_Project_Plan.md
-#   .moai/
-```
-
----
-
-#### Step 2: Verify Structure
-
-```bash
-# Regenerate documentation from actual code
-/moai project --refresh
-
-# Compare actual vs. planned structure
-# Manual review: Check for deviations from this document
-```
-
----
-
-#### Step 3: Validate Alignment
-
-- Compare actual repository structure with planned structure in this document
-- Update this document if deviations found (with rationale in Git commit message)
-- Verify `detector_config.yaml` schema matches plan
-
----
-
-#### Step 4: Activate Workspace
-
-**Option A: Git Submodules (Monorepo-like)**
-```bash
-cd D:/workspace-github/system-emul-sim
-
-# Initialize git (if not already a repo)
-git init
-
-# Add repositories as submodules
-git submodule add <gitea-url>/fpga.git fpga
-git submodule add <gitea-url>/fw.git fw
-git submodule add <gitea-url>/sdk.git sdk
-git submodule add <gitea-url>/tools.git tools
-git submodule add <gitea-url>/config.git config
-git submodule add <gitea-url>/docs.git docs
-
-# Commit submodule configuration
-git commit -m "Add 6 repositories as submodules"
-```
-
-**Option B: Multi-Repo Workflow (Independent)**
-- Keep repositories separate (already cloned above)
-- Configure `.moai/config/sections/workflow.yaml` for multi-repo support
-- Use `/moai project` to coordinate across repositories
-
----
-
-#### Step 5: Set Up CI/CD
-
-**Configure n8n + Gitea Webhooks**:
-1. Install n8n (workflow automation platform)
-2. Create webhook endpoint in n8n
-3. Configure Gitea webhooks for each repository (push, pull_request events)
-4. n8n workflow:
-   - Trigger on push to `main` branch
-   - Run build script per repository
-   - Execute unit tests
-   - Report status to Gitea (commit status API)
-
-**Example n8n Workflow** (pseudo-code):
-```
-Trigger: Gitea Webhook (Push to fpga/main)
-Step 1: SSH to build server
-Step 2: cd fpga/ && vivado -mode batch -source scripts/build.tcl
-Step 3: Parse utilization.rpt → Check LUT usage <60%
-Step 4: POST status to Gitea API (success/failure)
-```
-
----
-
-### Workspace Organization Trade-offs
-
-**Monorepo Approach (Git Submodules)**:
-- **Pros**: Single workspace, unified commit history, easier cross-repo refactoring
-- **Cons**: Slower git operations, submodule complexity, single failure point
-
-**Multi-Repo Approach (Independent Repositories)**:
-- **Pros**: Parallel development, independent release cycles, clear ownership
-- **Cons**: Cross-repo synchronization overhead, version compatibility tracking
-
-**Recommendation for This Project**: **Multi-Repo** (independent repositories with coordination via ABYZ-Lab workflows)
-- Rationale: 6 repositories with distinct technologies (SystemVerilog, C, C#), different build systems, and independent release cycles
-- ABYZ-Lab workflows (`/moai project`, `/moai run`) can coordinate across repositories without git submodule complexity
-
----
-
-## Summary
-
-This document outlines the **planned** project structure for the X-ray Detector Panel System. Key takeaways:
-
-1. **6 Gitea Repositories**: fpga/, fw/, sdk/, tools/, config/, docs/ (not yet cloned)
-2. **10 Software Modules**: Hub pattern with Common.Dto, 4 simulators, 5 tools
-3. **FPGA Block Hierarchy**: ~10,250 LUTs (49.3% utilization) ✅ Meets <60% target
-4. **Single Configuration Source**: `detector_config.yaml` with JSON schema validation
-5. **Multi-Language Build**: Vivado (FPGA), CMake (C/C++), dotnet (C#)
-6. **3-Level Test Hierarchy**: Unit → Integration → HIL
-
-**Next Steps**:
-- Wait for repository creation and procurement (M0 milestone, Week 1)
-- Clone repositories when available
-- Run `/moai project --refresh` to update documentation from actual code
+## SPEC 문서 참조
+
+각 구성 요소의 상세 명세:
+
+| SPEC | 관련 디렉토리 | 핵심 내용 |
+|------|-------------|---------|
+| SPEC-ARCH-001 | 전체 | 시스템 아키텍처, 인터페이스 정의 |
+| SPEC-FPGA-001 | fpga/ | RTL 모듈 명세, 타이밍 제약 |
+| SPEC-FW-001 | fw/ | 펌웨어 모듈 명세, Yocto 레이어 |
+| SPEC-POC-001 | tools/IntegrationTests | PoC 시나리오, 시뮬레이터 프레임워크 |
+| SPEC-SDK-001 | sdk/ | Host SDK API, IDetectorClient |
+| SPEC-SIM-001 | tools/*Simulator | 시뮬레이터 동작 명세 |
+| SPEC-TOOLS-001 | tools/GUI, tools/ParameterExtractor 등 | 개발자 도구 명세 |
 
 ---
 
 **Document End**
 
-*This is a pre-implementation planning document. Run `/moai project --refresh` after code repositories are cloned to regenerate from actual implementation.*
+*Last updated: 2026-02-27. Reflects actual implemented structure at M2-Impl completion.*
