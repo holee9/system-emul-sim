@@ -51,7 +51,7 @@ The SoC firmware implements a real-time data acquisition and streaming system ru
 └───────────────────────────────┬─────────────────────────────┘
                                 │
 ┌───────────────────────────────▼─────────────────────────────┐
-│              X-ray Detector Panel (3072×3072)                │
+│         X-ray Detector Panel (2048×2048 Target)              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -230,7 +230,7 @@ FREE -> DMA -> FILLED -> SENDING -> FREE
 **Buffer Allocation** (REQ-FW-050):
 - 4 buffers in DDR4
 - Buffer size = `rows × cols × 2 bytes` (RAW16)
-- Example: 3072×3072×2 = 18 MB per buffer, 72 MB total
+- Example: 2048×2048×2 = 8 MB per buffer, 32 MB total (Target tier; Maximum tier: 3072×3072 planned)
 
 **Zero-Copy Flow**:
 1. CSI-2 RX acquires buffer via MMAP (FREE -> DMA)
@@ -352,7 +352,7 @@ Offset | Size | Field | Description
 **Fragmentation** (REQ-FW-040):
 - Max payload per packet: 8192 bytes
 - 32-byte header + up to 8160 bytes pixel data
-- Target tier example: 18 MB frame / 8160 = 1024 packets
+- Target tier example: 8 MB frame / 8160 = ~1000 packets (2048×2048×2 bytes)
 
 **Performance** (REQ-FW-041):
 - All packets sent within 1 frame period (66.7 ms at 15 fps)
@@ -523,14 +523,14 @@ For comprehensive security implementation details, see [SECURITY_IMPROVEMENTS.md
 
 **DDR4 Buffer Ring**:
 - 4 buffers × rows × cols × 2 bytes
-- Target tier: 4 × 3072 × 3072 × 2 = 72 MB
-- Intermediate-A: 4 × 2048 × 2048 × 2 = 32 MB
+- Target tier: 4 × 2048 × 2048 × 2 = 32 MB
+- Maximum tier (planned): 4 × 3072 × 3072 × 2 = 72 MB
 
 **Additional Memory**:
 - Network buffers: 16 MB (kernel socket buffers)
 - Configuration: 1 MB
 - Runtime counters: < 1 MB
-- **Total**: ~90 MB at target tier
+- **Total**: ~49 MB at target tier
 
 ## Configuration Schema
 
@@ -550,6 +550,121 @@ The firmware loads configuration from `detector_config.yaml` (single source of t
 - `panel.bit_depth`: 14 or 16
 - `csi2.lane_speed`: 400 or 800 Mbps/lane
 - `spi.speed_hz`: 1-50 MHz
+
+## Build System
+
+### Yocto Project Integration
+
+The firmware is built using Yocto Project Scarthgap 5.0 LTS with Variscite BSP for reproducible cross-compilation and deployment.
+
+#### meta-detector Layer
+
+Location: `fw/meta-detector/`
+
+**Purpose**: Provide Yocto recipes and configurations for building detector-daemon and detector-image.
+
+**Layer Structure**:
+```
+meta-detector/
+├── conf/layer.conf              # Layer configuration (Scarthgap compatibility)
+├── recipes-core/
+│   ├── detector-daemon/         # detector-daemon BitBake recipe
+│   │   └── detector-daemon_1.0.0.bb
+│   ├── images/
+│   │   └── detector-image.bb    # Complete target image
+│   └── packagegroups/
+│       └── packagegroup-detector.bb  # Runtime dependencies
+├── cmake/yocto-toolchain.cmake  # CMake toolchain file
+└── docs/BUILD.md                # Detailed build guide
+```
+
+**BitBake Recipe** (`detector-daemon_1.0.0.bb`):
+- Inherits: `cmake systemd`
+- Cross-compiles for `aarch64-poky-linux`
+- Runtime dependencies: `v4l-utils`, `spidev-test`, `iproute2`, `ethtool`, `libyaml`
+- Systemd service: `detector.service` (auto-enabled)
+- User creation: `detector` service account (REQ-FW-102)
+- Device permissions: `/dev/spidev0.0`, `/dev/video0`, `/dev/i2c-1`, `/dev/i2c-7`
+
+**Image Recipe** (`detector-image.bb`):
+- Base: `core-image-minimal`
+- Includes: detector-daemon, kernel-modules, debug tools, network tools
+- Features: debug-tweaks, ssh-server-openssh, tools-sdk
+- Size: ~256 MB root filesystem
+
+#### Build Process
+
+**1. Initialize Environment**:
+```bash
+git clone -b scarthgap git://git.yoctoproject.org/poky.git
+cd poky
+source oe-init-build-env build-yocto
+```
+
+**2. Add Layers**:
+```bash
+bitbake-layers add-layer ../meta-variscite-bsp
+bitbake-layers add-layer ../meta-detector
+```
+
+**3. Configure** (`conf/local.conf`):
+```bitbake
+MACHINE = "imx8mp-var-dart"
+BB_NUMBER_THREADS = "8"
+PARALLEL_MAKE = "-j8"
+PACKAGE_CLASSES = "package_ipk"
+DISTRO_FEATURES:append = " systemd"
+VIRTUAL-RUNTIME_init_manager = "systemd"
+```
+
+**4. Build**:
+```bash
+# Complete image (first build: 1-2 hours)
+bitbake detector-image
+
+# Daemon only (faster for iterative builds)
+bitbake detector-daemon
+```
+
+#### Cross-Compilation
+
+**Toolchain**: `aarch64-poky-linux-gcc`
+
+**CMake Integration**:
+- `cmake` inherit handles cross-compilation automatically
+- Toolchain file: `meta-detector/cmake/yocto-toolchain.cmake` (for SDK builds)
+- Sysroot: `${OECORE_NATIVE_SYSROOT}` (set by SDK environment)
+
+**Verification**:
+```bash
+$ file detector_daemon
+detector_daemon: ELF 64-bit LSB executable, ARM aarch64...
+```
+
+#### Acceptance Criteria (AC-FW-007)
+
+**GIVEN**: Yocto Scarthgap 5.0 build environment with Variscite BSP layer
+**WHEN**: `bitbake detector-daemon` is executed
+**THEN**:
+- Build completes without errors
+- Generated binary targets aarch64 (Cortex-A53)
+- `file detector_daemon` reports: ELF 64-bit LSB executable, ARM aarch64
+
+#### Deployment
+
+**Output Artifacts** (`tmp/deploy/images/imx8mp-var-dart/`):
+- `detector-image-imx8mp-var-dart.wic.gz` - SD card image
+- `Image` - Kernel image
+- `fsl-imx8mp-var-dart.dtb` - Device tree blob
+- `detector-image-imx8mp-var-dart.manifest` - Installed packages list
+
+**Flashing**:
+```bash
+sudo dd if=detector-image-imx8mp-var-dart.wic.gz of=/dev/sdX bs=4M status=progress
+sudo sync
+```
+
+For detailed build instructions, see [meta-detector/docs/BUILD.md](meta-detector/docs/BUILD.md).
 
 ## Dependencies
 
