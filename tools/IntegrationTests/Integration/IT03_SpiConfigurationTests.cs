@@ -5,6 +5,9 @@ using FpgaSimulator.Core.Spi;
 using McuSimulator.Core.Spi;
 using Common.Dto.Dtos;
 
+// Alias for register addresses
+using SpiRegisterAddresses = FpgaSimulator.Core.Spi.SpiRegisterAddresses;
+
 namespace IntegrationTests.Integration;
 
 /// <summary>
@@ -26,8 +29,8 @@ public class IT03_SpiConfigurationTests : IDisposable
     [Fact]
     public void ConfigureAsync_ShallWriteAndReadRegister_CorrectValue()
     {
-        // Arrange
-        byte registerAddress = 0x10; // EXPOSURE_TIME register
+        // Arrange - Use TIMING_GATE_ON register (0x41) which is writable
+        byte registerAddress = SpiRegisterAddresses.TIMING_GATE_ON;
         ushort expectedValue = 100; // 100 microseconds
 
         // Act - Write register via SPI
@@ -41,19 +44,19 @@ public class IT03_SpiConfigurationTests : IDisposable
     [Fact]
     public void ConfigureAsync_ShallWriteMultipleRegisters_AllValuesPersisted()
     {
-        // Arrange - Define 10 different register values (per AC-INTEG-003)
+        // Arrange - Define 10 different register values using valid writable addresses (per AC-INTEG-003)
         var testRegisters = new (byte Address, ushort Value)[]
         {
-            (0x10, 100),  // EXPOSURE_TIME: 100us
-            (0x11, 50),   // GAIN: 50
-            (0x12, 100),  // OFFSET: 100
-            (0x13, 1024), // ROWS: 1024
-            (0x14, 1024), // COLS: 1024
-            (0x15, 14),   // BIT_DEPTH: 14
-            (0x16, 30),   // FRAME_RATE: 30 fps
-            (0x17, 1),    // SCAN_MODE: Continuous
-            (0x18, 0),    // NOISE_ENABLE: Off
-            (0x19, 0)     // DEFECT_RATE: 0%
+            (SpiRegisterAddresses.TIMING_GATE_ON, 100),      // Gate ON timing: 100us
+            (SpiRegisterAddresses.TIMING_GATE_OFF, 50),      // Gate OFF timing: 50us
+            (SpiRegisterAddresses.TIMING_ROW_PERIOD, 16),    // Row period
+            (SpiRegisterAddresses.ROIC_SETTLE_US, 10),       // ROIC settle time
+            (SpiRegisterAddresses.ADC_CONV_US, 5),           // ADC conversion time
+            (SpiRegisterAddresses.PANEL_ROWS, 1024),         // Rows: 1024
+            (SpiRegisterAddresses.PANEL_COLS, 1024),         // Cols: 1024
+            (SpiRegisterAddresses.BIT_DEPTH, 14),            // Bit depth: 14
+            (SpiRegisterAddresses.CSI2_LANE_COUNT, 4),       // Lane count: 4
+            (SpiRegisterAddresses.CSI2_LANE_SPEED, 100)      // Lane speed: 1.0 Gbps
         };
 
         // Act - Write all registers
@@ -74,25 +77,26 @@ public class IT03_SpiConfigurationTests : IDisposable
     [Fact]
     public void SpiOperations_ShallMaintainZeroErrorCount_NoErrors()
     {
-        // Arrange & Act - Perform multiple SPI operations
+        // Arrange & Act - Perform multiple SPI operations using writable registers
         for (int i = 0; i < 10; i++)
         {
-            byte address = (byte)(0x20 + i);
-            ushort value = (ushort)(i * 100);
+            // Use timing registers (0x40-0x49) which are writable
+            byte address = (byte)(SpiRegisterAddresses.TIMING_ROW_PERIOD + i);
+            ushort value = (ushort)(i * 100 + 10);
             _spiMaster.WriteRegister(address, value);
             _ = _spiMaster.ReadRegister(address);
         }
 
-        // Assert - SPI error count should be zero
-        var status = _fpgaSlave.GetStatus();
-        status.ErrorCount.Should().Be(0, "SPI operations should complete without errors");
+        // Assert - SPI error count should be zero (check ERROR_FLAGS register)
+        var errorFlags = _fpgaSlave.GetRegisterValue(SpiRegisterAddresses.ERROR_FLAGS);
+        errorFlags.Should().Be(0, "SPI operations should complete without errors");
     }
 
     [Fact]
     public void SpiRegisterRead_ShallReturnDefaultValue_UnwrittenRegister()
     {
-        // Arrange - Use a register that hasn't been written
-        byte unwrittenAddress = 0xFF;
+        // Arrange - Use a register that hasn't been written (within valid range but not initialized)
+        byte unwrittenAddress = 0x46; // Unused timing register slot
 
         // Act
         ushort value = _spiMaster.ReadRegister(unwrittenAddress);
@@ -104,8 +108,8 @@ public class IT03_SpiConfigurationTests : IDisposable
     [Fact]
     public void SpiRegisterWrite_ShallOverwritePreviousValue_LastWriteWins()
     {
-        // Arrange
-        byte address = 0x10;
+        // Arrange - Use writable timing register
+        byte address = SpiRegisterAddresses.TIMING_GATE_ON;
         ushort firstValue = 100;
         ushort secondValue = 200;
 
@@ -120,7 +124,7 @@ public class IT03_SpiConfigurationTests : IDisposable
 
     public void Dispose()
     {
-        // Cleanup
-        _fpgaSlave?.Dispose();
+        // Cleanup - SpiSlaveSimulator does not implement IDisposable
+        // No explicit cleanup needed
     }
 }

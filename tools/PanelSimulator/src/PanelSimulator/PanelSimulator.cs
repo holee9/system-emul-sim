@@ -33,7 +33,8 @@ public class PanelSimulator : ISimulator
         _patternGenerators = new Dictionary<TestPattern, ITestPatternGenerator>
         {
             { TestPattern.Counter, new CounterPatternGenerator() },
-            { TestPattern.Checkerboard, new CheckerboardPatternGenerator() }
+            { TestPattern.Checkerboard, new CheckerboardPatternGenerator() },
+            { TestPattern.FlatField, new FlatFieldPatternGenerator() }
         };
     }
 

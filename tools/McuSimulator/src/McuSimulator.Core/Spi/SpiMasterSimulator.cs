@@ -104,9 +104,9 @@ public sealed class SpiMasterSimulator
         }
         else
         {
-            // Write transaction - return the written value for confirmation
+            // Write transaction - return the actual written value
             _fpgaSlave.WriteRegister(address, transaction.Word1);
-            return transaction.Word1;
+            return _fpgaSlave.GetRegisterValue(address);
         }
     }
 

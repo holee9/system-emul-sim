@@ -17,9 +17,36 @@ public static class PacketFactory
     public const uint Csi2Magic = 0xD7E01234;
 
     /// <summary>
-    /// CRC-16/CCITT polynomial (poly 0x8408, reflected).
+    /// CRC-16/CCITT polynomial (poly 0x1021, non-reflected).
+    /// Matches HostSimulator.Core.Reassembly.Crc16Ccitt implementation.
     /// </summary>
-    private const ushort Crc16CciitPolynomial = 0x8408;
+    private const ushort Crc16CciitPolynomial = 0x1021;
+
+    /// <summary>
+    /// Precomputed CRC table for fast calculation.
+    /// </summary>
+    private static readonly ushort[] CrcTable = new ushort[256];
+
+    static PacketFactory()
+    {
+        // Initialize CRC table
+        for (uint i = 0; i < 256; i++)
+        {
+            ushort crc = (ushort)(i << 8);
+            for (int j = 0; j < 8; j++)
+            {
+                if ((crc & 0x8000) != 0)
+                {
+                    crc = (ushort)((crc << 1) ^ Crc16CciitPolynomial);
+                }
+                else
+                {
+                    crc <<= 1;
+                }
+            }
+            CrcTable[i] = crc;
+        }
+    }
 
     /// <summary>
     /// Creates a CSI-2 packet with standard test payload.
@@ -97,18 +124,8 @@ public static class PacketFactory
 
         for (int i = 0; i < data.Length; i++)
         {
-            crc ^= data[i];
-            for (int j = 0; j < 8; j++)
-            {
-                if ((crc & 0x0001) != 0)
-                {
-                    crc = (ushort)((crc >> 1) ^ Crc16CciitPolynomial);
-                }
-                else
-                {
-                    crc >>= 1;
-                }
-            }
+            ushort index = (ushort)(((crc >> 8) ^ data[i]) & 0xFF);
+            crc = (ushort)((crc << 8) ^ CrcTable[index]);
         }
 
         return crc;

@@ -7,8 +7,7 @@ using HostSimulator.Core.Configuration;
 using HostSimulator.Core.Reassembly;
 using CoreHostSimulator = HostSimulator.Core.HostSimulator;
 using System.Diagnostics;
-
-namespace IntegrationTests.Integration;
+using System.Buffers.Binary;
 
 /// <summary>
 /// IT-08: 10GbE Packet Loss and Retransmission test.
@@ -68,11 +67,14 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
                 if (_random.NextDouble() < PacketLossRate)
                     continue; // Drop packet
 
-                FrameHeader.TryParse(packet, out var header);
+                if (!FrameHeader.TryParse(packet, out var header))
+                {
+                    continue;
+                }
                 var payload = new byte[packet.Length - FrameHeader.HEADER_SIZE];
                 Array.Copy(packet, FrameHeader.HEADER_SIZE, payload, 0, payload.Length);
 
-                var result = _reassembler.ProcessPacket(header!, payload);
+                var result = _reassembler.ProcessPacket(header, payload);
                 if (result?.Status == FrameReassemblyStatus.Complete)
                 {
                     receivedFrames.Add(result.Frame);
@@ -89,11 +91,14 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
                 // Retry with all packets (simulating retransmission)
                 foreach (var packet in packets)
                 {
-                    FrameHeader.TryParse(packet, out var header);
+                    if (!FrameHeader.TryParse(packet, out var header))
+                    {
+                        continue;
+                    }
                     var payload = new byte[packet.Length - FrameHeader.HEADER_SIZE];
                     Array.Copy(packet, FrameHeader.HEADER_SIZE, payload, 0, payload.Length);
 
-                    var result = _reassembler.ProcessPacket(header!, payload);
+                    var result = _reassembler.ProcessPacket(header, payload);
                     if (result?.Status == FrameReassemblyStatus.Complete)
                     {
                         receivedFrames.Add(result.Frame);
@@ -154,11 +159,14 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
                 if (_random.NextDouble() < highLossRate)
                     continue;
 
-                FrameHeader.TryParse(packet, out var header);
+                if (!FrameHeader.TryParse(packet, out var header))
+                {
+                    continue;
+                }
                 var payload = new byte[packet.Length - FrameHeader.HEADER_SIZE];
                 Array.Copy(packet, FrameHeader.HEADER_SIZE, payload, 0, payload.Length);
 
-                var result = _reassembler.ProcessPacket(header!, payload);
+                var result = _reassembler.ProcessPacket(header, payload);
                 if (result?.Status == FrameReassemblyStatus.Complete)
                 {
                     receivedFrames.Add(result.Frame);
@@ -174,11 +182,14 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
                 // Retry all packets
                 foreach (var packet in packets)
                 {
-                    FrameHeader.TryParse(packet, out var header);
+                    if (!FrameHeader.TryParse(packet, out var header))
+                    {
+                        continue; // Skip invalid packets
+                    }
                     var payload = new byte[packet.Length - FrameHeader.HEADER_SIZE];
                     Array.Copy(packet, FrameHeader.HEADER_SIZE, payload, 0, payload.Length);
 
-                    var result = _reassembler.ProcessPacket(header!, payload);
+                    var result = _reassembler.ProcessPacket(header, payload);
                     if (result?.Status == FrameReassemblyStatus.Complete)
                     {
                         receivedFrames.Add(result.Frame);
@@ -232,11 +243,14 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
                 if (_random.NextDouble() < 0.1)
                     continue;
 
-                FrameHeader.TryParse(packet, out var header);
+                if (!FrameHeader.TryParse(packet, out var header))
+                {
+                    continue;
+                }
                 var payload = new byte[packet.Length - FrameHeader.HEADER_SIZE];
                 Array.Copy(packet, FrameHeader.HEADER_SIZE, payload, 0, payload.Length);
 
-                var result = _reassembler.ProcessPacket(header!, payload);
+                var result = _reassembler.ProcessPacket(header, payload);
                 if (result?.Status == FrameReassemblyStatus.Complete)
                 {
                     long latency = stopwatch.ElapsedMilliseconds - frameStartTime;
@@ -284,11 +298,14 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
                 if (_random.NextDouble() < PacketLossRate)
                     continue;
 
-                FrameHeader.TryParse(packet, out var header);
+                if (!FrameHeader.TryParse(packet, out var header))
+                {
+                    continue;
+                }
                 var payload = new byte[packet.Length - FrameHeader.HEADER_SIZE];
                 Array.Copy(packet, FrameHeader.HEADER_SIZE, payload, 0, payload.Length);
 
-                var result = _reassembler.ProcessPacket(header!, payload);
+                var result = _reassembler.ProcessPacket(header, payload);
                 if (result?.Status == FrameReassemblyStatus.Complete)
                 {
                     receivedFrames.Add(result.Frame);
@@ -299,11 +316,14 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
             await Task.Delay(10);
             foreach (var packet in packets)
             {
-                FrameHeader.TryParse(packet, out var header);
+                if (!FrameHeader.TryParse(packet, out var header))
+                {
+                    continue; // Skip invalid packets
+                }
                 var payload = new byte[packet.Length - FrameHeader.HEADER_SIZE];
                 Array.Copy(packet, FrameHeader.HEADER_SIZE, payload, 0, payload.Length);
 
-                var result = _reassembler.ProcessPacket(header!, payload);
+                var result = _reassembler.ProcessPacket(header, payload);
                 if (result?.Status == FrameReassemblyStatus.Complete && !receivedFrames.Any(f => f.FrameNumber == frame.FrameNumber))
                 {
                     receivedFrames.Add(result.Frame);
@@ -343,32 +363,25 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
             packets[i] = new byte[FrameHeader.HEADER_SIZE + payloadSize];
             var span = new System.Span<byte>(packets[i]);
 
-            // Magic
+            // Magic (0xD7E01234 little-endian)
             span[0] = 0x34; span[1] = 0x12; span[2] = 0xE0; span[3] = 0xD7;
 
             // Version
             span[4] = 0x01;
 
-            // Frame ID
+            // Frame ID (little-endian)
             uint frameId = (uint)frame.FrameNumber;
-            span[8] = (byte)(frameId & 0xFF);
-            span[9] = (byte)((frameId >> 8) & 0xFF);
-            span[10] = (byte)((frameId >> 16) & 0xFF);
-            span[11] = (byte)((frameId >> 24) & 0xFF);
+            BinaryPrimitives.WriteUInt32LittleEndian(span.Slice(8), frameId);
 
-            // Packet sequence
-            span[12] = (byte)(i & 0xFF);
-            span[13] = (byte)((i >> 8) & 0xFF);
+            // Packet sequence (little-endian)
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(12), (ushort)i);
 
-            // Total packets
-            span[14] = (byte)(packetsPerFrame & 0xFF);
-            span[15] = (byte)((packetsPerFrame >> 8) & 0xFF);
+            // Total packets (little-endian)
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(14), (ushort)packetsPerFrame);
 
-            // Dimensions
-            span[24] = (byte)(frame.Height & 0xFF);
-            span[25] = (byte)((frame.Height >> 8) & 0xFF);
-            span[26] = (byte)(frame.Width & 0xFF);
-            span[27] = (byte)((frame.Width >> 8) & 0xFF);
+            // Dimensions (little-endian)
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(24), (ushort)frame.Height);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(26), (ushort)frame.Width);
 
             // Pixel data
             for (int p = 0; p < pixelCount; p++)
@@ -379,8 +392,12 @@ public class IT08_PacketLossRetransmissionTests : IDisposable
                 span[offset + 1] = (byte)((pixel >> 8) & 0xFF);
             }
 
-            // CRC, bit depth, flags
-            span[28] = 0; span[29] = 0;
+            // Calculate CRC over bytes 0-27 using PacketFactory
+            var headerForCrc = packets[i].AsSpan(0, 28).ToArray();
+            ushort crc = PacketFactory.CalculateCrc16Ccitt(headerForCrc);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(28), crc);
+
+            // Bit depth and flags
             span[30] = 16;
             span[31] = 0;
         }

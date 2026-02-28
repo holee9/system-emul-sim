@@ -82,12 +82,16 @@ public class It02PerformanceTargetTierTests
         _panelSimulator.Initialize(panelConfig);
 
         // Act - Process 100 frames
+        var globalStopwatch = Stopwatch.StartNew();
         for (int i = 0; i < 100; i++)
         {
-            var frameStart = Stopwatch.StartNew();
+            var frameStart = globalStopwatch.ElapsedTicks;
             _panelSimulator.Process(null);
-            frameStart.Stop();
-            _latencyMeasurer.RecordLatency(frameStart.Elapsed);
+            var frameEnd = globalStopwatch.ElapsedTicks;
+
+            // Calculate frame processing time in milliseconds
+            var frameTimeMs = (long)((frameEnd - frameStart) * 1000.0 / Stopwatch.Frequency);
+            _latencyMeasurer.RecordLatency(frameTimeMs);
         }
 
         // Assert - Latency percentiles should be acceptable

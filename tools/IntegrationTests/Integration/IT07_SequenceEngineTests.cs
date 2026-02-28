@@ -15,8 +15,9 @@ public class IT07_SequenceEngineTests
     [Fact]
     public void StateMachine_ShallTransition_IdleToIntegrateToReadout()
     {
-        // Arrange - Start in IDLE state
+        // Arrange - Start in IDLE state with fast timing
         var fsm = new PanelScanFsmSimulator();
+        fsm.SetGateTiming(5, 2); // 5 ticks for gate_on, 2 for gate_off
         fsm.CurrentState.Should().Be(FsmState.Idle, "Initial state should be IDLE");
 
         // Act - Start scan (IDLE → INTEGRATE)
@@ -25,29 +26,32 @@ public class IT07_SequenceEngineTests
         // Assert
         fsm.CurrentState.Should().Be(FsmState.Integrate, "Should transition to INTEGRATE");
 
-        // Process ticks to transition through READOUT
-        for (int i = 0; i < 1100; i++) // 1000 ticks for gate_on + 100 for gate_off
+        // Process ticks to reach READOUT state (5 ticks for gate_on)
+        for (int i = 0; i < 5; i++)
         {
             fsm.ProcessTick();
         }
 
+        // Should be in Readout state exactly at gate_on boundary
         fsm.CurrentState.Should().Be(FsmState.Readout, "Should transition to READOUT");
     }
 
     [Fact]
     public void StateMachine_ShallCompleteFullCycle_NoInvalidTransitions()
     {
-        // Arrange - Single scan mode
+        // Arrange - Single scan mode with fast timing
         var fsm = new PanelScanFsmSimulator();
         fsm.SetScanMode(ScanMode.Single);
+        fsm.SetPanelDimensions(4, 4); // Small panel for fast testing
+        fsm.SetGateTiming(2, 1); // Fast timing: 2 ticks gate_on, 1 tick gate_off
 
         // Act - Run full cycle: IDLE → INTEGRATE → READOUT → ... → FRAME_DONE → IDLE
         fsm.StartScan(); // IDLE → INTEGRATE
 
         var states = new List<FsmState> { fsm.CurrentState };
 
-        // Process until back to IDLE (max 2000 ticks)
-        for (int i = 0; i < 2000 && fsm.CurrentState != FsmState.Idle; i++)
+        // Process until back to IDLE (max 200 ticks for fast timing)
+        for (int i = 0; i < 200 && fsm.CurrentState != FsmState.Idle; i++)
         {
             fsm.ProcessTick();
             if (fsm.CurrentState != states[^1])
@@ -73,16 +77,19 @@ public class IT07_SequenceEngineTests
     [Fact]
     public void StateMachine_ShallHandleContinuousMode_MultipleFrames()
     {
-        // Arrange - Continuous scan mode
+        // Arrange - Continuous scan mode with fast timing for testing
         var fsm = new PanelScanFsmSimulator();
         fsm.SetScanMode(ScanMode.Continuous);
-        fsm.SetPanelDimensions(256, 256); // Smaller for faster testing
+        fsm.SetPanelDimensions(4, 4); // Very small panel for fast testing
+        fsm.SetGateTiming(2, 1); // Very fast timing: 2 ticks gate_on, 1 tick gate_off
 
         // Act - Start continuous scan
         fsm.StartScan();
 
         // Process multiple frames
-        for (int i = 0; i < 2500; i++) // Enough for 2 frames
+        // Each frame: Integrate(2 ticks) + Readout per line (1 tick * 4 lines) = 2 + 4 = 6 ticks
+        // For 2 frames: ~12 ticks
+        for (int i = 0; i < 50; i++) // Enough for multiple frames
         {
             fsm.ProcessTick();
         }
@@ -156,17 +163,18 @@ public class IT07_SequenceEngineTests
         const int cycleCount = 5;
         var frameCounts = new List<uint>();
 
-        // Act - Run multiple scan cycles
+        // Act - Run multiple scan cycles with fast timing
         for (int cycle = 0; cycle < cycleCount; cycle++)
         {
             var fsm = new PanelScanFsmSimulator();
             fsm.SetScanMode(ScanMode.Single);
-            fsm.SetPanelDimensions(256, 256);
+            fsm.SetPanelDimensions(4, 4); // Small panel for fast testing
+            fsm.SetGateTiming(2, 1); // Fast timing
 
             fsm.StartScan();
 
-            // Process until IDLE
-            for (int i = 0; i < 2000 && fsm.CurrentState != FsmState.Idle; i++)
+            // Process until IDLE (max 200 ticks)
+            for (int i = 0; i < 200 && fsm.CurrentState != FsmState.Idle; i++)
             {
                 fsm.ProcessTick();
             }
@@ -220,16 +228,16 @@ public class IT07_SequenceEngineTests
     [Fact]
     public void StateMachine_LineCounter_ShallIncrementCorrectly()
     {
-        // Arrange
+        // Arrange - Small panel with fast timing for testing
         var fsm = new PanelScanFsmSimulator();
-        fsm.SetPanelDimensions(256, 256);
-        fsm.SetGateTiming(100, 10); // Fast timing for testing
+        fsm.SetPanelDimensions(8, 8); // Small panel
+        fsm.SetGateTiming(2, 1); // Fast timing for testing
 
         // Act - Start scan and process
         fsm.StartScan();
 
         var lineCounts = new List<uint>();
-        for (int i = 0; i < 3000; i++)
+        for (int i = 0; i < 200; i++)
         {
             fsm.ProcessTick();
             if (fsm.CurrentState == FsmState.LineDone || fsm.CurrentState == FsmState.FrameDone)
@@ -240,7 +248,7 @@ public class IT07_SequenceEngineTests
                 break;
         }
 
-        // Assert - Line counter should reach panel rows (256)
-        lineCounts.Should().Contain(256, "Line counter should reach panel row count");
+        // Assert - Line counter should reach panel rows (8)
+        lineCounts.Should().Contain(8, "Line counter should reach panel row count");
     }
 }
