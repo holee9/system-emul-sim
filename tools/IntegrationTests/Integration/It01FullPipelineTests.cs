@@ -1,33 +1,32 @@
-using Xunit;
 using FluentAssertions;
+using IntegrationTests.Helpers;
 using Common.Dto.Dtos;
 using CoreHostSimulator = HostSimulator.Core.HostSimulator;
 using HostSimulator.Core.Configuration;
 using HostSimulator.Core.Reassembly;
+using Xunit;
 
 namespace IntegrationTests.Integration;
 
 /// <summary>
-/// Integration test IT-01: Full pipeline data integrity (simplified version).
+/// Integration test IT-01: Full pipeline data integrity (refactored with helpers).
 /// Verifies HostSimulator frame reassembly from UDP packets.
 /// Reference: SPEC-SIM-001 AC-SIM-007, AC-SIM-008
+/// Refactored to use TestFrameFactory and PacketFactory helpers.
 /// </summary>
 public class It01FullPipelineTests
 {
     [Fact]
     public void HostSimulator_ReassembleFrame_FromUdpPackets_CompleteFrame()
     {
-        // Arrange
+        // Arrange - Using TestFrameFactory for consistent test data
+        var testFrame = TestFrameFactory.Create1024Gradient(frameNumber: 1);
         var hostConfig = new HostConfig { PacketTimeoutMs = 5000 };
         var host = new CoreHostSimulator();
         host.Initialize(hostConfig);
 
-        // Create test frame: 2x2 pixels = {0, 1, 2, 3}
-        var inputPixels = new ushort[] { 0, 1, 2, 3 };
-        var inputFrame = new FrameData(frameNumber: 1, width: 2, height: 2, pixels: inputPixels);
-
-        // Simulate UDP packets with frame header
-        var packets = CreateUdpPackets(inputFrame);
+        // Create packets using helper
+        var packets = CreateUdpPacketsFromFrameData(testFrame);
 
         // Act - Process packets
         FrameData? result = null;
@@ -38,28 +37,25 @@ public class It01FullPipelineTests
                 result = frame;
         }
 
-        // Assert - Bit-exact match
+        // Assert - Bit-exact match using TestFrameFactory frame
         result.Should().NotBeNull();
         result!.FrameNumber.Should().Be(1);
-        result.Width.Should().Be(2);
-        result.Height.Should().Be(2);
-        result.Pixels.Should().Equal(inputPixels);
+        result.Width.Should().Be(1024);
+        result.Height.Should().Be(1024);
+        result.Pixels.Should().Equal(testFrame.Pixels);
     }
 
     [Fact]
     public void HostSimulator_ReassembleFrame_OutOfOrderPackets_CompleteFrame()
     {
-        // Arrange
+        // Arrange - Using TestFrameFactory with small frame for testing
+        var testFrame = TestFrameFactory.CreateSolidFrame(64, 64, frameNumber: 5);
         var hostConfig = new HostConfig { PacketTimeoutMs = 5000 };
         var host = new CoreHostSimulator();
         host.Initialize(hostConfig);
 
-        // Create test frame: 4x1 pixels = {10, 20, 30, 40}
-        var inputPixels = new ushort[] { 10, 20, 30, 40 };
-        var inputFrame = new FrameData(frameNumber: 5, width: 4, height: 1, pixels: inputPixels);
-
-        // Simulate UDP packets (will be sent out of order)
-        var packets = CreateUdpPackets(inputFrame);
+        // Create packets (will be sent out of order)
+        var packets = CreateUdpPacketsFromFrameData(testFrame);
 
         // Act - Process packets in reverse order (out of order)
         Array.Reverse(packets);
@@ -73,30 +69,18 @@ public class It01FullPipelineTests
 
         // Assert - Should still reassemble correctly
         result.Should().NotBeNull();
-        result!.Pixels.Should().Equal(inputPixels);
+        result!.Pixels.Should().Equal(testFrame.Pixels);
     }
 
     [Fact]
-    public void FrameReassembler_MultiplePackets_CompleteFrame()
+    public void FrameReassembler_CheckerboardPattern_PreservesPattern()
     {
-        // Arrange
+        // Arrange - Using TestFrameFactory checkerboard pattern
+        var testFrame = TestFrameFactory.CreateTestFrame(32, 32, TestFrameFactory.PatternType.Checkerboard, frameNumber: 1);
         var reassembler = new FrameReassembler(TimeSpan.FromSeconds(1));
 
-        // Create 4 packets for a 2x2 frame
-        var pixels = new ushort[] { 100, 200, 300, 400 };
-        var packets = new byte[4][];
-
-        for (int i = 0; i < 4; i++)
-        {
-            packets[i] = CreateUdpPacket(
-                frameId: 1,
-                packetSeq: (ushort)i,
-                totalPackets: 4,
-                rows: 2,
-                cols: 2,
-                pixels: new ushort[] { pixels[i] }
-            );
-        }
+        // Create packets (1 pixel per packet for testing)
+        var packets = CreateUdpPacketsFromFrameData(testFrame);
 
         // Act - Process packets
         FrameReassemblyResult? result = null;
@@ -105,30 +89,90 @@ public class It01FullPipelineTests
             result = reassembler.ProcessPacket(ParseHeader(packet), GetPayload(packet));
         }
 
-        // Assert
+        // Assert - Checkerboard pattern must be preserved
         result.Should().NotBeNull();
         result!.Status.Should().Be(FrameReassemblyStatus.Complete);
         result.Frame.Should().NotBeNull();
-        result.Frame!.Pixels.Should().Equal(pixels);
+        result.Frame!.Pixels.Should().Equal(testFrame.Pixels);
+    }
+
+    [Fact]
+    public void FrameReassembler_GradientPattern_PreservesGradient()
+    {
+        // Arrange - Using TestFrameFactory gradient pattern
+        var testFrame = TestFrameFactory.CreateGradientFrame(128, 64, frameNumber: 2);
+        var reassembler = new FrameReassembler(TimeSpan.FromSeconds(1));
+
+        // Create packets (4 pixels per packet for efficiency)
+        var packets = CreateUdpPacketsWithPayloadSize(testFrame, pixelsPerPacket: 4);
+
+        // Act - Process packets
+        FrameReassemblyResult? result = null;
+        foreach (var packet in packets)
+        {
+            result = reassembler.ProcessPacket(ParseHeader(packet), GetPayload(packet));
+        }
+
+        // Assert - Gradient must be preserved
+        result.Should().NotBeNull();
+        result!.Status.Should().Be(FrameReassemblyStatus.Complete);
+        result.Frame.Should().NotBeNull();
+        result.Frame!.Pixels.Should().Equal(testFrame.Pixels);
+        // Verify gradient properties
+        result.Frame.Pixels[0].Should().Be(0);
+        result.Frame.Pixels[127].Should().Be(65535);
+    }
+
+    [Fact]
+    public void FrameReassembler_VerifyCrc16_RejectsCorruptedPackets()
+    {
+        // Arrange - Using PacketFactory for CRC testing
+        var testData = PacketFactory.CreateTestPayload(32);
+        ushort validCrc = PacketFactory.CalculateCrc16Ccitt(testData);
+
+        // Corrupt the test data
+        var corruptedData = (byte[])testData.Clone();
+        corruptedData[0] ^= 0xFF;
+
+        ushort corruptedCrc = PacketFactory.CalculateCrc16Ccitt(corruptedData);
+
+        // Assert - CRC should detect corruption
+        corruptedCrc.Should().NotBe(validCrc);
+        PacketFactory.ValidateCrc16Ccitt(testData, validCrc).Should().BeTrue();
+        PacketFactory.ValidateCrc16Ccitt(corruptedData, validCrc).Should().BeFalse();
     }
 
     /// <summary>
-    /// Creates UDP packets for a frame (simplified - 1 pixel per packet for testing).
+    /// Creates UDP packets for a frame (1 pixel per packet for testing).
+    /// Uses FrameData from TestFrameFactory.
     /// </summary>
-    private static byte[][] CreateUdpPackets(FrameData frame)
+    private static byte[][] CreateUdpPacketsFromFrameData(FrameData frame)
     {
-        int totalPackets = frame.Pixels.Length;
+        return CreateUdpPacketsWithPayloadSize(frame, pixelsPerPacket: 1);
+    }
+
+    /// <summary>
+    /// Creates UDP packets with specified payload size.
+    /// </summary>
+    private static byte[][] CreateUdpPacketsWithPayloadSize(FrameData frame, int pixelsPerPacket)
+    {
+        int totalPackets = (frame.Pixels.Length + pixelsPerPacket - 1) / pixelsPerPacket;
         var packets = new byte[totalPackets][];
 
         for (int i = 0; i < totalPackets; i++)
         {
+            int startPixel = i * pixelsPerPacket;
+            int pixelCount = Math.Min(pixelsPerPacket, frame.Pixels.Length - startPixel);
+            var pixels = new ushort[pixelCount];
+            Array.Copy(frame.Pixels, startPixel, pixels, 0, pixelCount);
+
             packets[i] = CreateUdpPacket(
                 frameId: (uint)frame.FrameNumber,
                 packetSeq: (ushort)i,
                 totalPackets: (ushort)totalPackets,
                 rows: (ushort)frame.Height,
                 cols: (ushort)frame.Width,
-                pixels: new ushort[] { frame.Pixels[i] }
+                pixels: pixels
             );
         }
 
@@ -187,8 +231,10 @@ public class It01FullPipelineTests
             span[offset + 1] = (byte)((pixels[i] >> 8) & 0xFF);
         }
 
-        // Calculate CRC over bytes 0-27
-        ushort crc = Crc16Ccitt.Calculate(packet, 0, 28);
+        // Calculate CRC over bytes 0-27 using PacketFactory
+        var headerForCrc = new byte[28];
+        Array.Copy(packet, 0, headerForCrc, 0, 28);
+        ushort crc = PacketFactory.CalculateCrc16Ccitt(headerForCrc);
         span[28] = (byte)(crc & 0xFF);
         span[29] = (byte)((crc >> 8) & 0xFF);
 
