@@ -12,6 +12,15 @@ public sealed class PanelScanFsmSimulator
     private int _gateOffTicks;
     private int _currentTick;
 
+    // Separate timers for ROIC settle and ADC conversion (8-bit each)
+    private byte _settleTimer;
+    private byte _adcTimer;
+    private byte _settleTimeoutTicks;
+    private byte _adcTimeoutTicks;
+
+    // Track previous state for edge detection
+    private FsmState _previousState;
+
     /// <summary>
     /// Initializes a new instance with default timing parameters.
     /// </summary>
@@ -30,6 +39,21 @@ public sealed class PanelScanFsmSimulator
         _gateOnTicks = 1000;
         _gateOffTicks = 100;
         _currentTick = 0;
+
+        // Default separate timers: settle 10 ticks, ADC 5 ticks
+        _settleTimeoutTicks = 10;
+        _adcTimeoutTicks = 5;
+        _settleTimer = 0;
+        _adcTimer = 0;
+
+        _previousState = FsmState.Idle;
+
+        // Output signals default to inactive
+        GateOn = false;
+        RoicSync = false;
+        LineValid = false;
+        FrameValid = false;
+        LineWriteAddress = 0;
     }
 
     /// <summary>Current FSM state</summary>
@@ -56,6 +80,37 @@ public sealed class PanelScanFsmSimulator
     /// <summary>Current active write bank (0=A, 1=B)</summary>
     public int ActiveBank { get; private set; }
 
+    // --- Control signal outputs ---
+
+    /// <summary>Active during INTEGRATE state. Exposure control pulse to Panel.</summary>
+    public bool GateOn { get; private set; }
+
+    /// <summary>Triggered on IDLE to INTEGRATE transition. ROIC read trigger pulse.</summary>
+    public bool RoicSync { get; private set; }
+
+    /// <summary>Active when READOUT completes for current line. Line data valid signal.</summary>
+    public bool LineValid { get; private set; }
+
+    /// <summary>Active during FRAME_DONE state. Frame complete signal.</summary>
+    public bool FrameValid { get; private set; }
+
+    /// <summary>Current write address during READOUT (increments per pixel clock).</summary>
+    public ushort LineWriteAddress { get; private set; }
+
+    // --- Separate timer access (read-only) ---
+
+    /// <summary>Current ROIC settle countdown timer value (8-bit).</summary>
+    public byte SettleTimer
+    {
+        get { lock (_lock) { return _settleTimer; } }
+    }
+
+    /// <summary>Current ADC conversion countdown timer value (8-bit).</summary>
+    public byte AdcTimer
+    {
+        get { lock (_lock) { return _adcTimer; } }
+    }
+
     /// <summary>
     /// Starts a new scan sequence by transitioning to INTEGRATE state.
     /// Corresponds to writing start_scan bit to CONTROL register.
@@ -67,9 +122,15 @@ public sealed class PanelScanFsmSimulator
             if (CurrentState == FsmState.Error)
                 return;
 
+            _previousState = CurrentState;
             CurrentState = FsmState.Integrate;
             _currentTick = 0;
             LineCounter = 0;
+            LineWriteAddress = 0;
+            _settleTimer = 0;
+            _adcTimer = 0;
+
+            UpdateOutputSignals();
         }
     }
 
@@ -84,8 +145,12 @@ public sealed class PanelScanFsmSimulator
             if (CurrentState == FsmState.Error)
                 return;
 
+            _previousState = CurrentState;
             CurrentState = FsmState.Idle;
             LineCounter = 0;
+            LineWriteAddress = 0;
+
+            UpdateOutputSignals();
         }
     }
 
@@ -130,6 +195,20 @@ public sealed class PanelScanFsmSimulator
     }
 
     /// <summary>
+    /// Configures the separate ROIC settle and ADC conversion timers.
+    /// </summary>
+    /// <param name="settleTicks">ROIC settle countdown ticks (8-bit, max 255)</param>
+    /// <param name="adcTicks">ADC conversion countdown ticks (8-bit, max 255)</param>
+    public void SetTimerParameters(byte settleTicks, byte adcTicks)
+    {
+        lock (_lock)
+        {
+            _settleTimeoutTicks = Math.Max(settleTicks, (byte)1);
+            _adcTimeoutTicks = Math.Max(adcTicks, (byte)1);
+        }
+    }
+
+    /// <summary>
     /// Triggers an error condition, transitioning FSM to ERROR state.
     /// Used for error injection testing.
     /// </summary>
@@ -139,7 +218,9 @@ public sealed class PanelScanFsmSimulator
         lock (_lock)
         {
             ErrorFlagsValue |= error;
+            _previousState = CurrentState;
             CurrentState = FsmState.Error;
+            UpdateOutputSignals();
         }
     }
 
@@ -152,9 +233,12 @@ public sealed class PanelScanFsmSimulator
         lock (_lock)
         {
             ErrorFlagsValue = ErrorFlags.None;
+            _previousState = CurrentState;
             CurrentState = FsmState.Idle;
             _currentTick = 0;
             LineCounter = 0;
+            LineWriteAddress = 0;
+            UpdateOutputSignals();
         }
     }
 
@@ -166,12 +250,17 @@ public sealed class PanelScanFsmSimulator
     {
         lock (_lock)
         {
+            _previousState = CurrentState;
             CurrentState = FsmState.Idle;
             FrameCounter = 0;
             LineCounter = 0;
             ErrorFlagsValue = ErrorFlags.None;
             _currentTick = 0;
             ActiveBank = 0;
+            LineWriteAddress = 0;
+            _settleTimer = 0;
+            _adcTimer = 0;
+            UpdateOutputSignals();
         }
     }
 
@@ -186,6 +275,7 @@ public sealed class PanelScanFsmSimulator
             if (CurrentState == FsmState.Idle || CurrentState == FsmState.Error)
                 return;
 
+            _previousState = CurrentState;
             _currentTick++;
 
             switch (CurrentState)
@@ -206,6 +296,8 @@ public sealed class PanelScanFsmSimulator
                     ProcessFrameDoneState();
                     break;
             }
+
+            UpdateOutputSignals();
         }
     }
 
@@ -234,11 +326,33 @@ public sealed class PanelScanFsmSimulator
         {
             CurrentState = FsmState.Readout;
             _currentTick = 0;
+            _settleTimer = _settleTimeoutTicks;
+            LineWriteAddress = 0;
         }
     }
 
     private void ProcessReadoutState()
     {
+        // Decrement settle timer first
+        if (_settleTimer > 0)
+        {
+            _settleTimer--;
+            return;
+        }
+
+        // Then decrement ADC timer
+        if (_adcTimer > 0)
+        {
+            _adcTimer--;
+            return;
+        }
+
+        // Increment write address during readout
+        if (LineWriteAddress < PanelCols)
+        {
+            LineWriteAddress++;
+        }
+
         if (_currentTick >= _gateOffTicks)
         {
             CurrentState = FsmState.LineDone;
@@ -260,6 +374,8 @@ public sealed class PanelScanFsmSimulator
             // Continue to next line
             CurrentState = FsmState.Readout;
             _currentTick = 0;
+            _settleTimer = _settleTimeoutTicks;
+            LineWriteAddress = 0;
         }
     }
 
@@ -272,14 +388,31 @@ public sealed class PanelScanFsmSimulator
             // Start next frame
             CurrentState = FsmState.Integrate;
             LineCounter = 0;
+            LineWriteAddress = 0;
         }
         else
         {
             // Return to idle (Single or Calibration mode)
             CurrentState = FsmState.Idle;
             LineCounter = 0;
+            LineWriteAddress = 0;
         }
 
         _currentTick = 0;
+    }
+
+    private void UpdateOutputSignals()
+    {
+        // GateOn: active during INTEGRATE state
+        GateOn = CurrentState == FsmState.Integrate;
+
+        // RoicSync: one-shot pulse on IDLE -> INTEGRATE transition
+        RoicSync = _previousState == FsmState.Idle && CurrentState == FsmState.Integrate;
+
+        // LineValid: active when READOUT transitions to LineDone (line data ready)
+        LineValid = CurrentState == FsmState.LineDone;
+
+        // FrameValid: active during FRAME_DONE state
+        FrameValid = CurrentState == FsmState.FrameDone;
     }
 }

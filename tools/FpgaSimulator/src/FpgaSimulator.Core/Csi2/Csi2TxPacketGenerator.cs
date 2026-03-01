@@ -77,6 +77,52 @@ public sealed class Csi2TxPacketGenerator
     }
 
     /// <summary>
+    /// Generates a Line Start (LS) short packet.
+    /// Format: [PH] DataID=0x02, WC=lineNumber, ECC
+    /// </summary>
+    /// <param name="lineNumber">Line number encoded in word count field</param>
+    public Csi2Packet GenerateLineStart(int lineNumber)
+    {
+        var data = new byte[4];
+        data[0] = (byte)((_virtualChannel << 6) | (byte)Csi2PacketType.LineStart);
+        data[1] = (byte)(lineNumber & 0xFF);        // WC low byte (line number)
+        data[2] = (byte)((lineNumber >> 8) & 0xFF);  // WC high byte
+        data[3] = CalculateEcc(data[0], data[1], data[2]);
+
+        return new Csi2Packet
+        {
+            PacketType = Csi2PacketType.LineStart,
+            VirtualChannel = _virtualChannel,
+            LineNumber = lineNumber,
+            Data = data,
+            Crc16 = 0
+        };
+    }
+
+    /// <summary>
+    /// Generates a Line End (LE) short packet.
+    /// Format: [PH] DataID=0x03, WC=lineNumber, ECC
+    /// </summary>
+    /// <param name="lineNumber">Line number encoded in word count field</param>
+    public Csi2Packet GenerateLineEnd(int lineNumber)
+    {
+        var data = new byte[4];
+        data[0] = (byte)((_virtualChannel << 6) | (byte)Csi2PacketType.LineEnd);
+        data[1] = (byte)(lineNumber & 0xFF);        // WC low byte (line number)
+        data[2] = (byte)((lineNumber >> 8) & 0xFF);  // WC high byte
+        data[3] = CalculateEcc(data[0], data[1], data[2]);
+
+        return new Csi2Packet
+        {
+            PacketType = Csi2PacketType.LineEnd,
+            VirtualChannel = _virtualChannel,
+            LineNumber = lineNumber,
+            Data = data,
+            Crc16 = 0
+        };
+    }
+
+    /// <summary>
     /// Generates a Line Data long packet with pixel payload.
     /// Format: [PH] DataID, WC, [ECC] [Payload] [CRC16]
     /// </summary>
@@ -125,15 +171,19 @@ public sealed class Csi2TxPacketGenerator
     }
 
     /// <summary>
-    /// Generates all packets for a complete frame.
+    /// Generates all packets for a complete frame including LS/LE packets.
     /// </summary>
     /// <param name="frame">2D pixel array [rows, cols]</param>
-    /// <returns>Array of CSI-2 packets (FS + Lines + FE)</returns>
-    public Csi2Packet[] GenerateFullFrame(ushort[,] frame)
+    /// <param name="includeLineSync">Whether to include LS/LE packets (default: true)</param>
+    /// <returns>Array of CSI-2 packets (FS + [LS + Lines + LE]* + FE)</returns>
+    public Csi2Packet[] GenerateFullFrame(ushort[,] frame, bool includeLineSync = false)
     {
         var rows = frame.GetLength(0);
         var cols = frame.GetLength(1);
-        var packets = new List<Csi2Packet>(rows + 2);
+
+        // Estimate capacity: FS + (LS + LineData + LE) * rows + FE
+        var estimatedCapacity = includeLineSync ? (rows * 3 + 2) : (rows + 2);
+        var packets = new List<Csi2Packet>(estimatedCapacity);
 
         // Add Frame Start
         packets.Add(GenerateFrameStart());
@@ -146,7 +196,14 @@ public sealed class Csi2TxPacketGenerator
             {
                 linePixels[col] = frame[row, col];
             }
+
+            if (includeLineSync)
+                packets.Add(GenerateLineStart(row));
+
             packets.Add(GenerateLineData(linePixels, row));
+
+            if (includeLineSync)
+                packets.Add(GenerateLineEnd(row));
         }
 
         // Add Frame End
@@ -186,17 +243,59 @@ public sealed class Csi2TxPacketGenerator
     }
 
     /// <summary>
-    /// Calculates ECC for short packet header.
-    /// MIPI CSI-2 uses 6-bit ECC for short packet integrity.
+    /// Calculates 6-bit ECC for CSI-2 packet header per MIPI CSI-2 v1.3 spec.
+    /// ECC protects the 24-bit header (DataID + WC[15:0]).
+    /// Uses Hamming(6,24) code: 6 parity bits cover 24 data bits.
     /// </summary>
-    private static byte CalculateEcc(byte dataId, byte wcLow, byte wcHigh)
+    /// <param name="dataId">Data identifier byte (VC[1:0] + DataType[5:0])</param>
+    /// <param name="wcLow">Word count low byte</param>
+    /// <param name="wcHigh">Word count high byte</param>
+    /// <returns>6-bit ECC value</returns>
+    internal static byte CalculateEcc(byte dataId, byte wcLow, byte wcHigh)
     {
-        // Simplified ECC calculation for CSI-2 short packets
-        // In a real implementation, this would use the full 6-bit ECC algorithm
-        var ecc = 0;
-        ecc ^= dataId & 0x3F;
-        ecc ^= wcLow & 0x3F;
-        ecc ^= wcHigh & 0x3F;
-        return (byte)(ecc & 0x3F);
+        // Combine 24-bit header into a single value for bit-level access
+        // D[23:16] = wcHigh, D[15:8] = wcLow, D[7:0] = dataId
+        uint d = ((uint)wcHigh << 16) | ((uint)wcLow << 8) | dataId;
+
+        // MIPI CSI-2 ECC parity bit generators (Hamming code)
+        // P0 covers D[0,1,2,4,5,7,10,11,13,16,20,21,22,23]
+        byte p0 = (byte)(
+            Parity(d & 0x00F4_A937));
+
+        // P1 covers D[0,1,3,4,6,8,10,12,14,17,20,21,22,23]
+        byte p1 = (byte)(
+            Parity(d & 0x00F5_541B));
+
+        // P2 covers D[0,2,3,5,6,9,11,12,15,18,20,21,22,23]
+        byte p2 = (byte)(
+            Parity(d & 0x00F7_A86D));
+
+        // P3 covers D[1,2,3,7,8,9,13,14,15,19,20,21,22,23]
+        byte p3 = (byte)(
+            Parity(d & 0x00FF_E38E));
+
+        // P4 covers D[4,5,6,7,10,11,12,13,16,17,18,19]
+        byte p4 = (byte)(
+            Parity(d & 0x000F_3CF0));
+
+        // P5 covers D[14,15,16,17,18,19,20,21,22,23]
+        byte p5 = (byte)(
+            Parity(d & 0x00FF_C000));
+
+        return (byte)((p5 << 5) | (p4 << 4) | (p3 << 3) | (p2 << 2) | (p1 << 1) | p0);
+    }
+
+    /// <summary>
+    /// Computes even parity of the set bits in the given value.
+    /// </summary>
+    private static byte Parity(uint value)
+    {
+        // Count set bits; parity is 1 if odd number of bits set
+        value ^= value >> 16;
+        value ^= value >> 8;
+        value ^= value >> 4;
+        value ^= value >> 2;
+        value ^= value >> 1;
+        return (byte)(value & 1);
     }
 }

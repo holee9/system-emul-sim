@@ -82,6 +82,7 @@ public class IT07_SequenceEngineTests
         fsm.SetScanMode(ScanMode.Continuous);
         fsm.SetPanelDimensions(4, 4); // Very small panel for fast testing
         fsm.SetGateTiming(2, 1); // Very fast timing: 2 ticks gate_on, 1 tick gate_off
+        fsm.SetTimerParameters(1, 1); // Minimal settle/ADC timers for fast testing
 
         // Act - Start continuous scan
         fsm.StartScan();
