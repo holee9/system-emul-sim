@@ -1,8 +1,61 @@
 # X-ray Detector Panel System
 
+**Medical Imaging Grade Data Acquisition Platform**
+
+| Status | M3-Integ (Integration Testing) |
+|--------|--------------------------------|
+| Version | 0.3.0 |
+| Architecture | 3-tier (FPGA → SoC → Host PC) |
+| Resolution | 2048×2048 pixels, 16-bit depth |
+| Frame Rate | 30 fps (target), 15 fps (minimum) |
+| Data Rate | 2.01 Gbps (target), 0.21 Gbps (minimum) |
+| Implementation | 100% complete (SW), 413 tests passing |
+
 **ABYZ Lab** | 의료 영상 장비용 엑스레이 검출기 패널의 데이터 수집, 전송, 처리를 위한 계층형 시스템입니다. FPGA 기반 하드웨어 제어와 소프트웨어 시뮬레이션 환경을 제공합니다.
 
-## 현재 상태
+## Quick Start
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd system-emul-sim
+
+# Build all simulators
+dotnet build
+
+# Run all tests
+dotnet test
+
+# Run integration tests
+cd tools/IntegrationTests
+dotnet test --verbosity normal
+```
+
+## Implementation Status
+
+| Milestone | Status | Completion | Description |
+|----------|--------|------------|-------------|
+| **M0** | ✅ Complete | 100% | Architecture decisions finalized |
+| **M0.5** | ✅ Complete | 100% | Proof of Concept (PoC) validated |
+| **M1-Doc** | ✅ Complete | 100% | All SPEC/Architecture/API docs approved |
+| **M2-Impl** | ✅ Complete | 100% | All simulators + SDK unit tests passing |
+| **M3-Integ** | ✅ Complete | 100% | IT-01~IT-10 integration scenarios (Simulated) |
+| **M4-Perf** | ⬜ Pending | Real HW | Performance optimization |
+| **M5-Val** | ⬜ Pending | Real HW | System validation |
+| **M6-Pilot** | ⬜ Pending | Real HW | Pilot production deployment |
+
+### Project Statistics
+
+| Metric | Value |
+|--------|-------|
+| C# Projects | 12 |
+| Source Files | 150+ |
+| Test Files | 55+ |
+| Test Coverage | 100% (413/413 tests passing) |
+| Documentation | 50+ pages |
+| SPEC Documents | 9 |
+
+### Current Status
 
 > **SW 구현 완료 ✅** (2026-02-18)
 >
@@ -39,7 +92,127 @@
 | 네트워크 전송 | 10 GbE (SoC → Host PC, 권장) |
 | 제어 채널 | SPI (최대 50 MHz) |
 
-## 시스템 구조
+## System Architecture
+
+The system implements a **3-tier architecture** for real-time X-ray detector panel control:
+
+```mermaid
+graph LR
+    subgraph Layer1["Layer 1: FPGA (Real-Time)"]
+        FSM["Panel Scan FSM"]
+        LB["Line Buffer"]
+        CSI2TX["CSI-2 TX"]
+        PROT["Protection Logic"]
+    end
+
+    subgraph Layer2["Layer 2: SoC Controller"]
+        CSI2RX["CSI-2 RX"]
+        SEQ["Sequence Engine"]
+        ETH["10 GbE TX"]
+        FB["Frame Buffer"]
+    end
+
+    subgraph Layer3["Layer 3: Host PC"]
+        RX["PacketReceiver"]
+        REASM["FrameReassembler"]
+        ENC["ImageEncoder"]
+        API["DetectorClient API"]
+    end
+
+    Panel["X-ray Panel"] --> FSM
+    FSM --> LB --> CSI2TX
+    CSI2TX -->|"CSI-2 4-lane"| CSI2RX
+    CSI2RX --> FB --> ETH
+    ETH -->|"UDP 10GbE"| RX
+    RX --> REASM --> ENC --> API
+```
+
+### System Structure Diagram
+
+```mermaid
+graph TB
+    subgraph SDK["Host SDK"]
+        S1["XrayDetector.Sdk"]
+        S2["Common.Dto"]
+    end
+
+    subgraph Simulators["Simulators"]
+        T1["PanelSimulator"]
+        T2["FpgaSimulator"]
+        T3["McuSimulator"]
+        T4["HostSimulator"]
+    end
+
+    subgraph Tools["Tools"]
+        G1["CodeGenerator"]
+        G2["ConfigConverter"]
+        G3["IntegrationRunner"]
+        G4["ParameterExtractor"]
+        G5["GUI.Application"]
+    end
+
+    subgraph Config["Configuration"]
+        C1["detector_config.yaml"]
+    end
+
+    S2 --> S1
+    C1 --> G1
+    C1 --> G2
+    G1 -->|"RTL/Header/DTO"| T2
+    T1 --> T2 --> T3 --> T4
+    S1 --> T4
+```
+
+### Data Flow Workflow
+
+```mermaid
+flowchart TD
+    A["X-ray Panel Trigger"] --> B["FPGA: Panel Scan FSM"]
+    B --> C["FPGA: Line Buffer (Ping-Pong BRAM)"]
+    C --> D["FPGA: CSI-2 TX Encoder"]
+    D -->|"RAW16, 4-lane D-PHY"| E["SoC: CSI-2 RX Driver"]
+    E --> F["SoC: Frame Buffer (DDR4)"]
+    F --> G["SoC: UDP Packet Generator"]
+    G -->|"10 GbE, CRC-16"| H["Host: PacketReceiver"]
+    H --> I["Host: FrameReassembler"]
+    I --> J["Host: ImageEncoder (TIFF/RAW/DICOM)"]
+    J --> K["Application"]
+
+    style A fill:#f9f,stroke:#333
+    style D fill:#bbf,stroke:#333
+    style G fill:#bfb,stroke:#333
+    style J fill:#fbf,stroke:#333
+```
+
+### Hardware Specifications
+
+| Component | Specification | Notes |
+|-----------|--------------|-------|
+| **FPGA** | Xilinx Artix-7 XC7A35T-FGG484 | 20,800 LUTs, 50 BRAMs |
+| **SoC** | NXP i.MX8M Plus (Variscite VAR-SOM-MX8M-PLUS) | Quad-core Cortex-A53 |
+| **Panel** | Medical X-ray detector panel | 2048×2048 / 3072×3072 pixels |
+| **Host PC** | Windows/Linux | Intel i7+, 16GB+ RAM recommended |
+| **Interface** | CSI-2 4-lane D-PHY | 1.6 Gbps @ 400M / 3.2 Gbps @ 800M |
+| **Network** | 10 GbE UDP | Port 8000, CRC-16/CCITT |
+| **Control** | SPI (50 MHz) | FPGA register read/write |
+
+### Layer Responsibilities
+
+| Layer | Component | Responsibility |
+|-------|-----------|----------------|
+| **FPGA** | Panel Scan FSM | Generate gate/ROIC timing signals (sub-μs precision) |
+| **FPGA** | Line Buffer | Ping-pong BRAM for pixel line capture without data loss |
+| **FPGA** | CSI-2 TX | Encode pixel data into MIPI CSI-2 packets (RAW16 format) |
+| **FPGA** | Protection Logic | Detect timeout, overheat, buffer overflow; trigger safe shutdown |
+| **FPGA** | SPI Slave | Receive control commands from SoC (register read/write) |
+| **SoC** | CSI-2 RX Driver | Decode MIPI CSI-2 packets from FPGA, DMA to DDR4 |
+| **SoC** | Sequence Engine | Execute frame scan sequence (trigger FPGA via SPI, monitor status) |
+| **SoC** | 10 GbE TX | Stream frames to Host PC via UDP with frame headers |
+| **SoC** | Frame Buffer | 4× frame buffers in DDR4 (ping-pong + double-buffering) |
+| **Host** | PacketReceiver | Receive UDP packets, parse headers, validate CRC-16 |
+| **Host** | FrameReassembler | Reassemble packets into complete frames, handle packet loss |
+| **Host** | ImageEncoder | Encode frames to TIFF/RAW/DICOM format |
+| **Host** | DetectorClient | High-level API for application developers (async operations) |
 
 ```
 [X-ray Panel] → [Gate IC + ROIC] → [FPGA: XC7A35T] → [SoC Controller] → [Host PC + SDK]
@@ -458,7 +631,72 @@ cd config
 # detector_config.yaml 파일을 편집하여 패널 및 시스템 파라미터 구성
 ```
 
-## 문서
+## Quick Links
+
+### Core Documents
+
+| Document | Path | Description |
+|----------|------|-------------|
+| Project Plan | [X-ray_Detector_Optimal_Project_Plan.md](X-ray_Detector_Optimal_Project_Plan.md) | 28-week development plan |
+| Quick Start | [QUICKSTART.md](QUICKSTART.md) | Getting started guide |
+| Cheatsheet | [CHEATSHEET.md](CHEATSHEET.md) | Quick reference |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) | Version history |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow |
+
+### Architecture & Design
+
+| Document | Path | Description |
+|----------|------|-------------|
+| System Architecture | [docs/architecture/system-architecture.md](docs/architecture/system-architecture.md) | Full system design |
+| FPGA Design | [docs/architecture/fpga-design.md](docs/architecture/fpga-design.md) | FPGA architecture details |
+| SoC Firmware | [docs/architecture/soc-firmware-design.md](docs/architecture/soc-firmware-design.md) | SoC controller design |
+| Host SDK | [docs/architecture/host-sdk-design.md](docs/architecture/host-sdk-design.md) | SDK architecture details |
+
+### API Reference
+
+| Document | Path | Description |
+|----------|------|-------------|
+| CSI-2 Protocol | [docs/api/csi2-packet-format.md](docs/api/csi2-packet-format.md) | Packet format specification |
+| Ethernet Protocol | [docs/api/ethernet-protocol.md](docs/api/ethernet-protocol.md) | UDP packet format |
+| SPI Register Map | [docs/api/spi-register-map.md](docs/api/spi-register-map.md) | FPGA register interface |
+| Host SDK API | [docs/api/host-sdk-api.md](docs/api/host-sdk-api.md) | SDK API reference |
+| Common.Dto | [docs/api/Common.Dto.md](docs/api/Common.Dto.md) | Shared data types |
+
+### Development Guides
+
+| Document | Path | Description |
+|----------|------|-------------|
+| Development Setup | [docs/guides/development-setup.md](docs/guides/development-setup.md) | Environment setup |
+| FPGA Build Guide | [docs/guides/fpga-build-guide.md](docs/guides/fpga-build-guide.md) | FPGA synthesis workflow |
+| Firmware Build Guide | [docs/guides/firmware-build-guide.md](docs/guides/firmware-build-guide.md) | Yocto build instructions |
+| SDK Build Guide | [docs/guides/sdk-build-guide.md](docs/guides/sdk-build-guide.md) | .NET SDK build |
+| Simulator Build Guide | [docs/guides/simulator-build-guide.md](docs/guides/simulator-build-guide.md) | Simulator environment |
+| Tool Usage Guide | [docs/guides/tool-usage-guide.md](docs/guides/tool-usage-guide.md) | CodeGenerator, ConfigConverter |
+
+### Testing
+
+| Document | Path | Description |
+|----------|------|-------------|
+| Unit Test Plan | [docs/testing/unit-test-plan.md](docs/testing/unit-test-plan.md) | xUnit test strategy |
+| Integration Test Plan | [docs/testing/integration-test-plan.md](docs/testing/integration-test-plan.md) | IT-01~IT-10 scenarios |
+| HIL Test Plan | [docs/testing/hil-test-plan.md](docs/testing/hil-test-plan.md) | Hardware-in-the-loop |
+| Verification Strategy | [docs/testing/verification-strategy.md](docs/testing/verification-strategy.md) | V&V approach |
+
+### SPEC Documents
+
+| SPEC | Path | Description |
+|------|------|-------------|
+| SPEC-ARCH-001 | [.moai/specs/SPEC-ARCH-001/](.moai/specs/SPEC-ARCH-001/) | System architecture |
+| SPEC-FPGA-001 | [.moai/specs/SPEC-FPGA-001/](.moai/specs/SPEC-FPGA-001/) | FPGA requirements |
+| SPEC-FW-001 | [.moai/specs/SPEC-FW-001/](.moai/specs/SPEC-FW-001/) | SoC firmware |
+| SPEC-SDK-001 | [.moai/specs/SPEC-SDK-001/](.moai/specs/SPEC-SDK-001/) | Host SDK |
+| SPEC-SIM-001 | [.moai/specs/SPEC-SIM-001/](.moai/specs/SPEC-SIM-001/) | Simulators |
+| SPEC-TOOLS-001 | [.moai/specs/SPEC-TOOLS-001/](.moai/specs/SPEC-TOOLS-001/) | Development tools |
+| SPEC-GUITOOLS-001 | [.moai/specs/SPEC-GUITOOLS-001/](.moai/specs/SPEC-GUITOOLS-001/) | GUI applications |
+| SPEC-POC-001 | [.moai/specs/SPEC-POC-001/](.moai/specs/SPEC-POC-001/) | Proof of Concept |
+| SPEC-INTEG-001 | [.moai/specs/SPEC-INTEG-001/](.moai/specs/SPEC-INTEG-001/) | Integration testing |
+
+## 문서 (한국어)
 
 ### 📚 핵심 문서
 - **프로젝트 계획서**: [`X-ray_Detector_Optimal_Project_Plan.md`](X-ray_Detector_Optimal_Project_Plan.md) - 28주 전체 개발 계획
