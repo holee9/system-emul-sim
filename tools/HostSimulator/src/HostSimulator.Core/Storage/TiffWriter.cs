@@ -50,7 +50,7 @@ public sealed class TiffWriter : IFrameStorage
         // Calculate TIFF structure
         int pixelDataSize = frame.Width * frame.Height * 2;
         int headerSize = 8;
-        int ifdEntryCount = 11;
+        int ifdEntryCount = 12;
         int ifdSize = 2 + (ifdEntryCount * 12) + 4;
         int xResolutionOffset = headerSize + ifdSize;
         int yResolutionOffset = xResolutionOffset + 8;

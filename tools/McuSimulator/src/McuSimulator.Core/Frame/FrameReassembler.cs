@@ -1,3 +1,4 @@
+using System.Collections;
 using FpgaSimulator.Core.Csi2;
 using McuSimulator.Core.Csi2;
 
@@ -26,8 +27,8 @@ public readonly record struct ReassembledFrame
     /// <summary>2D pixel array [rows, cols] - contains zeros for missing packets</summary>
     public required ushort[,] Pixels { get; init; }
 
-    /// <summary>Bitmap of received lines (bit N set = line N received)</summary>
-    public required ulong ReceivedLineBitmap { get; init; }
+    /// <summary>Bitmap of received lines (bit N set = line N received). Supports arbitrary frame sizes.</summary>
+    public required BitArray ReceivedLineBitmap { get; init; }
 }
 
 /// <summary>
@@ -102,11 +103,11 @@ public sealed class FrameReassembler
                 TotalPixels = 0,
                 ReceivedLineCount = _lines.Count,
                 Pixels = new ushort[0, 0],
-                ReceivedLineBitmap = 0
+                ReceivedLineBitmap = new BitArray(0)
             };
 
-        // Determine dimensions
-        int rows = _lines.Count;
+        // Determine dimensions from max line number + 1
+        int rows = _lines.Keys.Count > 0 ? _lines.Keys.Max() + 1 : _lines.Count;
         int cols = _maxCols;
 
         if (rows == 0 || cols == 0)
@@ -118,15 +119,15 @@ public sealed class FrameReassembler
                 TotalPixels = 0,
                 ReceivedLineCount = _lines.Count,
                 Pixels = new ushort[0, 0],
-                ReceivedLineBitmap = 0
+                ReceivedLineBitmap = new BitArray(0)
             };
 
-        // Build bitmap of received lines
-        ulong bitmap = 0;
+        // Build bitmap of received lines (supports arbitrary frame sizes)
+        var bitmap = new BitArray(rows);
         foreach (var lineNum in _lines.Keys)
         {
-            if (lineNum < 64)
-                bitmap |= 1UL << lineNum;
+            if (lineNum < rows)
+                bitmap[lineNum] = true;
         }
 
         // Assemble frame, handling missing lines

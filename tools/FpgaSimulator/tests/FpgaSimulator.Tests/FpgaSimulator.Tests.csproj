@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FpgaSimulator.Core\FpgaSimulator.Core.csproj" />
+    <ProjectReference Include="..\..\..\McuSimulator\src\McuSimulator.Core\McuSimulator.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,3 +1,13 @@
+using System.Collections;
+using Common.Dto.Dtos;
+using McuSimulator.Core.Csi2;
+using McuSimulator.Core.Frame;
+using McuSimulator.Core.Network;
+using HostSimulator.Core.Configuration;
+using PanelSimulator.Models;
+using Csi2Packet = FpgaSimulator.Core.Csi2.Csi2Packet;
+using Csi2TxPacketGenerator = FpgaSimulator.Core.Csi2.Csi2TxPacketGenerator;
+
 namespace IntegrationTests.Helpers;
 
 /// <summary>
@@ -16,8 +26,35 @@ public enum PerformanceTier
 }
 
 /// <summary>
-/// Builder for setting up FPGA -> SoC -> Host simulator pipeline.
-/// Configures performance tiers and manages pipeline lifecycle.
+/// Result of a full 4-layer pipeline execution with intermediate checkpoints.
+/// </summary>
+public sealed class PipelineCheckpointResult
+{
+    /// <summary>Whether the entire pipeline completed successfully.</summary>
+    public required bool IsValid { get; init; }
+
+    /// <summary>Panel output: 1D pixel array as FrameData.</summary>
+    public required FrameData PanelOutput { get; init; }
+
+    /// <summary>Panel output converted to 2D pixel array [rows, cols].</summary>
+    public required ushort[,] PanelPixels2D { get; init; }
+
+    /// <summary>FPGA output: CSI-2 packets (FS + LineData[] + FE).</summary>
+    public required Csi2Packet[] FpgaCsi2Packets { get; init; }
+
+    /// <summary>MCU reassembled frame from CSI-2 packets.</summary>
+    public required ReassembledFrame McuReassembledFrame { get; init; }
+
+    /// <summary>MCU UDP packets after fragmentation.</summary>
+    public required List<UdpFramePacket> McuUdpPackets { get; init; }
+
+    /// <summary>Host output: final reassembled FrameData.</summary>
+    public required FrameData? HostOutput { get; init; }
+}
+
+/// <summary>
+/// Builder for setting up Panel -> FPGA -> MCU -> Host simulator pipeline.
+/// Configures performance tiers and manages actual 4-layer pipeline execution.
 /// </summary>
 public class SimulatorPipelineBuilder
 {
@@ -71,7 +108,6 @@ public class SimulatorPipelineBuilder
     /// <summary>
     /// Builds and returns the pipeline configuration.
     /// </summary>
-    /// <returns>Current pipeline configuration.</returns>
     public PipelineConfiguration BuildPipeline()
     {
         return _configurations[_tier];
@@ -80,8 +116,6 @@ public class SimulatorPipelineBuilder
     /// <summary>
     /// Configures the pipeline for the specified performance tier.
     /// </summary>
-    /// <param name="tier">Performance tier to configure.</param>
-    /// <returns>This builder for method chaining.</returns>
     public SimulatorPipelineBuilder ConfigureForTier(PerformanceTier tier)
     {
         if (_isRunning)
@@ -102,8 +136,6 @@ public class SimulatorPipelineBuilder
 
         _isRunning = true;
         OnStateChanged(new PipelineStateChangedEventArgs(_tier, _configurations[_tier], true));
-
-        // In a real implementation, this would start the actual simulators
         return Task.CompletedTask;
     }
 
@@ -117,16 +149,12 @@ public class SimulatorPipelineBuilder
 
         _isRunning = false;
         OnStateChanged(new PipelineStateChangedEventArgs(_tier, _configurations[_tier], false));
-
-        // In a real implementation, this would stop the actual simulators
         return Task.CompletedTask;
     }
 
     /// <summary>
     /// Gets the configuration for a specific tier.
     /// </summary>
-    /// <param name="tier">Performance tier.</param>
-    /// <returns>Pipeline configuration for the tier.</returns>
     public PipelineConfiguration GetConfiguration(PerformanceTier tier)
     {
         return _configurations[tier];
@@ -135,14 +163,116 @@ public class SimulatorPipelineBuilder
     /// <summary>
     /// Creates a custom configuration for a tier.
     /// </summary>
-    /// <param name="tier">Tier to configure.</param>
-    /// <param name="configuration">Custom configuration.</param>
     public void SetCustomConfiguration(PerformanceTier tier, PipelineConfiguration configuration)
     {
         if (_isRunning)
             throw new InvalidOperationException("Cannot modify configuration while pipeline is running.");
 
         _configurations[tier] = configuration;
+    }
+
+    /// <summary>
+    /// Executes the full 4-layer pipeline: Panel -> FPGA -> MCU -> Host.
+    /// Returns the final FrameData from the Host layer.
+    /// </summary>
+    /// <param name="panelConfig">Panel simulator configuration.</param>
+    /// <returns>Final FrameData after full pipeline processing.</returns>
+    public FrameData ProcessFrame(PanelConfig panelConfig)
+    {
+        var result = ProcessFrameWithCheckpoints(panelConfig);
+        return result.HostOutput ?? throw new InvalidOperationException("Pipeline failed to produce output.");
+    }
+
+    /// <summary>
+    /// Executes the full 4-layer pipeline with intermediate checkpoints.
+    /// Returns detailed results at each layer boundary for data integrity verification.
+    /// </summary>
+    /// <param name="panelConfig">Panel simulator configuration.</param>
+    /// <returns>Checkpoint result with intermediate data at each layer.</returns>
+    public PipelineCheckpointResult ProcessFrameWithCheckpoints(PanelConfig panelConfig)
+    {
+        // Layer 1: Panel - Generate pixel data
+        var panel = new PanelSimulator.PanelSimulator();
+        panel.Initialize(panelConfig);
+        var panelOutput = (FrameData)panel.Process(new object());
+
+        // Convert 1D pixels to 2D array for FPGA input
+        var pixels2D = ConvertTo2D(panelOutput.Pixels, panelOutput.Height, panelOutput.Width);
+
+        // Layer 2: FPGA - Convert to CSI-2 packets
+        var csi2Tx = new Csi2TxPacketGenerator();
+        var csi2Packets = csi2Tx.GenerateFullFrame(pixels2D);
+
+        // Layer 3: MCU - Reassemble CSI-2 packets into frame, then fragment to UDP
+        var mcuReassembler = new FrameReassembler();
+        foreach (var packet in csi2Packets)
+        {
+            mcuReassembler.AddPacket(packet);
+        }
+        var mcuFrame = mcuReassembler.GetFrame();
+
+        // MCU UDP transmission
+        var udpTransmitter = new UdpFrameTransmitter();
+        var udpPackets = udpTransmitter.FragmentFrame(mcuFrame.Pixels, (uint)panelOutput.FrameNumber);
+
+        // Layer 4: Host - Receive UDP packets and reassemble
+        var hostSim = new HostSimulator.Core.HostSimulator();
+        hostSim.Initialize(new HostConfig { PacketTimeoutMs = 5000 });
+
+        FrameData? hostOutput = null;
+        foreach (var udpPacket in udpPackets)
+        {
+            var result = hostSim.Process(udpPacket.Data);
+            if (result is FrameData fd)
+            {
+                hostOutput = fd;
+            }
+        }
+
+        return new PipelineCheckpointResult
+        {
+            IsValid = hostOutput != null,
+            PanelOutput = panelOutput,
+            PanelPixels2D = pixels2D,
+            FpgaCsi2Packets = csi2Packets,
+            McuReassembledFrame = mcuFrame,
+            McuUdpPackets = udpPackets,
+            HostOutput = hostOutput
+        };
+    }
+
+    /// <summary>
+    /// Converts a 1D pixel array to a 2D array [rows, cols].
+    /// </summary>
+    internal static ushort[,] ConvertTo2D(ushort[] pixels, int rows, int cols)
+    {
+        var result = new ushort[rows, cols];
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                result[r, c] = pixels[r * cols + c];
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Converts a 2D pixel array [rows, cols] to a 1D array.
+    /// </summary>
+    internal static ushort[] ConvertTo1D(ushort[,] pixels)
+    {
+        int rows = pixels.GetLength(0);
+        int cols = pixels.GetLength(1);
+        var result = new ushort[rows * cols];
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                result[r * cols + c] = pixels[r, c];
+            }
+        }
+        return result;
     }
 
     private void OnStateChanged(PipelineStateChangedEventArgs e)

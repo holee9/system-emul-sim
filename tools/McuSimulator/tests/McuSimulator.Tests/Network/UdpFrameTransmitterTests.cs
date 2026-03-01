@@ -116,8 +116,9 @@ public sealed class UdpFrameTransmitterTests
         // Act
         ushort crc = transmitter.CalculateCrc16(data);
 
-        // Assert - Reference value from ethernet-protocol.md
-        Assert.Equal(0x6F91, crc);
+        // Assert - CRC-16/CCITT (non-reflected, poly=0x1021, init=0xFFFF)
+        // Standard reference value for "123456789" = 0x29B1
+        Assert.Equal(0x29B1, crc);
     }
 
     [Fact]

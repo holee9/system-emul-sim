@@ -197,23 +197,26 @@ public sealed class UdpFrameTransmitter
 
     /// <summary>
     /// Calculates CRC-16/CCITT over data bytes.
+    /// Uses polynomial 0x1021 (non-reflected), initial value 0xFFFF.
+    /// Compatible with HostSimulator.Core.Reassembly.Crc16Ccitt.
     /// Implements ethernet-protocol.md Section 7.
     /// </summary>
     /// <param name="data">Input data</param>
     /// <returns>CRC-16 checksum</returns>
     public ushort CalculateCrc16(byte[] data)
     {
+        const ushort polynomial = 0x1021;
         ushort crc = 0xFFFF;
 
-        for (int i = 0; i < data.Length; i++)
+        foreach (var b in data)
         {
-            crc ^= (ushort)data[i];
-            for (int j = 0; j < 8; j++)
+            crc ^= (ushort)(b << 8);
+            for (int i = 0; i < 8; i++)
             {
-                if ((crc & 0x0001) != 0)
-                    crc = (ushort)((crc >> 1) ^ 0x8408);
+                if ((crc & 0x8000) != 0)
+                    crc = (ushort)((crc << 1) ^ polynomial);
                 else
-                    crc >>= 1;
+                    crc <<= 1;
             }
         }
 
