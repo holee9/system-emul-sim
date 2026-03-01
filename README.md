@@ -944,6 +944,7 @@ cd config
 - **문제 해결 가이드**: [`docs/guides/troubleshooting-guide.md`](docs/guides/troubleshooting-guide.md)
 
 ### 🎯 프로젝트 관리
+- **M3-Integ 완료보고서**: [`.moai/specs/SPEC-INTEG-001/completion-report.md`](.moai/specs/SPEC-INTEG-001/completion-report.md) - M3 통합 테스트 마일스톤 완료 보고
 - **WBS**: [`WBS.md`](WBS.md) - 작업 분류 체계 (8명 팀, W9-W28 Gantt, 리소스 매트릭스)
 - **프로젝트 로드맵**: [`docs/project/roadmap.md`](docs/project/roadmap.md) - M0-M6 마일스톤, W1-W28 일정
 - **용어집**: [`docs/project/glossary.md`](docs/project/glossary.md) - 기술 용어 정의
