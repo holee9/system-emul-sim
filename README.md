@@ -40,9 +40,10 @@ dotnet test --verbosity normal
 | **M1-Doc** | ✅ Complete | 100% | All SPEC/Architecture/API docs approved |
 | **M2-Impl** | ✅ Complete | 100% | All simulators + SDK unit tests passing |
 | **M3-Integ** | ✅ Complete | 100% | IT-01~IT-12 integration scenarios + 4-layer bit-exact verification (Simulated) |
-| **M4-Perf** | ⬜ Pending | Real HW | Performance optimization |
-| **M5-Val** | ⬜ Pending | Real HW | System validation |
-| **M6-Pilot** | ⬜ Pending | Real HW | Pilot production deployment |
+| **M4-Emul** | 🔜 Planning | 0% | Emulator Module Revision — High-fidelity upgrade (SPEC-EMUL-001) |
+| **M5-Perf** | ⬜ Pending | Real HW | Performance optimization |
+| **M6-Val** | ⬜ Pending | Real HW | System validation |
+| **M7-Pilot** | ⬜ Pending | Real HW | Pilot production deployment |
 
 ### Project Statistics
 
@@ -54,10 +55,16 @@ dotnet test --verbosity normal
 | Test Coverage | 387/391 tests passing (4 skipped for CI stability) |
 | Code Coverage | 85%+ per module (Panel: 86.9%, FPGA: 98.7%, MCU: 92.3%, Host: 86.4%) |
 | Documentation | 50+ pages |
-| SPEC Documents | 9 |
+| SPEC Documents | 10 |
 
 ### Current Status
 
+> **M4-Emul 에뮬레이터 리비전 계획 수립** (2026-03-01)
+>
+> 에뮬레이터 모듈을 HW 설계 검증용 Golden Reference로 업그레이드하는 SPEC-EMUL-001 계획 수립 완료.
+> 5-Phase 구현 계획 (MCU 완성 → FPGA 강화 → Panel 물리 → 파이프라인 실체화 → CLI 독립 실행)
+> 168개 시뮬레이션/검증 시나리오 도출. 상세: [SPEC-EMUL-001](.moai/specs/SPEC-EMUL-001/spec.md)
+>
 > **M3-Integ 통합 테스트 완료 ✅** (2026-03-01)
 >
 > - PanelSimulator: 52 tests, 86.9% coverage
@@ -459,6 +466,84 @@ IT-12 Module Isolation ISimulator Contract... ✅ Passed
 
 총 테스트: 169개, 통과: 169개, 실패: 0개, 스킵: 4개
 ```
+
+## M4-Emul: Emulator Module Revision Roadmap
+
+### Overview
+
+현재 에뮬레이터는 기능적 정확성(Functional Correctness)에 초점을 두고 있습니다. M4-Emul에서는 **HW 설계 검증용 Golden Reference**로 업그레이드하여, 실제 하드웨어 구현 전에 프로토콜/타이밍/에러 처리를 사전 검증할 수 있도록 합니다.
+
+### Key Problems to Solve
+
+| Problem | Current State | Target State |
+|---------|--------------|--------------|
+| Pipeline Bypass | ProcessFrame()이 MCU/Host를 우회 | 4계층 실제 통과 (bit-exact) |
+| Empty Stubs | InjectError, SetPacketLossRate 등 빈 메서드 | 실제 동작하는 에러/네트워크 주입 |
+| Missing MCU Modules | SequenceEngine, FrameBufferManager, HealthMonitor 미구현 | fw/ C 코드 1:1 C# 포팅 완료 |
+| FPGA Gaps | Protection Logic 미구현, 제어 신호 미출력 (~65%) | 제어 신호 + 보호 로직 + 타이밍 (~85%) |
+| Panel Physics | Gaussian 노이즈만 | X선 응답, 복합 노이즈, 게인맵, Gate/ROIC |
+
+### 5-Phase Implementation Plan (SPEC-EMUL-001)
+
+```
+Phase 1: MCU/SoC 완성 ─── SequenceEngine + FrameBufferManager + HealthMonitor + CommandProtocol
+    ↓
+Phase 2: FPGA 강화 ─── 제어 신호 출력 + Protection Logic + CSI-2 보완 + 타이밍 모델
+    ↓
+Phase 3: Panel 물리 ─── X선 응답 + 복합 노이즈 + 게인/오프셋 맵 + Gate/ROIC 인터페이스
+    ↓
+Phase 4: 파이프라인 실체화 ─── 4계층 실제 연결 + NetworkChannel + 스텁 제거
+    ↓
+Phase 5: CLI 독립 실행 ─── 모듈별 CLI + 중간 데이터 직렬화
+```
+
+### Scope
+
+| Category | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Phase 5 | Total |
+|----------|---------|---------|---------|---------|---------|-------|
+| New source files | 15 | 5 | 10 | 3 | 9 | **42** |
+| Modified files | 3 | 4 | 2 | 4 | 5 | **18** |
+| New test files | 7 | 4 | 7 | 3 | 3 | **24** |
+
+### Verification Scenarios (168 Total)
+
+| Module | Scenarios | Coverage |
+|--------|-----------|----------|
+| Panel (X-ray) | 22 | Physics response, noise, calibration, Gate/ROIC |
+| FPGA (Artix-7) | 36 | FSM, control signals, protection, SPI, CSI-2 |
+| MCU (i.MX8MP) | 38 | SequenceEngine, FrameBuffer, Health, Command |
+| Network (10GbE) | 18 | Packet loss, reorder, delay, corruption |
+| Host (PC) | 12 | Reassembly, timeout, storage |
+| End-to-End | 15 | Normal, error, checkpoint, performance |
+| CLI | 18 | Standalone, pipeline, debug |
+| HW Verification | 15 | RTL validation, firmware dev, system integration |
+| **Total** | **168** | |
+
+### CLI Standalone Execution (Phase 5)
+
+```bash
+# Module-by-module pipeline execution
+panel-sim --rows 2048 --cols 2048 --kvp 80 --noise composite -o frame.raw
+fpga-sim  --input frame.raw --mode continuous --protection on -o packets.csi2
+mcu-sim   --input packets.csi2 --buffers 4 -o frames.udp
+host-sim  --input frames.udp --timeout 1000 -o result.tiff
+
+# Full pipeline with network fault injection
+integration-runner --config detector_config.yaml --frames 100 \
+    --loss-rate 0.05 --reorder-rate 0.1
+```
+
+### Follow-up SPECs
+
+| SPEC | Content | Trigger |
+|------|---------|---------|
+| SPEC-EMUL-002 | D-PHY Physical Layer (LP/HS, lane serialization) | Phase 2 done |
+| SPEC-EMUL-003 | NetworkSimulator Standalone Project | Phase 4 done |
+| SPEC-EMUL-004 | 3-Level Fidelity Interface (Level 0/1/2) | All phases done |
+| SPEC-EMUL-005 | DICOM Encoding Pipeline Integration | Phase 4 done |
+
+> See [SPEC-EMUL-001 Full Plan](.moai/specs/SPEC-EMUL-001/spec.md) for detailed implementation specification.
+> See [SPEC-EMUL-001 Scenarios](.moai/specs/SPEC-EMUL-001/scenarios.md) for all 168 verification scenarios.
 
 ## 핵심 기술 결정사항
 
@@ -915,6 +1000,7 @@ cd config
 | SPEC-GUITOOLS-001 | [.moai/specs/SPEC-GUITOOLS-001/](.moai/specs/SPEC-GUITOOLS-001/) | GUI applications |
 | SPEC-POC-001 | [.moai/specs/SPEC-POC-001/](.moai/specs/SPEC-POC-001/) | Proof of Concept |
 | SPEC-INTEG-001 | [.moai/specs/SPEC-INTEG-001/](.moai/specs/SPEC-INTEG-001/) | Integration testing |
+| SPEC-EMUL-001 | [.moai/specs/SPEC-EMUL-001/](.moai/specs/SPEC-EMUL-001/) | Emulator module revision (M4) |
 
 ## 문서 (한국어)
 
@@ -976,4 +1062,5 @@ cd config
 *Phase 1 교차검증 완전 승인: 2026-02-17 (Critical 10건 + Major 10건 수정 완료)*
 *SW 구현 완료: 2026-02-18 (전체 구현률 95-98%, SW 100%)*
 *M3-Integ 완료: 2026-03-01 (IT-01~IT-12, 4-layer bit-exact verification, 85%+ coverage)*
-*업데이트: 2026-03-01 — M3-Integ 통합 테스트 완료 반영*
+*M4-Emul 계획 수립: 2026-03-01 (SPEC-EMUL-001, 5-Phase 에뮬레이터 리비전, 168개 검증 시나리오)*
+*업데이트: 2026-03-01 — M4-Emul 에뮬레이터 리비전 계획 반영*
