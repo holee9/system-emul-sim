@@ -1,5 +1,7 @@
 namespace FpgaSimulator.Core.Spi;
 
+using FpgaSimulator.Core.Fsm;
+
 /// <summary>
 /// Simulates the FPGA SPI Slave interface and register map.
 /// Models SPI register access for SoC-FPGA communication.
@@ -11,6 +13,12 @@ public sealed class SpiSlaveSimulator
     private readonly Dictionary<ushort, ushort> _registers;
     private readonly HashSet<ushort> _readOnlyRegisters;
     private uint _frameCounter;
+
+    // ILA capture snapshot storage
+    private ushort _ilaCapture0;
+    private ushort _ilaCapture1;
+    private ushort _ilaCapture2;
+    private ushort _ilaCapture3;
 
     /// <summary>
     /// Initializes a new instance with default register values.
@@ -59,6 +67,12 @@ public sealed class SpiSlaveSimulator
             { SpiRegisterAddresses.TX_FRAME_COUNT, 0x0000 },
             { SpiRegisterAddresses.TX_ERROR_COUNT, 0x0000 },
 
+            // ILA Capture Registers
+            { SpiRegisterAddresses.ILA_CAPTURE_0, 0x0000 },
+            { SpiRegisterAddresses.ILA_CAPTURE_1, 0x0000 },
+            { SpiRegisterAddresses.ILA_CAPTURE_2, 0x0000 },
+            { SpiRegisterAddresses.ILA_CAPTURE_3, 0x0000 },
+
             // Version
             { SpiRegisterAddresses.VERSION, 0x0100 }, // v1.0.0
             { SpiRegisterAddresses.BUILD_DATE, 0x0217 }, // 2026-02-17
@@ -81,6 +95,11 @@ public sealed class SpiSlaveSimulator
             SpiRegisterAddresses.VERSION,
             SpiRegisterAddresses.BUILD_DATE
         };
+
+        _ilaCapture0 = 0;
+        _ilaCapture1 = 0;
+        _ilaCapture2 = 0;
+        _ilaCapture3 = 0;
     }
 
     /// <summary>Fixed device ID (0xA735 for Artix-7 35T)</summary>
@@ -95,6 +114,12 @@ public sealed class SpiSlaveSimulator
     {
         lock (_lock)
         {
+            // ILA capture registers return latched snapshot values
+            if (address == SpiRegisterAddresses.ILA_CAPTURE_0) return _ilaCapture0;
+            if (address == SpiRegisterAddresses.ILA_CAPTURE_1) return _ilaCapture1;
+            if (address == SpiRegisterAddresses.ILA_CAPTURE_2) return _ilaCapture2;
+            if (address == SpiRegisterAddresses.ILA_CAPTURE_3) return _ilaCapture3;
+
             return _registers.GetValueOrDefault(address, (ushort)0);
         }
     }
@@ -125,6 +150,69 @@ public sealed class SpiSlaveSimulator
             {
                 _registers[address] = value;
             }
+        }
+    }
+
+    /// <summary>
+    /// Updates the STATUS register in real-time from FSM state and buffer bank.
+    /// Called by the simulation controller to keep STATUS synchronized with FSM.
+    /// </summary>
+    /// <param name="status">Current FSM status snapshot</param>
+    public void UpdateStatusFromFsm(FsmStatus status)
+    {
+        lock (_lock)
+        {
+            // STATUS register bit layout:
+            // [0] idle, [1] busy, [2] error,
+            // [7:4] fsm_state, [11] active_bank, [15:12] scan_mode
+            ushort statusValue = 0;
+
+            if (status.IsIdle) statusValue |= 0x0001;
+            if (status.IsBusy) statusValue |= 0x0002;
+            if (status.HasError) statusValue |= 0x0004;
+
+            // Encode FSM state in bits [7:4]
+            statusValue |= (ushort)(((int)status.State & 0x0F) << 4);
+
+            // Active bank in bit [11]
+            statusValue |= (ushort)((status.ActiveBank & 0x01) << 11);
+
+            // Scan mode in bits [15:12]
+            statusValue |= (ushort)(((int)status.ScanMode & 0x0F) << 12);
+
+            _registers[SpiRegisterAddresses.STATUS] = statusValue;
+
+            // Update frame counter registers
+            _frameCounter = status.FrameCounter;
+            UpdateFrameCounterRegisters();
+
+            // Update error flags from FSM
+            _registers[SpiRegisterAddresses.ERROR_FLAGS] = (ushort)status.ErrorFlags;
+        }
+    }
+
+    /// <summary>
+    /// Captures an ILA (Integrated Logic Analyzer) snapshot of internal state.
+    /// Triggered on error conditions for post-mortem debugging.
+    /// </summary>
+    /// <param name="fsmState">Current FSM state encoding</param>
+    /// <param name="lineCounter">Current line counter value</param>
+    /// <param name="errorFlags">Current error flags</param>
+    /// <param name="extraData">Additional diagnostic data</param>
+    public void CaptureIlaSnapshot(ushort fsmState, ushort lineCounter, ushort errorFlags, ushort extraData)
+    {
+        lock (_lock)
+        {
+            _ilaCapture0 = fsmState;
+            _ilaCapture1 = lineCounter;
+            _ilaCapture2 = errorFlags;
+            _ilaCapture3 = extraData;
+
+            // Update the register map for GetAllRegisters consistency
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_0] = _ilaCapture0;
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_1] = _ilaCapture1;
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_2] = _ilaCapture2;
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_3] = _ilaCapture3;
         }
     }
 
@@ -184,6 +272,16 @@ public sealed class SpiSlaveSimulator
             _registers[SpiRegisterAddresses.PANEL_ROWS] = 1024;
             _registers[SpiRegisterAddresses.PANEL_COLS] = 1024;
             _registers[SpiRegisterAddresses.BIT_DEPTH] = 16;
+
+            // Clear ILA captures
+            _ilaCapture0 = 0;
+            _ilaCapture1 = 0;
+            _ilaCapture2 = 0;
+            _ilaCapture3 = 0;
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_0] = 0;
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_1] = 0;
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_2] = 0;
+            _registers[SpiRegisterAddresses.ILA_CAPTURE_3] = 0;
 
             UpdateStatusRegister();
         }

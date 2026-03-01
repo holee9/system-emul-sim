@@ -61,6 +61,9 @@ public class SimulatorPipelineBuilder
     private PerformanceTier _tier = PerformanceTier.Target;
     private bool _isRunning = false;
     private readonly Dictionary<PerformanceTier, PipelineConfiguration> _configurations;
+    private NetworkChannelConfig? _networkChannelConfig;
+    private bool _enableCheckpoints = false;
+    private HostSimulator.Core.Configuration.HostConfig? _hostConfig;
 
     /// <summary>
     /// Gets the current performance tier.
@@ -169,6 +172,59 @@ public class SimulatorPipelineBuilder
             throw new InvalidOperationException("Cannot modify configuration while pipeline is running.");
 
         _configurations[tier] = configuration;
+    }
+
+    /// <summary>
+    /// Configures the network channel with impairment settings.
+    /// </summary>
+    /// <param name="config">Network channel configuration.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public SimulatorPipelineBuilder WithNetworkChannel(NetworkChannelConfig config)
+    {
+        _networkChannelConfig = config ?? throw new ArgumentNullException(nameof(config));
+        return this;
+    }
+
+    /// <summary>
+    /// Enables or disables per-layer checkpoint capture.
+    /// </summary>
+    /// <param name="enabled">Whether to enable checkpoints.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public SimulatorPipelineBuilder WithCheckpoints(bool enabled)
+    {
+        _enableCheckpoints = enabled;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the host simulator settings.
+    /// </summary>
+    /// <param name="hostConfig">Host configuration.</param>
+    /// <returns>This builder instance for chaining.</returns>
+    public SimulatorPipelineBuilder WithHostConfig(HostSimulator.Core.Configuration.HostConfig hostConfig)
+    {
+        _hostConfig = hostConfig ?? throw new ArgumentNullException(nameof(hostConfig));
+        return this;
+    }
+
+    /// <summary>
+    /// Builds a SimulatorPipeline with the specified panel config and all builder settings.
+    /// </summary>
+    /// <param name="panelConfig">Panel simulator configuration.</param>
+    /// <returns>Configured SimulatorPipeline instance.</returns>
+    public SimulatorPipeline Build(PanelSimulator.Models.PanelConfig panelConfig)
+    {
+        ArgumentNullException.ThrowIfNull(panelConfig);
+
+        var networkChannel = _networkChannelConfig != null
+            ? new NetworkChannel(_networkChannelConfig)
+            : null;
+
+        return new SimulatorPipeline(
+            panelConfig: panelConfig,
+            networkChannel: networkChannel,
+            hostConfig: _hostConfig,
+            enableCheckpoints: _enableCheckpoints);
     }
 
     /// <summary>
