@@ -243,6 +243,87 @@ flowchart TD
 - **저장**: RAW, TIFF, (선택적) DICOM 형식 지원
 - **실시간 디스플레이**: 영상 뷰어
 
+## Simulators & Emulators
+
+이 프로젝트는 **실제 하드웨어 없이 전체 시스템을 검증**할 수 있는 소프트웨어 시뮬레이터를 제공합니다.
+
+> **중요**: Panel, FPGA, SoC는 실제 하드웨어가 아닌 **C# 기반 에뮬레이터**로 구현되었습니다.
+> 이를 통해 하드웨어 없이도 전체 데이터 흐름과 프로토콜을 검증할 수 있습니다.
+
+### Emulator Components
+
+| Emulator | Simulates | Purpose | Test Status |
+|----------|-----------|---------|-------------|
+| **PanelSimulator** | X-ray Detector Panel | 픽셀 매트릭스 생성, 노이즈/결함 시뮬레이션 | 52 tests passing |
+| **FpgaSimulator** | Xilinx Artix-7 FPGA | FSM, SPI Slave, Line Buffer, CSI-2 TX | 85 tests passing |
+| **McuSimulator** | NXP i.MX8M Plus SoC | SPI Master, CSI-2 RX, UDP Frame TX | 35 tests passing |
+| **HostSimulator** | Host PC SDK | UDP RX, Frame Reassembly, Image Storage | 36 tests passing |
+
+### Simulator Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  PanelSimulator │───▶│  FpgaSimulator  │───▶│  McuSimulator   │───▶│  HostSimulator  │
+│                 │    │                 │    │    (SoC)        │    │    (Host PC)    │
+│  Pixel Matrix   │    │  FSM + SPI      │    │  SPI Master     │    │  UDP Receiver   │
+│  Noise Model    │    │  Line Buffer    │    │  CSI-2 RX       │    │  Reassembly     │
+│  Test Patterns  │    │  CSI-2 TX       │    │  UDP TX         │    │  TIFF/RAW Save  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                      │                      │                      │
+        └──────────────────────┴──────────────────────┴──────────────────────┘
+                              Common.Dto (ISimulator Interface)
+```
+
+### What Each Simulator Emulates
+
+#### PanelSimulator (X-ray Panel Emulator)
+- **픽셀 매트릭스 생성**: 2048×2048 / 3072×3072, 14/16-bit depth
+- **노이즈 모델**: Gaussian noise, offset drift
+- **결함 시뮬레이션**: Hot pixels, dead pixels
+- **테스트 패턴**: Counter, Checkerboard, FlatField
+
+#### FpgaSimulator (FPGA Emulator)
+- **Panel Scan FSM**: Idle → Integrate → Readout → LineDone → FrameDone
+- **SPI Slave**: 레지스터 read/write (0x00-0xFF)
+- **Line Buffer**: Ping-Pong BRAM, overflow handling
+- **CSI-2 TX**: RAW16 packet encoding, 4-lane D-PHY
+
+#### McuSimulator (SoC Controller Emulator)
+- **SPI Master**: FPGA 레지스터 제어
+- **CSI-2 RX**: Packet parsing, validation
+- **Frame Buffer**: DDR4 4× buffer simulation
+- **UDP TX**: 10 GbE packet transmission with CRC-16
+
+#### HostSimulator (Host PC Emulator)
+- **UDP Receiver**: Packet reception, CRC validation
+- **Frame Reassembly**: Out-of-order packet handling, timeout detection
+- **Image Storage**: TIFF 16-bit, RAW + JSON sidecar
+
+### Integration Test Coverage
+
+| Test ID | Scenario | Status |
+|---------|----------|--------|
+| IT-01 | Full pipeline data integrity | ✅ Passing |
+| IT-02 | Performance (2048×2048@30fps, 300 frames) | ✅ Passing |
+| IT-03 | SPI configuration validation | ✅ Passing |
+| IT-04 | CSI-2 protocol validation | ✅ Passing |
+| IT-05 | Frame buffer overflow recovery | ✅ Passing |
+| IT-06 | HMAC authentication | ✅ Passing |
+| IT-07 | Sequence engine validation | ✅ Passing |
+| IT-08 | Packet loss retransmission | ✅ Passing |
+| IT-09 | Stress test (3072×3072@30fps, 60s) | ✅ Passing |
+| IT-10 | Latency measurement (p95 < 50ms) | ✅ Passing |
+
+### Total Test Statistics
+
+| Metric | Value |
+|--------|-------|
+| Unit Tests | 413 tests passing |
+| Integration Tests | 10 scenarios passing |
+| Code Coverage | 85%+ |
+| Simulator Projects | 4 (Panel, FPGA, MCU, Host) |
+| Test Projects | 12 |
+
 ## 핵심 기술 결정사항
 
 ### FPGA 디바이스 제약
@@ -385,7 +466,9 @@ Solution/
 └── tools/GUI.Application/         # 통합 WPF GUI (실시간 모니터링) ✅ 완료 (40/40 tests)
 ```
 
-### 현재 구현 상태 (M2-Impl + Tools)
+### Simulator Implementation Status
+
+모든 시뮬레이터는 **100% 구현 완료**되었으며, 실제 하드웨어 없이 전체 시스템을 검증할 수 있습니다.
 
 | 모듈 | 상태 | 커버리지 | 테스트 |
 |------|------|---------|--------|
