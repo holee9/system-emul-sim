@@ -1,4 +1,6 @@
 using Common.Dto.Dtos;
+using FpgaSimulator.Core.Fsm;
+using FpgaSimulator.Core.Protection;
 using McuSimulator.Core.Buffer;
 using McuSimulator.Core.Command;
 using McuSimulator.Core.Frame;
@@ -62,6 +64,8 @@ public sealed class NetworkChannelStats
 public sealed class SimulatorPipeline
 {
     private readonly object _lock = new();
+    private readonly ProtectionLogicSimulator _protectionLogic;
+    private readonly SequenceEngine _sequenceEngine;
     private int _framesProcessed;
     private int _framesCompleted;
     private int _framesFailed;
@@ -83,6 +87,12 @@ public sealed class SimulatorPipeline
     /// <summary>Whether to capture per-layer checkpoints during processing.</summary>
     public bool EnableCheckpoints { get; set; }
 
+    /// <summary>FPGA protection logic for error injection and monitoring.</summary>
+    public ProtectionLogicSimulator ProtectionLogic => _protectionLogic;
+
+    /// <summary>MCU sequence engine for scan mode control.</summary>
+    public SequenceEngine SequenceEngine => _sequenceEngine;
+
     /// <summary>
     /// Creates a new SimulatorPipeline with the specified configuration.
     /// </summary>
@@ -100,6 +110,8 @@ public sealed class SimulatorPipeline
         NetworkChannel = networkChannel;
         HostConfig = hostConfig ?? new HostConfig { PacketTimeoutMs = 5000 };
         EnableCheckpoints = enableCheckpoints;
+        _protectionLogic = new ProtectionLogicSimulator();
+        _sequenceEngine = new SequenceEngine();
     }
 
     /// <summary>
@@ -264,6 +276,39 @@ public sealed class SimulatorPipeline
         if (NetworkChannel == null)
             throw new InvalidOperationException("No network channel configured.");
         NetworkChannel.SetReorderRate(rate);
+    }
+
+    /// <summary>
+    /// Injects a named error into the FPGA protection logic subsystem.
+    /// </summary>
+    /// <param name="errorType">
+    /// Error type name: "watchdog", "readout_timeout", "buffer_overflow",
+    /// "csi2_error", "roic_fault", "config_error".
+    /// </param>
+    /// <exception cref="ArgumentException">Thrown when errorType is not recognized.</exception>
+    public void InjectError(string errorType)
+    {
+        var (error, isFatal) = errorType.ToLowerInvariant() switch
+        {
+            "watchdog" => (ProtectionError.WatchdogTimeout, true),
+            "readout_timeout" => (ProtectionError.ReadoutTimeout, false),
+            "buffer_overflow" => (ProtectionError.BufferOverflow, false),
+            "csi2_error" => (ProtectionError.Csi2Error, false),
+            "roic_fault" => (ProtectionError.RoicFault, true),
+            "config_error" => (ProtectionError.ConfigError, true),
+            _ => throw new ArgumentException($"Unknown error type: {errorType}", nameof(errorType))
+        };
+
+        _protectionLogic.ReportError(error, isFatal);
+    }
+
+    /// <summary>
+    /// Sets the scan mode by starting a scan on the embedded SequenceEngine.
+    /// </summary>
+    /// <param name="mode">Scan mode to set.</param>
+    public void SetScanMode(ScanMode mode)
+    {
+        _sequenceEngine.StartScan(mode);
     }
 
     /// <summary>
