@@ -346,3 +346,14 @@ frames/
 # Include essential scripts
 !*.sh
 !*.bat
+
+# ===========================================
+# Phase 2 Additions (2026-03-05)
+# ===========================================
+generated/
+coverage-results/
+tools/IntegrationTests/*.xml
+tools/IntegrationTests/*.txt
+.moai/custom-settings/
+.claude/agent-memory/
+nul

@@ -1,0 +1,23 @@
+# Invalid configuration - bandwidth exceeds CSI-2 limit
+panel:
+  rows: 4096
+  cols: 4096
+  pixel_pitch_um: 150
+  bit_depth: 16
+
+fpga:
+  data_interface:
+    primary: csi2
+    csi2:
+      lane_count: 4
+      lane_speed_mbps: 400
+
+controller:
+  platform: imx8mp
+  ethernet:
+    speed: 10gbe
+    port: 8000
+
+host:
+  display:
+    fps: 15

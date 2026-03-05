@@ -1,0 +1,44 @@
+{
+  "panel": {
+    "rows": 2048,
+    "cols": 2048,
+    "bitDepth": 16,
+    "pixelPitchUm": 150
+  },
+  "network": {
+    "protocol": "udp",
+    "port": 8000,
+    "payloadSize": 8192,
+    "mtu": 9000,
+    "receiveBufferMb": 64,
+    "receiveThreads": 2,
+    "packetTimeoutMs": 1000
+  },
+  "storage": {
+    "format": "tiff",
+    "path": "./frames",
+    "compression": "none",
+    "autoSave": false
+  },
+  "display": {
+    "fps": 15,
+    "colorMap": "gray",
+    "windowScale": 1
+  },
+  "computed": {
+    "frameSizeBytes": 8388608,
+    "packetsPerFrame": 1024,
+    "rawDataRateGbps": 1.007,
+    "bandwidthUtilizationPercent": 62.91
+  },
+  "metadata": {
+    "source": "detector_config.yaml",
+    "generatedAt": "2026-02-18T10:23:11.1369200Z",
+    "version": "1.0.0",
+    "platform": "imx8mp",
+    "dataInterface": "csi2",
+    "csi2LaneCount": 4,
+    "csi2LaneSpeedMbps": 400,
+    "ethernetSpeed": "10gbe"
+  }
+}

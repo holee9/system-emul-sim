@@ -1,0 +1,52 @@
+# Valid configuration for Intermediate-A tier (2048x2048, 16-bit)
+panel:
+  rows: 2048
+  cols: 2048
+  pixel_pitch_um: 150
+  bit_depth: 16
+
+fpga:
+  timing:
+    gate_on_us: 10.0
+    gate_off_us: 5.0
+    roic_settle_us: 1.0
+    adc_conv_us: 2.0
+
+  line_buffer:
+    depth_lines: 2
+    bram_width_bits: 16
+
+  data_interface:
+    primary: csi2
+    csi2:
+      lane_count: 4
+      data_type: RAW16
+      virtual_channel: 0
+      lane_speed_mbps: 400
+      line_blanking_clocks: 100
+      frame_blanking_lines: 10
+
+  spi:
+    clock_hz: 50000000
+    mode: 0
+    word_size_bits: 32
+
+controller:
+  platform: imx8mp
+  ethernet:
+    speed: 10gbe
+    protocol: udp
+    port: 8000
+    mtu: 9000
+    payload_size: 8192
+
+host:
+  storage:
+    format: tiff
+    path: ./frames
+    compression: none
+    auto_save: false
+
+  display:
+    fps: 15
+    color_map: gray

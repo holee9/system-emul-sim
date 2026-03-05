@@ -1,0 +1,117 @@
+/dts-v1/;
+/plugin/;
+
+/*
+ * Device Tree Overlay for X-ray Detector Panel System
+ * Source: detector_config.yaml
+ * Generated: 2026-02-18 10:23:11 UTC
+ *
+ * WARNING: This file is auto-generated. Do not edit manually.
+ */
+
+/*
+ * CSI-2 MIPI D-PHY Receiver Configuration
+ * Lane Count: 4
+ * Lane Speed: 400 Mbps/lane
+ * Data Type: RAW16
+ */
+
+&{{
+    compatible = "fsl,imx8mp-mipi-csi2";
+    status = "okay";
+
+    /*
+     * CSI-2 lane mapping
+     * Clk lane: lane 0
+     * Data lanes: 1 2 3 4
+     */
+    data-lanes = <1 2 3 4>;
+    lane-polarities = <0 0 0 0 0>;
+
+    /*
+     * Link frequency (per-lane, in Hz)
+     * 400 Mbps/lane
+     */
+    link-frequencies = /bits/ 64
+        <400000000>;
+
+    /*
+     * CSI-2 data type
+     * RAW16 (0x2c)
+     */
+    bus-type = <4>; /* MIPI CSI-2 */
+
+    /*
+     * Remote endpoint (FPGA as CSI-2 TX)
+     */
+    endpoint@0 {
+        remote-endpoint = <&fpga_csi2_out>;
+        data-type = <0x2c>; /* RAW16 */
+        virtual-channel = <0>;
+    };
+}};
+
+&mipi_csi_0 {
+    status = "okay";
+
+    /*
+     * DMA burst length configuration
+     * Burst size: 256 bytes
+     */
+    fsl,mipi-vcx-sys-burst-size = /bits/ 8
+        <256>;
+
+    /*
+     * Virtual channel configuration
+     * Virtual Channel 0
+     */
+    fsl,mipi-vcx = <0>; /* Single virtual channel */
+}};
+
+/*
+ * Ethernet Streaming Configuration (SoC to Host)
+ * Speed: 10gbe
+ * Protocol: UDP
+ * Port: 8000
+ * MTU: 9000
+ */
+
+&eqos {
+    status = "okay";
+    phy-mode = "rgmii-id";
+
+    /*
+     * Fixed-link configuration for direct FPGA connection
+     * Speed: 10gbe
+     */
+    fixed-link {
+        speed = <10000>;
+        full-duplex;
+    };
+
+    /*
+     * MAC address configuration
+     */
+    mac-address = [00 04 25 1c a0 b0];
+    local-mac-address = [00 04 25 1c a0 b0];
+
+    /*
+     * Network configuration notes:
+     * Protocol: udp
+     * Port: 8000
+     * MTU: 9000
+     */
+}};
+
+&mdio {
+    status = "okay";
+
+    /*
+     * Fixed-link PHY (no actual PHY for direct FPGA-SoC)
+     */
+    ethernet-phy@0 {
+        compatible = "ethernet-phy-ieee802.3-c22";
+        reg = <0>;
+        max-speed = <10000>;
+    };
+}};

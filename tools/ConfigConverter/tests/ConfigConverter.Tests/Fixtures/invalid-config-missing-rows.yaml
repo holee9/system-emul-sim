@@ -1,0 +1,22 @@
+# Invalid configuration - missing required field 'panel.rows'
+panel:
+  cols: 2048
+  pixel_pitch_um: 150
+  bit_depth: 16
+
+fpga:
+  timing:
+    gate_on_us: 10.0
+    gate_off_us: 5.0
+
+  data_interface:
+    primary: csi2
+    csi2:
+      lane_count: 4
+      data_type: RAW16
+
+controller:
+  platform: imx8mp
+  ethernet:
+    speed: 10gbe
+    port: 8000
