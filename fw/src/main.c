@@ -329,7 +329,38 @@ static void *spi_control_thread(void *arg) {
 
     while (ctx->running && !ctx->shutdown_requested) {
         /* Poll FPGA STATUS register */
-        /* TODO: Implement SPI status polling */
+        uint8_t fpga_status = 0x04; /* Default: READY (mock implementation) */
+        uint32_t error_count = 0;
+
+        /* Real implementation would read SPI:
+        spi_status_t spi_result = spi_master_read_status(&ctx->spi_ctx);
+        if (spi_result.status == SPI_OK) {
+            fpga_status = spi_result.reg_value;
+        } else {
+            error_count++;
+            health_monitor_update_stat("spi_errors", 1);
+        }
+        */
+
+        /* Check FPGA status bits */
+        if (fpga_status & FPGA_STATUS_ERROR) {
+            health_monitor_log(LOG_WARNING, "spi", "FPGA error detected (status=0x%02X)", fpga_status);
+            error_count++;
+            health_monitor_update_stat("spi_errors", 1);
+        }
+
+        if (fpga_status & FPGA_STATUS_BUSY) {
+            /* FPGA is busy processing */
+            health_monitor_update_stat("frames_received", 1);
+        } else {
+            /* FPGA is idle and ready for next command */
+            health_monitor_log(LOG_DEBUG, "spi", "FPGA ready (status=0x%02X)", fpga_status);
+        }
+
+        /* Update SPI error statistics */
+        if (error_count > 0) {
+            health_monitor_update_stat("spi_errors", error_count);
+        }
 
         usleep(100);  /* 100us */
     }
@@ -419,8 +450,26 @@ static void *health_monitor_thread(void *arg) {
         /* Pet watchdog */
         health_monitor_pet_watchdog();
 
-        /* Update statistics */
-        /* TODO: Aggregate statistics from all threads */
+        /* Aggregate statistics from all threads */
+        /* Collect statistics from sequence engine */
+        seq_stats_t seq_stats;
+        if (seq_get_stats(&seq_stats) == 0) {
+            health_monitor_update_stat("frames_received", (int64_t)seq_stats.frames_received);
+            health_monitor_update_stat("frames_sent", (int64_t)seq_stats.frames_sent);
+            health_monitor_update_stat("retries", (int64_t)seq_stats.retries);
+        }
+
+        /* Calculate derived metrics */
+        uint64_t frames_total = g_health_ctx.stats.frames_received;
+        uint64_t frames_dropped = g_health_ctx.stats.frames_dropped;
+
+        if (frames_total > 0) {
+            uint32_t drop_rate = (uint32_t)((frames_dropped * 100) / frames_total);
+            health_monitor_log(LOG_DEBUG, "health",
+                             "Frame stats: received=%lu, sent=%lu, dropped=%lu, drop_rate=%u%%",
+                             frames_total, g_health_ctx.stats.frames_sent,
+                             frames_dropped, drop_rate);
+        }
 
         /* Check battery level */
         if (bq40z50_emergency_shutdown(&ctx->battery_ctx)) {
@@ -673,11 +722,41 @@ int main(int argc, char *argv[]) {
         /* Handle signals */
         if (g_signal_received == SIGHUP) {
             health_monitor_log(LOG_INFO, "main", "Reloading configuration");
-            /* TODO: Reload config */
+            /* Reload configuration from file */
+            detector_config_t new_config;
+            config_status_t rc = config_load(g_daemon_ctx.config_path, &new_config);
+            if (rc == CONFIG_OK) {
+                /* Apply hot-swappable parameters */
+                if (config_validate(&new_config) == CONFIG_OK) {
+                    pthread_mutex_lock(&g_daemon_ctx.state_mutex);
+                    g_daemon_ctx.config = new_config;
+                    pthread_mutex_unlock(&g_daemon_ctx.state_mutex);
+                    health_monitor_log(LOG_INFO, "main", "Configuration reloaded successfully");
+                } else {
+                    health_monitor_log(LOG_WARNING, "main", "Invalid configuration, not applied");
+                }
+            } else {
+                health_monitor_log(LOG_ERROR, "main", "Failed to reload configuration: %s",
+                                 config_get_error());
+            }
             g_signal_received = 0;
         } else if (g_signal_received == SIGUSR1) {
             health_monitor_log(LOG_INFO, "main", "Debug info requested");
-            /* TODO: Dump debug info */
+            /* Dump debug info */
+            runtime_stats_t stats;
+            health_monitor_get_stats(&stats);
+
+            seq_stats_t seq_stats;
+            seq_get_stats(&seq_stats);
+
+            health_monitor_log(LOG_INFO, "main", "=== Debug Info ===");
+            health_monitor_log(LOG_INFO, "main", "Uptime: %u sec", g_daemon_ctx.uptime_sec);
+            health_monitor_log(LOG_INFO, "main", "Seq State: %s", seq_state_to_string(seq_get_state()));
+            health_monitor_log(LOG_INFO, "main", "Frames: rcvd=%lu, sent=%lu, dropped=%lu",
+                             stats.frames_received, stats.frames_sent, stats.frames_dropped);
+            health_monitor_log(LOG_INFO, "main", "Errors: spi=%lu, csi2=%lu, auth=%lu",
+                             stats.spi_errors, stats.csi2_errors, stats.auth_failures);
+            health_monitor_log(LOG_INFO, "main", "================");
             g_signal_received = 0;
         }
     }

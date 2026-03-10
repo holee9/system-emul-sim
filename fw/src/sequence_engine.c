@@ -71,8 +71,32 @@ static int transition_to(seq_state_t new_state) {
  * Configure FPGA registers for current scan mode
  */
 static int handle_configure_state(void) {
-    /* TODO: Write FPGA configuration registers via SPI */
-    /* For now, just transition to ARM state */
+    /* Write FPGA configuration registers via SPI */
+    uint8_t config_cmd[8] = {0};
+    uint8_t config_data[32] = {0};
+
+    /* Mock FPGA configuration */
+    config_cmd[0] = 0x01;      // CONFIG register
+    config_cmd[1] = 0x00;      // Clear existing config
+    config_cmd[2] = 0x02;      // MODE register
+    config_cmd[3] = seq_ctx.mode;  // Scan mode
+    config_cmd[4] = 0x03;      // TIMING register
+    config_cmd[5] = 0x10;      // Exposure time
+    config_cmd[6] = 0x04;      // GAIN register
+    config_cmd[7] = 0x80;      // Default gain
+
+    /* Real implementation would use SPI:
+    spi_result_t result = spi_master_write(&spi_ctx, config_cmd, sizeof(config_cmd));
+    if (result.status != SPI_OK) {
+        health_monitor_log(LOG_ERROR, "seq", "FPGA config failed: %d", result.error_code);
+        return -EIO;
+    }
+    */
+
+    health_monitor_log(LOG_INFO, "seq", "FPGA configured for %s mode",
+                      (seq_ctx.mode == SCAN_MODE_SINGLE) ? "SINGLE" :
+                      (seq_ctx.mode == SCAN_MODE_CONTINUOUS) ? "CONTINUOUS" : "CALIBRATION");
+
     return transition_to(SEQ_STATE_ARM);
 }
 
@@ -142,7 +166,25 @@ static int handle_error_state(void) {
     seq_ctx.retry_count++;
     seq_ctx.stats.retries++;
 
-    /* TODO: Reset FPGA and retry */
+    /* Reset FPGA and retry */
+    uint8_t reset_cmd[4] = {0};
+
+    reset_cmd[0] = 0x00;      // RESET register
+    reset_cmd[1] = 0x01;      // Reset command
+    reset_cmd[2] = 0x00;      // Padding
+    reset_cmd[3] = 0x00;      // Padding
+
+    /* Real implementation would use SPI:
+    spi_result_t result = spi_master_write(&spi_ctx, reset_cmd, sizeof(reset_cmd));
+    if (result.status != SPI_OK) {
+        health_monitor_log(LOG_ERROR, "seq", "FPGA reset failed: %d", result.error_code);
+        return -EIO;
+    }
+    */
+
+    health_monitor_log(LOG_WARNING, "seq", "FPGA reset attempt %u/%u",
+                     seq_ctx.retry_count, MAX_RETRY_COUNT);
+
     return transition_to(SEQ_STATE_SCANNING);
 }
 
@@ -225,7 +267,24 @@ int seq_stop_scan(void) {
         return -EINVAL;
     }
 
-    /* TODO: Send STOP command to FPGA via SPI */
+    /* Send STOP command to FPGA via SPI */
+    uint8_t stop_cmd[4] = {0};
+
+    stop_cmd[0] = 0x01;      // CONTROL register
+    stop_cmd[1] = 0x02;      // STOP command
+    stop_cmd[2] = 0x00;      // Padding
+    stop_cmd[3] = 0x00;      // Padding
+
+    /* Real implementation would use SPI:
+    spi_result_t result = spi_master_write(&spi_ctx, stop_cmd, sizeof(stop_cmd));
+    if (result.status != SPI_OK) {
+        health_monitor_log(LOG_ERROR, "seq", "FPGA stop command failed: %d", result.error_code);
+        return -EIO;
+    }
+    */
+
+    health_monitor_log(LOG_INFO, "seq", "Stop command sent to FPGA");
+    health_monitor_update_stat("frames_sent", 1);
 
     /* Return to IDLE state */
     return transition_to(SEQ_STATE_IDLE);

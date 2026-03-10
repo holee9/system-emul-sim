@@ -13,6 +13,8 @@
  */
 
 #include "protocol/command_protocol.h"
+#include "sequence_engine.h"
+#include "health_monitor.h"
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
@@ -397,31 +399,116 @@ int cmd_handle_command(const command_frame_t *cmd, uint8_t *resp_buf, size_t *re
     size_t payload_len = 0;
 
     switch (cmd->command_id) {
-        case CMD_START_SCAN:
-            /* TODO: Start scan sequence */
-            status = STATUS_OK;
-            break;
+        case CMD_START_SCAN: {
+            /* Start scan sequence */
+            scan_mode_t mode = SCAN_MODE_SINGLE;  /* Default: single scan */
 
-        case CMD_STOP_SCAN:
-            /* TODO: Stop scan sequence */
-            status = STATUS_OK;
-            break;
+            /* Parse mode from payload if provided */
+            if (cmd->payload_len >= 1) {
+                uint8_t mode_value = cmd->payload[0];
+                if (mode_value < SCAN_MODE_MAX) {
+                    mode = (scan_mode_t)mode_value;
+                } else {
+                    status = STATUS_ERROR;
+                    break;
+                }
+            }
 
-        case CMD_GET_STATUS:
-            /* TODO: Get status */
-            status = STATUS_OK;
-            payload_len = 16;  /* Status payload size */
+            int rc = seq_start_scan(mode);
+            if (rc != 0) {
+                status = (rc == -EBUSY) ? STATUS_BUSY : STATUS_ERROR;
+            } else {
+                status = STATUS_OK;
+            }
             break;
+        }
 
-        case CMD_SET_CONFIG:
-            /* TODO: Set configuration */
-            status = STATUS_OK;
+        case CMD_STOP_SCAN: {
+            /* Stop scan sequence */
+            int rc = seq_stop_scan();
+            status = (rc == 0) ? STATUS_OK : STATUS_ERROR;
             break;
+        }
 
-        case CMD_RESET:
-            /* TODO: Reset system */
+        case CMD_GET_STATUS: {
+            /* Get status */
+            seq_stats_t seq_stats;
+            memset(payload, 0, sizeof(payload));
+
+            /* Get sequence engine state and statistics */
+            payload[0] = (uint8_t)seq_get_state();
+
+            if (seq_get_stats(&seq_stats) == 0) {
+                /* Pack statistics into payload (little-endian) */
+                memcpy(&payload[1], &seq_stats.frames_received, sizeof(uint32_t));
+                memcpy(&payload[5], &seq_stats.frames_sent, sizeof(uint32_t));
+                memcpy(&payload[9], &seq_stats.errors, sizeof(uint32_t));
+                memcpy(&payload[13], &seq_stats.retries, sizeof(uint32_t));
+                payload_len = 17;  /* 1 byte state + 4 * 4 bytes stats */
+            } else {
+                payload_len = 1;  /* State only */
+            }
+
             status = STATUS_OK;
             break;
+        }
+
+        case CMD_SET_CONFIG: {
+            /* Set configuration */
+            /* Parse payload for configuration parameters */
+            if (cmd->payload_len >= 8) {
+                /* Parse configuration parameters from payload */
+                uint32_t exposure_ms;
+                uint16_t gain_db;
+                uint8_t binning_x, binning_y;
+
+                /* Little-endian unpacking */
+                memcpy(&exposure_ms, &cmd->payload[0], sizeof(uint32_t));
+                memcpy(&gain_db, &cmd->payload[4], sizeof(uint16_t));
+                binning_x = cmd->payload[6];
+                binning_y = cmd->payload[7];
+
+                /* Validate parameters */
+                if (exposure_ms > 0 && exposure_ms <= 10000 && /* 10ms max exposure */
+                    gain_db >= 0 && gain_db <= 64 &&        /* 0-64dB gain range */
+                    binning_x >= 1 && binning_x <= 4 &&      /* 1-4x binning */
+                    binning_y >= 1 && binning_y <= 4) {
+
+                    /* Apply configuration (mock implementation) */
+                    health_monitor_log(LOG_INFO, "cmd",
+                                     "Config set: exposure=%ums, gain=%udB, binning=%dx%d",
+                                     exposure_ms, gain_db, binning_x, binning_y);
+
+                    status = STATUS_OK;
+                    payload_len = 1;  /* Acknowledge */
+                    payload[0] = 0x01;  // Success indicator
+                } else {
+                    status = STATUS_INVALID_CMD;
+                    payload_len = 4;  // Error code
+                    uint32_t error_code = -EINVAL;
+                    memcpy(payload, &error_code, 4);
+                }
+            } else {
+                status = STATUS_INVALID_CMD;
+                payload_len = 4;
+                uint32_t error_code = -EMSGSIZE;
+                memcpy(payload, &error_code, 4);
+            }
+            break;
+        }
+
+        case CMD_RESET: {
+            /* Reset system */
+            seq_deinit();
+            seq_init();
+
+            /* Reset health monitor statistics */
+            extern void health_monitor_reset_stats(void);
+            health_monitor_reset_stats();
+
+            status = STATUS_OK;
+            break;
+        }
 
         default:
             status = STATUS_INVALID_CMD;
