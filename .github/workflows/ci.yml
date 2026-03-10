@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore tools/
+
+      - name: Build all projects
+        run: dotnet build tools/ --no-restore --configuration Release
+
+      # Unit tests: simulator modules
+      - name: Run Common.Dto tests
+        run: |
+          dotnet test tools/Common/tests/Common.Dto.Tests/Common.Dto.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/common \
+            --logger "trx;LogFileName=common.trx"
+
+      - name: Run PanelSimulator tests
+        run: |
+          dotnet test tools/PanelSimulator/test/PanelSimulator.Tests/PanelSimulator.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/panel \
+            --logger "trx;LogFileName=panel.trx"
+
+      - name: Run FpgaSimulator tests
+        run: |
+          dotnet test tools/FpgaSimulator/tests/FpgaSimulator.Tests/FpgaSimulator.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/fpga \
+            --logger "trx;LogFileName=fpga.trx"
+
+      - name: Run McuSimulator tests
+        run: |
+          dotnet test tools/McuSimulator/tests/McuSimulator.Tests/McuSimulator.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/mcu \
+            --logger "trx;LogFileName=mcu.trx"
+
+      - name: Run HostSimulator tests
+        run: |
+          dotnet test tools/HostSimulator/tests/HostSimulator.Tests/HostSimulator.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/host \
+            --logger "trx;LogFileName=host.trx"
+
+      # Unit tests: tools
+      - name: Run CodeGenerator tests
+        run: |
+          dotnet test tools/CodeGenerator/tests/CodeGenerator.Tests/CodeGenerator.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/codegen \
+            --logger "trx;LogFileName=codegen.trx"
+
+      - name: Run ConfigConverter tests
+        run: |
+          dotnet test tools/ConfigConverter/tests/ConfigConverter.Tests/ConfigConverter.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/config \
+            --logger "trx;LogFileName=config.trx"
+
+      - name: Run ParameterExtractor tests
+        run: |
+          dotnet test tools/ParameterExtractor/tests/ParameterExtractor.Tests/ParameterExtractor.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/params \
+            --logger "trx;LogFileName=params.trx"
+
+      - name: Run IntegrationRunner tests
+        run: |
+          dotnet test tools/IntegrationRunner/tests/IntegrationRunner.Tests/IntegrationRunner.Tests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/runner \
+            --logger "trx;LogFileName=runner.trx"
+
+      # Integration tests: golden reference verification (IT01-IT18)
+      - name: Run IntegrationTests (IT01-IT18)
+        run: |
+          dotnet test tools/IntegrationTests/IntegrationTests.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage-results/integration \
+            --logger "trx;LogFileName=integration.trx" \
+            --timeout 300000
+
+      - name: Upload coverage results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-results
+          path: coverage-results/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: "**/*.trx"
+          retention-days: 30

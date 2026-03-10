@@ -1,11 +1,13 @@
-# X-ray Detector Panel System
+# X-ray Detector Panel System Emulator — Golden Reference
 
 **Medical Imaging Grade Data Acquisition Platform**
 
-| Status | M3-Integ (Integration Testing) |
-|--------|--------------------------------|
-| Version | 0.3.0 |
-| Architecture | 3-tier (FPGA → SoC → Host PC) |
+[![CI](https://github.com/holee9/system-emul-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/holee9/system-emul-sim/actions/workflows/ci.yml)
+
+| Status | M4-Emul (Golden Reference) |
+|--------|----------------------------|
+| Version | 0.4.0 |
+| Architecture | 4-layer (Panel → FPGA → MCU → Network → Host) |
 | Resolution | 2048×2048 pixels, 16-bit depth |
 | Frame Rate | 30 fps (target), 15 fps (minimum) |
 | Data Rate | 2.01 Gbps (target), 0.21 Gbps (minimum) |
@@ -13,23 +15,31 @@
 
 **ABYZ Lab** | 의료 영상 장비용 엑스레이 검출기 패널의 데이터 수집, 전송, 처리를 위한 계층형 시스템입니다. FPGA 기반 하드웨어 제어와 소프트웨어 시뮬레이션 환경을 제공합니다.
 
+The emulator suite serves as a **Golden Reference** for FPGA RTL and SoC firmware development, providing bit-exact protocol verification before real hardware is available.
+
 ## Quick Start
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/holee9/system-emul-sim.git
 cd system-emul-sim
 
-# Build all simulators
-dotnet build
+# Build all projects
+dotnet build tools/ --configuration Release
 
-# Run all tests
-dotnet test
+# Run all unit tests
+dotnet test tools/ --configuration Release
 
-# Run integration tests
-cd tools/IntegrationTests
-dotnet test --verbosity normal
+# Run integration tests (IT01-IT18 Golden Reference verification)
+dotnet test tools/IntegrationTests/IntegrationTests.csproj --verbosity normal
+
+# Run with coverage collection
+dotnet test tools/IntegrationTests/IntegrationTests.csproj \
+    --collect:"XPlat Code Coverage" \
+    --results-directory ./coverage-results
 ```
+
+See [HW Verification Guide](docs/hw-verification-guide.md) for the complete verification procedure.
 
 ## Implementation Status
 
@@ -39,8 +49,8 @@ dotnet test --verbosity normal
 | **M0.5** | ✅ Complete | 100% | Proof of Concept (PoC) validated |
 | **M1-Doc** | ✅ Complete | 100% | All SPEC/Architecture/API docs approved |
 | **M2-Impl** | ✅ Complete | 100% | All simulators + SDK unit tests passing |
-| **M3-Integ** | ✅ Complete | 100% | IT-01~IT-12 integration scenarios + 4-layer bit-exact verification (Simulated) |
-| **M4-Emul** | 🔜 Planning | 0% | Emulator Module Revision — High-fidelity upgrade (SPEC-EMUL-001) |
+| **M3-Integ** | ✅ Complete | 100% | IT-01~IT-18 integration scenarios + 4-layer bit-exact verification (Simulated) |
+| **M4-Emul** | 🔄 In Progress | 60% | Emulator Module Revision — Golden Reference upgrade (SPEC-EMUL-001 to 004) |
 | **M5-Perf** | ⬜ Pending | Real HW | Performance optimization |
 | **M6-Val** | ⬜ Pending | Real HW | System validation |
 | **M7-Pilot** | ⬜ Pending | Real HW | Pilot production deployment |
@@ -983,9 +993,10 @@ cd config
 | Document | Path | Description |
 |----------|------|-------------|
 | Unit Test Plan | [docs/testing/unit-test-plan.md](docs/testing/unit-test-plan.md) | xUnit test strategy |
-| Integration Test Plan | [docs/testing/integration-test-plan.md](docs/testing/integration-test-plan.md) | IT-01~IT-10 scenarios |
+| Integration Test Plan | [docs/testing/integration-test-plan.md](docs/testing/integration-test-plan.md) | IT-01~IT-18 scenarios |
 | HIL Test Plan | [docs/testing/hil-test-plan.md](docs/testing/hil-test-plan.md) | Hardware-in-the-loop |
 | Verification Strategy | [docs/testing/verification-strategy.md](docs/testing/verification-strategy.md) | V&V approach |
+| HW Verification Guide | [docs/hw-verification-guide.md](docs/hw-verification-guide.md) | Golden Reference verification guide |
 
 ### SPEC Documents
 
@@ -1001,6 +1012,8 @@ cd config
 | SPEC-POC-001 | [.moai/specs/SPEC-POC-001/](.moai/specs/SPEC-POC-001/) | Proof of Concept |
 | SPEC-INTEG-001 | [.moai/specs/SPEC-INTEG-001/](.moai/specs/SPEC-INTEG-001/) | Integration testing |
 | SPEC-EMUL-001 | [.moai/specs/SPEC-EMUL-001/](.moai/specs/SPEC-EMUL-001/) | Emulator module revision (M4) |
+| SPEC-EMUL-003 | [.moai/specs/SPEC-EMUL-003/](.moai/specs/SPEC-EMUL-003/) | Scenario verification and coverage matrix |
+| SPEC-EMUL-004 | [.moai/specs/SPEC-EMUL-004/](.moai/specs/SPEC-EMUL-004/) | Golden Reference hardening (CI/CD + docs) |
 
 ## 문서 (한국어)
 
@@ -1063,4 +1076,4 @@ cd config
 *SW 구현 완료: 2026-02-18 (전체 구현률 95-98%, SW 100%)*
 *M3-Integ 완료: 2026-03-01 (IT-01~IT-12, 4-layer bit-exact verification, 85%+ coverage)*
 *M4-Emul 계획 수립: 2026-03-01 (SPEC-EMUL-001, 5-Phase 에뮬레이터 리비전, 168개 검증 시나리오)*
-*업데이트: 2026-03-01 — M4-Emul 에뮬레이터 리비전 계획 반영*
+*업데이트: 2026-03-10 — SPEC-EMUL-004 Golden Reference Hardening (CI/CD + HW Verification Guide)*
