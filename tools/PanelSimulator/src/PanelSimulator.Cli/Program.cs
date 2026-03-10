@@ -56,6 +56,7 @@ public sealed class PanelSimulatorCli : CliFramework
         root.Add(MasOption);
         root.Add(NoiseOption);
         root.Add(OutputOption);
+        root.Add(BenchmarkOption);
 
         root.SetAction(parseResult =>
         {
@@ -66,6 +67,7 @@ public sealed class PanelSimulatorCli : CliFramework
             string noise = parseResult.GetValue(NoiseOption) ?? "none";
             string? output = parseResult.GetValue(OutputOption);
             bool verbose = parseResult.GetValue(VerboseOption);
+            bool benchmark = parseResult.GetValue(BenchmarkOption);
             int? seed = parseResult.GetValue(SeedOption);
 
             WriteVerbose(verbose, $"Generating {rows}x{cols} frame: kVp={kvp}, mAs={mas}, noise={noise}");
@@ -97,6 +99,7 @@ public sealed class PanelSimulatorCli : CliFramework
             Console.WriteLine($"Frame written to: {output}");
             Console.WriteLine($"Dimensions: {rows}x{cols}, Signal: kVp={kvp} mAs={mas}");
             Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}ms");
+            WriteBenchmark(benchmark, "Panel generation", sw.ElapsedMilliseconds, (long)rows * cols * 2);
 
             return 0;
         });

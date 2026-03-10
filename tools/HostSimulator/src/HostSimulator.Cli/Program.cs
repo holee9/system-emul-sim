@@ -36,6 +36,7 @@ public sealed class HostSimulatorCli : CliFramework
         root.Add(InputOption);
         root.Add(TimeoutOption);
         root.Add(OutputOption);
+        root.Add(BenchmarkOption);
 
         root.SetAction(parseResult =>
         {
@@ -43,6 +44,7 @@ public sealed class HostSimulatorCli : CliFramework
             int timeout = parseResult.GetValue(TimeoutOption);
             string? output = parseResult.GetValue(OutputOption);
             bool verbose = parseResult.GetValue(VerboseOption);
+            bool benchmark = parseResult.GetValue(BenchmarkOption);
 
             WriteVerbose(verbose, $"Reading UDP packets from: {input}");
             WriteVerbose(verbose, $"Reassembly timeout: {timeout}ms");
@@ -110,6 +112,7 @@ public sealed class HostSimulatorCli : CliFramework
             Console.WriteLine($"Frame written to: {output}");
             Console.WriteLine($"Frame: {frameRows}x{frameCols}");
             Console.WriteLine($"Packets processed: {processedCount}, Timeout: {timeout}ms");
+            WriteBenchmark(benchmark, "Host frame reassembly", sw.ElapsedMilliseconds, (long)frameRows * frameCols * 2);
 
             var stats = new Dictionary<string, object>
             {

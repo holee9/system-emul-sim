@@ -47,6 +47,7 @@ public sealed class McuSimulatorCli : CliFramework
         root.Add(BuffersOption);
         root.Add(CommandOption);
         root.Add(OutputOption);
+        root.Add(BenchmarkOption);
 
         root.SetAction(parseResult =>
         {
@@ -55,6 +56,7 @@ public sealed class McuSimulatorCli : CliFramework
             string command = parseResult.GetValue(CommandOption) ?? "start_scan";
             string? output = parseResult.GetValue(OutputOption);
             bool verbose = parseResult.GetValue(VerboseOption);
+            bool benchmark = parseResult.GetValue(BenchmarkOption);
 
             WriteVerbose(verbose, $"Reading CSI-2 packets from: {input}");
             WriteVerbose(verbose, $"Buffers: {buffers}, Command: {command}");
@@ -118,6 +120,7 @@ public sealed class McuSimulatorCli : CliFramework
             Console.WriteLine($"Frame: {frameResult.Rows}x{frameResult.Cols}");
             Console.WriteLine($"CSI-2 packets: {dtoPackets.Length} -> UDP packets: {udpPackets.Count}");
             Console.WriteLine($"Command: {command}, Buffers: {buffers}");
+            WriteBenchmark(benchmark, "MCU CSI-2 to UDP", sw.ElapsedMilliseconds, (long)frameResult.TotalPixels * 2);
 
             // Write stats table
             var stats = new Dictionary<string, object>

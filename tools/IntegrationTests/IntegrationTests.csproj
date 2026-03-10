@@ -33,6 +33,10 @@
     <ProjectReference Include="../McuSimulator/src/McuSimulator.Core/McuSimulator.Core.csproj" />
     <ProjectReference Include="../HostSimulator/src/HostSimulator.Core/HostSimulator.Core.csproj" />
     <ProjectReference Include="../Common/src/Common.Dto/Common.Dto.csproj" />
+    <ProjectReference Include="../PanelSimulator/src/PanelSimulator.Cli/PanelSimulator.Cli.csproj" />
+    <ProjectReference Include="../FpgaSimulator/src/FpgaSimulator.Cli/FpgaSimulator.Cli.csproj" />
+    <ProjectReference Include="../McuSimulator/src/McuSimulator.Cli/McuSimulator.Cli.csproj" />
+    <ProjectReference Include="../HostSimulator/src/HostSimulator.Cli/HostSimulator.Cli.csproj" />
   </ItemGroup>
 
 </Project>

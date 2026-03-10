@@ -55,6 +55,13 @@ public abstract class CliFramework
         DefaultValueFactory = _ => false
     };
 
+    /// <summary>Common option: enable benchmark reporting.</summary>
+    protected static readonly Option<bool> BenchmarkOption = new("--benchmark")
+    {
+        Description = "Print structured benchmark report (timing, throughput)",
+        DefaultValueFactory = _ => false
+    };
+
     /// <summary>
     /// Gets the root command description.
     /// </summary>
@@ -101,6 +108,7 @@ public abstract class CliFramework
         root.Add(SeedOption);
         root.Add(FidelityOption);
         root.Add(ConfigOption);
+        root.Add(BenchmarkOption);
         return root;
     }
 
@@ -113,5 +121,16 @@ public abstract class CliFramework
         {
             Console.Error.WriteLine($"[VERBOSE] {message}");
         }
+    }
+
+    /// <summary>
+    /// Prints structured benchmark output when --benchmark is enabled.
+    /// </summary>
+    protected static void WriteBenchmark(bool enabled, string label, long elapsedMs, long bytesProcessed = 0)
+    {
+        if (!enabled) return;
+        double throughputMbps = elapsedMs > 0 ? bytesProcessed / 1024.0 / 1024.0 / (elapsedMs / 1000.0) : 0;
+        Console.WriteLine($"[BENCHMARK] {label}: {elapsedMs}ms" +
+            (bytesProcessed > 0 ? $" | {throughputMbps:F2} MB/s" : ""));
     }
 }

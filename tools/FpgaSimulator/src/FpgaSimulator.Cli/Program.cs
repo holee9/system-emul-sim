@@ -45,6 +45,7 @@ public sealed class FpgaSimulatorCli : CliFramework
         root.Add(ModeOption);
         root.Add(ProtectionOption);
         root.Add(OutputOption);
+        root.Add(BenchmarkOption);
 
         root.SetAction(parseResult =>
         {
@@ -53,6 +54,7 @@ public sealed class FpgaSimulatorCli : CliFramework
             string protection = parseResult.GetValue(ProtectionOption) ?? "on";
             string? output = parseResult.GetValue(OutputOption);
             bool verbose = parseResult.GetValue(VerboseOption);
+            bool benchmark = parseResult.GetValue(BenchmarkOption);
 
             WriteVerbose(verbose, $"Reading panel frame from: {input}");
             WriteVerbose(verbose, $"Mode: {mode}, Protection: {protection}");
@@ -91,6 +93,7 @@ public sealed class FpgaSimulatorCli : CliFramework
             Console.WriteLine($"CSI-2 packets written to: {output}");
             Console.WriteLine($"Frame: {rows}x{cols}, Packets: {fpgaPackets.Length}, Mode: {mode}");
             Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}ms");
+            WriteBenchmark(benchmark, "FPGA CSI-2 encoding", sw.ElapsedMilliseconds, (long)fpgaPackets.Length * 256);
 
             return 0;
         });
