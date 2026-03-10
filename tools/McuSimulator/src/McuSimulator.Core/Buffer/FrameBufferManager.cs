@@ -85,12 +85,13 @@ public class FrameBufferManager
                     }
                 }
 
-                // Second pass: if no READY, look for any non-FREE buffer
+                // Second pass: if no READY, look for any non-FREE buffer (except FILLING which is being actively filled)
+                // FILLING buffers are excluded to prevent race condition with pending CommitBuffer calls
                 if (dropIndex < 0)
                 {
                     for (int i = 0; i < _numBuffers; i++)
                     {
-                        if (_buffers[i].State != BufferState.Free)
+                        if (_buffers[i].State == BufferState.Sending)
                         {
                             if (dropIndex < 0 || _buffers[i].FrameNumber < _buffers[dropIndex].FrameNumber)
                             {
