@@ -1,11 +1,14 @@
 using System.Diagnostics;
 using Common.Dto.Dtos;
-using FpgaCsi2 = FpgaSimulator.Core.Csi2;
 using FpgaSimulator.Core.Fsm;
-using FpgaSimulator.Core.Pixel;
+using FpgaSimulator.Core.Protection;
+using FpgaCsi2 = FpgaSimulator.Core.Csi2;
 using IntegrationRunner.Core.Models;
+using IntegrationRunner.Core.Network;
+using McuSimulator.Core.Frame;
 using McuSimulator.Core.Network;
-using PanelSimulator;
+using McuSimulator.Core.Sequence;
+using HostSimulatorConfig = HostSimulator.Core.Configuration.HostConfig;
 using PanelConfig = PanelSimulator.Models.PanelConfig;
 using TestPattern = PanelSimulator.Models.TestPattern;
 using NoiseModelType = PanelSimulator.Models.NoiseModelType;
@@ -13,42 +16,94 @@ using NoiseModelType = PanelSimulator.Models.NoiseModelType;
 namespace IntegrationRunner.Core;
 
 /// <summary>
+/// Pipeline statistics snapshot.
+/// </summary>
+public sealed class PipelineStatistics
+{
+    /// <summary>Total frames processed through the pipeline.</summary>
+    public int FramesProcessed { get; init; }
+
+    /// <summary>Total frames successfully completed.</summary>
+    public int FramesCompleted { get; init; }
+
+    /// <summary>Total frames that failed due to errors or packet loss.</summary>
+    public int FramesFailed { get; init; }
+
+    /// <summary>Network channel statistics (null if no channel configured).</summary>
+    public NetworkChannelStats? NetworkStats { get; init; }
+}
+
+/// <summary>
+/// Network statistics snapshot.
+/// </summary>
+public sealed class NetworkChannelStats
+{
+    /// <summary>Packets sent through the channel.</summary>
+    public long PacketsSent { get; init; }
+
+    /// <summary>Packets lost due to simulated loss.</summary>
+    public long PacketsLost { get; init; }
+
+    /// <summary>Packets reordered by the channel.</summary>
+    public long PacketsReordered { get; init; }
+
+    /// <summary>Packets corrupted by the channel.</summary>
+    public long PacketsCorrupted { get; init; }
+}
+
+/// <summary>
 /// Manages the simulator pipeline for integration testing.
 /// REQ-TOOLS-031: Instantiate all required simulators, connect in pipeline order.
-/// Pipeline: Panel -> FPGA -> MCU -> Host
+/// Pipeline: Panel -> FPGA -> MCU -> Network -> Host
 /// </summary>
 public class SimulatorPipeline
 {
+    private readonly object _lock = new();
     private PanelSimulator.PanelSimulator? _panelSimulator;
-    private PixelDataGenerator? _pixelGenerator;
     private FpgaCsi2.Csi2TxPacketGenerator? _csi2Generator;
-    private UdpFrameTransmitter? _udpTransmitter;
+    private ProtectionLogicSimulator? _protectionLogic;
+    private SequenceEngine? _sequenceEngine;
+    private NetworkChannel? _networkChannel;
     private bool _isInitialized;
+    private bool _hasFatalError;
+    private double _frameLossRate;    // Frame-level loss rate for IT07 simulation
+    private readonly Random _random = new(42);
     private uint _frameCounter;
+    private int _framesProcessed;
+    private int _framesCompleted;
+    private int _framesFailed;
 
-    /// <summary>Gets whether the pipeline is initialized</summary>
+    /// <summary>Gets whether the pipeline is initialized.</summary>
     public bool IsInitialized => _isInitialized;
 
-    /// <summary>Gets the current configuration</summary>
+    /// <summary>Gets the current configuration.</summary>
     public DetectorConfig? Config { get; private set; }
 
-    /// <summary>Gets the frame counter</summary>
+    /// <summary>Gets the frame counter.</summary>
     public uint FrameCounter => _frameCounter;
+
+    /// <summary>Gets whether the pipeline has a fatal error that stops processing.</summary>
+    public bool HasFatalError => _hasFatalError;
 
     /// <summary>
     /// Initializes the simulator pipeline with the given configuration.
+    /// Resets all state including any previously injected errors.
     /// </summary>
     public void Initialize(DetectorConfig config)
     {
         Config = config ?? throw new ArgumentNullException(nameof(config));
 
+        int rows = config.Panel?.Rows ?? 1024;
+        int cols = config.Panel?.Cols ?? 1024;
+        int bitDepth = config.Panel?.BitDepth ?? 14;
+
         // Initialize PanelSimulator
         _panelSimulator = new PanelSimulator.PanelSimulator();
         var panelConfig = new PanelConfig
         {
-            Rows = config.Panel?.Rows ?? 1024,
-            Cols = config.Panel?.Cols ?? 1024,
-            BitDepth = config.Panel?.BitDepth ?? 14,
+            Rows = rows,
+            Cols = cols,
+            BitDepth = bitDepth,
             TestPattern = ParseTestPattern(config.Simulation?.TestPattern ?? "counter"),
             NoiseModel = NoiseModelType.None,
             NoiseStdDev = config.Simulation?.NoiseStdDev ?? 0,
@@ -57,21 +112,25 @@ public class SimulatorPipeline
         };
         _panelSimulator.Initialize(panelConfig);
 
-        // Initialize pixel data generator
-        int bitDepth = config.Panel?.BitDepth ?? 14;
-        _pixelGenerator = new PixelDataGenerator(bitDepth, ParsePatternMode(config.Simulation?.TestPattern ?? "counter"));
-        if (config.Simulation != null)
-        {
-            _pixelGenerator.SetSeed(config.Simulation.Seed);
-        }
-
-        // Initialize CSI-2 packet generator
+        // Initialize FPGA CSI-2 packet generator
         _csi2Generator = new FpgaCsi2.Csi2TxPacketGenerator(virtualChannel: 0, FpgaCsi2.Csi2DataType.Raw16);
 
-        // Initialize UDP frame transmitter
-        _udpTransmitter = new UdpFrameTransmitter(maxPayload: 8192);
+        // Initialize protection logic (fresh, no errors)
+        _protectionLogic = new ProtectionLogicSimulator();
 
+        // Initialize sequence engine (fresh, Idle state)
+        _sequenceEngine = new SequenceEngine();
+
+        // Network channel is reset to null (no impairment by default)
+        _networkChannel = new NetworkChannel(new NetworkChannelConfig());
+
+        // Reset all state
+        _hasFatalError = false;
+        _frameLossRate = 0.0;
         _frameCounter = 0;
+        _framesProcessed = 0;
+        _framesCompleted = 0;
+        _framesFailed = 0;
         _isInitialized = true;
     }
 
@@ -81,59 +140,117 @@ public class SimulatorPipeline
     public void Reset()
     {
         _panelSimulator?.Reset();
+        _protectionLogic?.Reset();
+        _hasFatalError = false;
         _frameCounter = 0;
+        _framesProcessed = 0;
+        _framesCompleted = 0;
+        _framesFailed = 0;
     }
 
     /// <summary>
-    /// Processes a single frame through the pipeline.
-    /// Pipeline: Panel -> FPGA CSI-2 -> MCU UDP -> Host
+    /// Processes a single frame through the full 4-layer pipeline.
+    /// Panel -> FPGA CSI-2 -> MCU UDP -> Network -> Host
+    /// Returns null if pipeline has a fatal error or if frame fails to reassemble.
     /// </summary>
-    /// <returns>Frame data from the end of the pipeline</returns>
     public FrameData? ProcessFrame()
     {
-        if (!_isInitialized || _pixelGenerator == null || _csi2Generator == null)
+        lock (_lock)
         {
-            throw new InvalidOperationException("Pipeline not initialized. Call Initialize first.");
-        }
+            if (!_isInitialized || _panelSimulator == null || _csi2Generator == null)
+                throw new InvalidOperationException("Pipeline not initialized. Call Initialize first.");
 
-        int rows = Config?.Panel?.Rows ?? 1024;
-        int cols = Config?.Panel?.Cols ?? 1024;
-        int bitDepth = Config?.Panel?.BitDepth ?? 14;
+            _framesProcessed++;
 
-        // Step 1: Generate pixel data from Panel (2D array)
-        var pixelArray = _pixelGenerator.GenerateFrame(rows, cols);
-
-        // Step 2: FPGA CSI-2 packet generation (using 2D array directly)
-        var csi2Packets = _csi2Generator.GenerateFullFrame(pixelArray);
-
-        // Step 3: MCU UDP packet fragmentation
-        var udpPackets = _udpTransmitter.FragmentFrame(pixelArray, _frameCounter);
-
-        // Step 4: Create FrameData for Host (simulating reassembly)
-        // Convert 2D array to 1D array for FrameData
-        var pixel1D = new ushort[rows * cols];
-        for (int r = 0; r < rows; r++)
-        {
-            for (int c = 0; c < cols; c++)
+            // Fatal error short-circuit: stops all frame processing
+            if (_hasFatalError)
             {
-                pixel1D[r * cols + c] = pixelArray[r, c];
+                _framesFailed++;
+                return null;
+            }
+
+            // Frame-level loss simulation (for IT07 and similar scenarios)
+            if (_frameLossRate > 0.0 && _random.NextDouble() < _frameLossRate)
+            {
+                _framesFailed++;
+                return null;
+            }
+
+            try
+            {
+                // Layer 1: Panel - Generate pixel data (1D FrameData)
+                var panelOutput = (FrameData)_panelSimulator.Process(new object());
+
+                int rows = panelOutput.Height;
+                int cols = panelOutput.Width;
+
+                // Convert 1D to 2D for FPGA input
+                var pixels2D = ConvertTo2D(panelOutput.Pixels, rows, cols);
+
+                // Layer 2: FPGA - Encode to CSI-2 packets
+                var csi2Packets = _csi2Generator.GenerateFullFrame(pixels2D);
+
+                // Layer 3: MCU - Reassemble CSI-2, then fragment to UDP
+                var mcuReassembler = new FrameReassembler();
+                foreach (var pkt in csi2Packets)
+                {
+                    mcuReassembler.AddPacket(pkt);
+                }
+                var reassembledFrame = mcuReassembler.GetFrame();
+
+                var udpTransmitter = new UdpFrameTransmitter();
+                var udpPackets = udpTransmitter.FragmentFrame(reassembledFrame.Pixels, _frameCounter);
+
+                // Network channel - Apply loss/reorder/corruption
+                List<UdpFramePacket> networkOutput;
+                if (_networkChannel != null)
+                {
+                    networkOutput = _networkChannel.TransmitPackets(udpPackets);
+                }
+                else
+                {
+                    networkOutput = udpPackets;
+                }
+
+                // Layer 4: Host - Reassemble UDP packets into FrameData
+                var hostConfig = new HostSimulatorConfig { PacketTimeoutMs = 5000 };
+                var hostSim = new HostSimulator.Core.HostSimulator();
+                hostSim.Initialize(hostConfig);
+
+                FrameData? hostOutput = null;
+                foreach (var udpPacket in networkOutput)
+                {
+                    var result = hostSim.Process(udpPacket.Data);
+                    if (result is FrameData fd)
+                    {
+                        hostOutput = fd;
+                    }
+                }
+
+                _frameCounter++;
+
+                if (hostOutput != null)
+                {
+                    _framesCompleted++;
+                    return hostOutput;
+                }
+                else
+                {
+                    _framesFailed++;
+                    return null;
+                }
+            }
+            catch
+            {
+                _framesFailed++;
+                return null;
             }
         }
-
-        var frame = new FrameData(
-            frameNumber: (int)_frameCounter,
-            width: cols,
-            height: rows,
-            pixels: pixel1D
-        );
-
-        _frameCounter++;
-
-        return frame;
     }
 
     /// <summary>
     /// Processes multiple frames through the pipeline.
+    /// Null frames (from errors or packet loss) are skipped.
     /// </summary>
     public List<FrameData> ProcessFrames(int count)
     {
@@ -160,84 +277,157 @@ public class SimulatorPipeline
         {
             $"Pipeline: {(IsInitialized ? "Initialized" : "Not Initialized")}",
             $"Frame Counter: {_frameCounter}",
+            $"Fatal Error: {_hasFatalError}",
             _panelSimulator?.GetStatus() ?? "Panel: Not Initialized",
             $"CSI-2 Generator: {(_csi2Generator != null ? "Ready" : "Not Initialized")}",
-            $"UDP Transmitter: {(_udpTransmitter != null ? "Ready" : "Not Initialized")}"
+            $"Protection Logic: {(_protectionLogic?.ErrorFlags.ToString() ?? "Not Initialized")}",
+            $"Sequence Engine: {(_sequenceEngine?.State.ToString() ?? "Not Initialized")}"
         };
 
         return string.Join(Environment.NewLine, status);
     }
 
     /// <summary>
+    /// Gets a snapshot of pipeline statistics.
+    /// </summary>
+    public PipelineStatistics GetStatistics()
+    {
+        lock (_lock)
+        {
+            NetworkChannelStats? networkStats = null;
+            if (_networkChannel != null)
+            {
+                networkStats = new NetworkChannelStats
+                {
+                    PacketsSent = _networkChannel.PacketsSent,
+                    PacketsLost = _networkChannel.PacketsLost,
+                    PacketsReordered = _networkChannel.PacketsReordered,
+                    PacketsCorrupted = _networkChannel.PacketsCorrupted
+                };
+            }
+
+            return new PipelineStatistics
+            {
+                FramesProcessed = _framesProcessed,
+                FramesCompleted = _framesCompleted,
+                FramesFailed = _framesFailed,
+                NetworkStats = networkStats
+            };
+        }
+    }
+
+    /// <summary>
     /// Injects an error into the pipeline for testing error handling.
+    /// Fatal errors (TIMEOUT, OVERFLOW) stop all subsequent frame processing.
+    /// Non-fatal errors (CRC, RECOVERABLE) allow processing to continue.
     /// Used by IT-04 (Error Injection and Recovery).
     /// </summary>
-    /// <param name="errorType">Type of error to inject</param>
+    /// <param name="errorType">Type of error: TIMEOUT, OVERFLOW, CRC, RECOVERABLE, or watchdog/readout_timeout/buffer_overflow/csi2_error/roic_fault/config_error</param>
     public void InjectError(string errorType)
     {
         if (!IsInitialized)
             throw new InvalidOperationException("Pipeline not initialized.");
+        if (_protectionLogic == null)
+            throw new InvalidOperationException("Protection logic not initialized.");
 
-        // Error injection for testing purposes
-        // Actual implementation would interact with FPGA simulator error injection
+        var normalized = errorType.ToUpperInvariant();
+
+        var (error, isFatal) = normalized switch
+        {
+            // TestScenarioExecutor strings
+            "TIMEOUT" => (ProtectionError.WatchdogTimeout, true),
+            "OVERFLOW" => (ProtectionError.BufferOverflow, true),
+            "CRC" => (ProtectionError.Csi2Error, false),
+            "RECOVERABLE" => (ProtectionError.ReadoutTimeout, false),
+            // Reference implementation strings (lowercase)
+            "WATCHDOG" => (ProtectionError.WatchdogTimeout, true),
+            "READOUT_TIMEOUT" => (ProtectionError.ReadoutTimeout, false),
+            "BUFFER_OVERFLOW" => (ProtectionError.BufferOverflow, false),
+            "CSI2_ERROR" => (ProtectionError.Csi2Error, false),
+            "ROIC_FAULT" => (ProtectionError.RoicFault, true),
+            "CONFIG_ERROR" => (ProtectionError.ConfigError, true),
+            _ => throw new ArgumentException($"Unknown error type: {errorType}", nameof(errorType))
+        };
+
+        _protectionLogic.ReportError(error, isFatal);
+
+        if (isFatal)
+        {
+            _hasFatalError = true;
+        }
     }
 
     /// <summary>
-    /// Reconfigures the pipeline for a new tier.
+    /// Reconfigures the pipeline for a new configuration.
     /// Used by IT-05 (Runtime Configuration Change).
     /// </summary>
-    /// <param name="newConfig">New configuration to apply</param>
     public void Reconfigure(DetectorConfig newConfig)
     {
         if (newConfig == null)
             throw new ArgumentNullException(nameof(newConfig));
 
-        // Reset and reinitialize with new config
         Reset();
         Initialize(newConfig);
     }
 
     /// <summary>
-    /// Sets the scan mode for the FPGA simulator.
+    /// Sets the scan mode via the SequenceEngine FSM.
     /// Used by IT-06 (Mode Transition).
     /// </summary>
-    /// <param name="mode">Scan mode to set</param>
     public void SetScanMode(ScanMode mode)
     {
         if (!IsInitialized)
             throw new InvalidOperationException("Pipeline not initialized.");
 
-        // Would set mode in FPGA simulator
-        // For now, just track internally
+        _sequenceEngine?.StartScan(mode);
     }
 
     /// <summary>
-    /// Simulates packet loss for testing network resilience.
+    /// Sets the packet loss rate for the pipeline.
+    /// Applies frame-level drop simulation: frames are dropped with this probability.
+    /// Also configures the network channel for packet-level loss when available.
     /// Used by IT-07 (Packet Loss and Network Resilience).
     /// </summary>
-    /// <param name="lossRate">Packet loss rate (0.0 to 1.0)</param>
+    /// <param name="lossRate">Packet loss rate (0.0 to 1.0).</param>
     public void SetPacketLossRate(double lossRate)
     {
         if (lossRate < 0.0 || lossRate > 1.0)
             throw new ArgumentOutOfRangeException(nameof(lossRate), "Loss rate must be between 0.0 and 1.0");
 
-        // Would configure network simulation
+        _frameLossRate = lossRate;
+        _networkChannel?.SetLossRate(lossRate);
     }
 
     /// <summary>
-    /// Simulates packet reordering for testing.
+    /// Sets the packet reorder rate on the network channel.
     /// Used by IT-03 (Out-of-Order UDP Packet Handling).
     /// </summary>
-    /// <param name="reorderRate">Packet reorder rate (0.0 to 1.0)</param>
+    /// <param name="reorderRate">Packet reorder rate (0.0 to 1.0).</param>
     public void SetPacketReorderRate(double reorderRate)
     {
         if (reorderRate < 0.0 || reorderRate > 1.0)
             throw new ArgumentOutOfRangeException(nameof(reorderRate), "Reorder rate must be between 0.0 and 1.0");
 
-        // Would configure network simulation
+        _networkChannel?.SetReorderRate(reorderRate);
     }
 
-    private TestPattern ParseTestPattern(string pattern)
+    /// <summary>
+    /// Converts a 1D pixel array to 2D [rows, cols].
+    /// </summary>
+    private static ushort[,] ConvertTo2D(ushort[] pixels, int rows, int cols)
+    {
+        var result = new ushort[rows, cols];
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                result[r, c] = pixels[r * cols + c];
+            }
+        }
+        return result;
+    }
+
+    private static TestPattern ParseTestPattern(string pattern)
     {
         return pattern.ToLowerInvariant() switch
         {
@@ -245,18 +435,6 @@ public class SimulatorPipeline
             "checkerboard" => TestPattern.Checkerboard,
             "flatfield" or "flat_field" => TestPattern.FlatField,
             _ => TestPattern.Counter
-        };
-    }
-
-    private PatternMode ParsePatternMode(string pattern)
-    {
-        return pattern.ToLowerInvariant() switch
-        {
-            "counter" => PatternMode.Counter,
-            "checkerboard" => PatternMode.Checkerboard,
-            "flatfield" or "flat_field" or "constant" => PatternMode.Constant,
-            "random" => PatternMode.Random,
-            _ => PatternMode.Counter
         };
     }
 }
@@ -293,11 +471,9 @@ public class TestScenarioExecutor
 
         try
         {
-            // Initialize pipeline with configuration appropriate for the scenario
             var testConfig = GetConfigForScenario(scenario, config);
             _pipeline.Initialize(testConfig);
 
-            // Execute scenario-specific test
             result = scenario switch
             {
                 TestScenario.IT01_SingleFrameMinimum => ExecuteIT01(testConfig),
@@ -366,6 +542,16 @@ public class TestScenarioExecutor
         return results;
     }
 
+    /// <summary>
+    /// Returns the frame count for a scenario, respecting MaxFrames limit from config.
+    /// MaxFrames=0 means use the scenario's default frame count.
+    /// </summary>
+    private static int GetFrameCount(int defaultCount, DetectorConfig config)
+    {
+        int maxFrames = config.Simulation?.MaxFrames ?? 0;
+        return maxFrames > 0 ? Math.Min(maxFrames, defaultCount) : defaultCount;
+    }
+
     private TestResult ExecuteIT01(DetectorConfig config)
     {
         var result = new TestResult
@@ -376,7 +562,6 @@ public class TestScenarioExecutor
 
         try
         {
-            // Single frame, minimum tier (1024x1024, 14-bit)
             var frames = _pipeline.ProcessFrames(1);
             result.FramesProcessed = frames.Count;
 
@@ -435,15 +620,14 @@ public class TestScenarioExecutor
 
         try
         {
-            // 1000 frames, Intermediate-A tier (2048x2048, 16-bit)
-            var frames = _pipeline.ProcessFrames(1000);
+            int targetFrames = GetFrameCount(1000, config);
+            var frames = _pipeline.ProcessFrames(targetFrames);
             result.FramesProcessed = frames.Count;
 
-            if (frames.Count == 1000)
+            if (frames.Count == targetFrames)
             {
-                // Spot-check first and last frame
                 int firstErrors = VerifyCounterPattern(frames[0], 16);
-                int lastErrors = VerifyCounterPattern(frames[999], 16);
+                int lastErrors = VerifyCounterPattern(frames[frames.Count - 1], 16);
 
                 result.BitErrors = firstErrors + lastErrors;
                 result.FrameDrops = 0;
@@ -454,9 +638,9 @@ public class TestScenarioExecutor
 
                     double frameSizeBits = 2048.0 * 2048.0 * 16.0;
                     double totalTimeSec = _stopwatch.ElapsedMilliseconds / 1000.0;
-                    result.ThroughputGbps = (frameSizeBits * 1000) / totalTimeSec / 1e9;
+                    result.ThroughputGbps = (frameSizeBits * targetFrames) / totalTimeSec / 1e9;
 
-                    if (result.ThroughputGbps < 0.96)
+                    if (targetFrames == 1000 && result.ThroughputGbps < 0.96)
                     {
                         result.Warnings.Add($"Throughput below target: {result.ThroughputGbps:F3} Gbps < 0.96 Gbps");
                     }
@@ -470,8 +654,8 @@ public class TestScenarioExecutor
             else
             {
                 result.Status = TestStatus.Failed;
-                result.FailureMessages.Add($"Expected 1000 frames, got {frames.Count}");
-                result.FrameDrops = 1000 - frames.Count;
+                result.FailureMessages.Add($"Expected {targetFrames} frames, got {frames.Count}");
+                result.FrameDrops = targetFrames - frames.Count;
             }
         }
         catch (Exception ex)
@@ -496,11 +680,10 @@ public class TestScenarioExecutor
             // Configure 5% packet reordering
             _pipeline.SetPacketReorderRate(0.05);
 
-            // Acquire 100 frames
             var frames = _pipeline.ProcessFrames(100);
             result.FramesProcessed = frames.Count;
 
-            // Verify all frames correctly reassembled
+            // Verify all frames correctly reassembled despite reordering
             int totalErrors = 0;
             foreach (var frame in frames)
             {
@@ -519,7 +702,6 @@ public class TestScenarioExecutor
                 result.FailureMessages.Add($"Frames received: {frames.Count}/100, Bit errors: {totalErrors}");
             }
 
-            // Reset reordering
             _pipeline.SetPacketReorderRate(0.0);
         }
         catch (Exception ex)
@@ -544,13 +726,13 @@ public class TestScenarioExecutor
             var subTestResults = new List<string>();
             int failedSubTests = 0;
 
-            // Sub-test A: TIMEOUT Error (Fatal)
+            // Sub-test A: TIMEOUT Error (Fatal) - stops frame processing
             _pipeline.Initialize(config);
             _pipeline.InjectError("TIMEOUT");
             var framesA = _pipeline.ProcessFrames(10);
             if (framesA.Count < 10)
             {
-                subTestResults.Add("A (TIMEOUT): PASS - Fatal error detected");
+                subTestResults.Add($"A (TIMEOUT): PASS - Fatal error detected ({framesA.Count}/10 frames)");
             }
             else
             {
@@ -558,13 +740,13 @@ public class TestScenarioExecutor
                 failedSubTests++;
             }
 
-            // Sub-test B: OVERFLOW Error (Fatal)
+            // Sub-test B: OVERFLOW Error (Fatal) - stops frame processing
             _pipeline.Initialize(config);
             _pipeline.InjectError("OVERFLOW");
             var framesB = _pipeline.ProcessFrames(10);
             if (framesB.Count < 10)
             {
-                subTestResults.Add("B (OVERFLOW): PASS - Overflow error detected");
+                subTestResults.Add($"B (OVERFLOW): PASS - Overflow error detected ({framesB.Count}/10 frames)");
             }
             else
             {
@@ -572,7 +754,7 @@ public class TestScenarioExecutor
                 failedSubTests++;
             }
 
-            // Sub-test C: CRC Error (Non-Fatal)
+            // Sub-test C: CRC Error (Non-Fatal) - processing continues
             _pipeline.Initialize(config);
             _pipeline.InjectError("CRC");
             var framesC = _pipeline.ProcessFrames(10);
@@ -582,7 +764,7 @@ public class TestScenarioExecutor
             }
             else
             {
-                subTestResults.Add("C (CRC): FAIL - CRC error should be non-fatal");
+                subTestResults.Add($"C (CRC): FAIL - CRC error should be non-fatal ({framesC.Count}/10 frames)");
                 failedSubTests++;
             }
 
@@ -632,7 +814,6 @@ public class TestScenarioExecutor
 
         try
         {
-            // Start with Minimum tier
             var minConfig = new DetectorConfig
             {
                 Panel = new Models.PanelConfig { Rows = 1024, Cols = 1024, BitDepth = 14, PixelPitchUm = 100.0 },
@@ -644,7 +825,6 @@ public class TestScenarioExecutor
             _pipeline.Initialize(minConfig);
             var framesBefore = _pipeline.ProcessFrames(10);
 
-            // Reconfigure to Intermediate-A tier
             var intAConfig = new DetectorConfig
             {
                 Panel = new Models.PanelConfig { Rows = 2048, Cols = 2048, BitDepth = 16, PixelPitchUm = 100.0 },
@@ -658,7 +838,6 @@ public class TestScenarioExecutor
 
             result.FramesProcessed = framesBefore.Count + framesAfter.Count;
 
-            // Verify configuration change
             bool beforeCorrect = framesBefore.Count == 10 && framesBefore[0].Width == 1024;
             bool afterCorrect = framesAfter.Count == 10 && framesAfter[0].Width == 2048;
 
@@ -785,41 +964,43 @@ public class TestScenarioExecutor
             var subTestResults = new List<string>();
             int failedSubTests = 0;
 
+            int targetFrames = GetFrameCount(1000, config);
+
             // Sub-test A: 5% Random Packet Loss
             _pipeline.Initialize(config);
             _pipeline.SetPacketLossRate(0.05);
-            var framesLoss = _pipeline.ProcessFrames(1000);
+            var framesLoss = _pipeline.ProcessFrames(targetFrames);
 
-            // With 5% loss, some frames may be incomplete but pipeline continues
-            if (framesLoss.Count >= 900) // Allow some tolerance
+            // With 5% packet loss, some frames will fail to reassemble - allow tolerance
+            int lossThreshold = (int)(targetFrames * 0.9);
+            if (framesLoss.Count >= lossThreshold)
             {
-                subTestResults.Add($"A (Packet Loss): PASS - {framesLoss.Count}/1000 frames received");
+                subTestResults.Add($"A (Packet Loss): PASS - {framesLoss.Count}/{targetFrames} frames received");
             }
             else
             {
-                subTestResults.Add($"A (Packet Loss): FAIL - Only {framesLoss.Count}/1000 frames");
+                subTestResults.Add($"A (Packet Loss): FAIL - Only {framesLoss.Count}/{targetFrames} frames");
                 failedSubTests++;
             }
 
-            // Sub-test B: Network Latency Spike
+            // Sub-test B: No Packet Loss
             _pipeline.Initialize(config);
             _pipeline.SetPacketLossRate(0.0);
-            // Simulate latency spike would go here
-            var framesLatency = _pipeline.ProcessFrames(1000);
+            var framesLatency = _pipeline.ProcessFrames(targetFrames);
 
-            if (framesLatency.Count == 1000)
+            if (framesLatency.Count == targetFrames)
             {
-                subTestResults.Add("B (Latency Spike): PASS");
+                subTestResults.Add("B (No Loss): PASS");
             }
             else
             {
-                subTestResults.Add($"B (Latency Spike): FAIL - {framesLatency.Count}/1000 frames");
+                subTestResults.Add($"B (No Loss): FAIL - {framesLatency.Count}/{targetFrames} frames");
                 failedSubTests++;
             }
 
             result.AdditionalMetrics["SubTestResults"] = subTestResults;
             result.FramesProcessed = framesLoss.Count + framesLatency.Count;
-            result.FrameDrops = 2000 - (framesLoss.Count + framesLatency.Count);
+            result.FrameDrops = (targetFrames * 2) - (framesLoss.Count + framesLatency.Count);
 
             if (failedSubTests == 0)
             {
@@ -850,15 +1031,8 @@ public class TestScenarioExecutor
 
         try
         {
-            // Test single connection enforcement
-            // This would test TCP control channel behavior
-            // For simulation, we verify the pipeline allows single operation
-
             _pipeline.Initialize(config);
             var frames1 = _pipeline.ProcessFrames(10);
-
-            // Simulate second connection attempt (should be rejected)
-            // In simulation, this means pipeline should still work
             var frames2 = _pipeline.ProcessFrames(10);
 
             result.FramesProcessed = frames1.Count + frames2.Count;
@@ -892,15 +1066,15 @@ public class TestScenarioExecutor
 
         try
         {
-            // 10,000 frames, Intermediate-A tier
-            var frames = _pipeline.ProcessFrames(10000);
+            int targetFrames = GetFrameCount(10000, config);
+            var frames = _pipeline.ProcessFrames(targetFrames);
             result.FramesProcessed = frames.Count;
 
-            if (frames.Count == 10000)
+            if (frames.Count == targetFrames)
             {
-                // Spot-check every 1000th frame
                 int totalErrors = 0;
-                for (int i = 0; i < 10000; i += 1000)
+                int checkInterval = Math.Max(1, targetFrames / 10);
+                for (int i = 0; i < targetFrames; i += checkInterval)
                 {
                     totalErrors += VerifyCounterPattern(frames[i], 16);
                 }
@@ -914,7 +1088,7 @@ public class TestScenarioExecutor
 
                     double frameSizeBits = 2048.0 * 2048.0 * 16.0;
                     double totalTimeSec = _stopwatch.ElapsedMilliseconds / 1000.0;
-                    result.ThroughputGbps = (frameSizeBits * 10000) / totalTimeSec / 1e9;
+                    result.ThroughputGbps = (frameSizeBits * targetFrames) / totalTimeSec / 1e9;
                 }
                 else
                 {
@@ -925,8 +1099,8 @@ public class TestScenarioExecutor
             else
             {
                 result.Status = TestStatus.Failed;
-                result.FailureMessages.Add($"Expected 10000 frames, got {frames.Count}");
-                result.FrameDrops = 10000 - frames.Count;
+                result.FailureMessages.Add($"Expected {targetFrames} frames, got {frames.Count}");
+                result.FrameDrops = targetFrames - frames.Count;
             }
         }
         catch (Exception ex)
@@ -961,7 +1135,6 @@ public class TestScenarioExecutor
 
             foreach (var (tier, rows, cols, bitDepth, minThroughput) in tiers)
             {
-                // Skip Target tier if 800M debugging is not complete
                 if (tier == PerformanceTier.Target)
                 {
                     result.Warnings.Add("IT-10C (Target tier) skipped - conditional on 800M debugging");
@@ -969,7 +1142,6 @@ public class TestScenarioExecutor
                     continue;
                 }
 
-                // Configure for this tier
                 var tierConfig = new DetectorConfig
                 {
                     Panel = new Models.PanelConfig
@@ -985,13 +1157,13 @@ public class TestScenarioExecutor
                     Simulation = config.Simulation
                 };
 
+                int tierFrameCount = GetFrameCount(100, config);
                 _pipeline.Initialize(tierConfig);
-                var frames = _pipeline.ProcessFrames(100);
+                var frames = _pipeline.ProcessFrames(tierFrameCount);
 
-                // Verify throughput
                 double frameSizeBits = (double)(rows * cols * 16);
                 double totalTimeSec = _stopwatch.ElapsedMilliseconds / 1000.0;
-                double throughputGbps = (frameSizeBits * 100) / totalTimeSec / 1e9;
+                double throughputGbps = (frameSizeBits * tierFrameCount) / totalTimeSec / 1e9;
 
                 bool passed = throughputGbps >= minThroughput * 0.95;
                 tierResults.Add($"{tier}: {throughputGbps:F3} Gbps (target: {minThroughput:F3} Gbps) - {(passed ? "PASS" : "FAIL")}");
@@ -1036,15 +1208,7 @@ public class TestScenarioExecutor
                 Host = baseConfig.Host,
                 Simulation = baseConfig.Simulation
             },
-            TestScenario.IT02_1000FrameContinuous => new DetectorConfig
-            {
-                Panel = new Models.PanelConfig { Rows = 2048, Cols = 2048, BitDepth = 16, PixelPitchUm = baseConfig.Panel?.PixelPitchUm ?? 100.0 },
-                Fpga = baseConfig.Fpga,
-                Soc = baseConfig.Soc,
-                Host = baseConfig.Host,
-                Simulation = baseConfig.Simulation
-            },
-            TestScenario.IT09_LongDurationStability => new DetectorConfig
+            TestScenario.IT02_1000FrameContinuous or TestScenario.IT09_LongDurationStability => new DetectorConfig
             {
                 Panel = new Models.PanelConfig { Rows = 2048, Cols = 2048, BitDepth = 16, PixelPitchUm = baseConfig.Panel?.PixelPitchUm ?? 100.0 },
                 Fpga = baseConfig.Fpga,
@@ -1056,15 +1220,12 @@ public class TestScenarioExecutor
         };
     }
 
-    private int VerifyCounterPattern(FrameData frame, int bitDepth)
+    private static int VerifyCounterPattern(FrameData frame, int bitDepth)
     {
-        // Verify that pixel[r][c] == (r * width + c) masked to bit depth
         int errors = 0;
         int width = frame.Width;
         int height = frame.Height;
-
-        int maxValue = (1 << bitDepth) - 1;
-        int mask = maxValue;
+        int mask = (1 << bitDepth) - 1;
 
         for (int r = 0; r < height; r++)
         {

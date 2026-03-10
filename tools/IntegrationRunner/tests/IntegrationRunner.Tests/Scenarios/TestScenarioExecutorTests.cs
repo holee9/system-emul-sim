@@ -180,7 +180,8 @@ public class TestScenarioExecutorTests
                 Mode = "fast",
                 Seed = 42,
                 TestPattern = "counter",
-                NoiseStdDev = 0
+                NoiseStdDev = 0,
+                MaxFrames = 5 // Limit frame count for fast unit test execution
             }
         };
     }

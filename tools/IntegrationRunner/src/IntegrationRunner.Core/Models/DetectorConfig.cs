@@ -101,4 +101,11 @@ public class SimulationConfig
 
     [YamlMember(Alias = "noise_stddev")]
     public double NoiseStdDev { get; set; }
+
+    /// <summary>
+    /// Maximum frames per scenario (0 = use scenario default).
+    /// Used to limit frame count in unit tests for fast execution.
+    /// </summary>
+    [YamlMember(Alias = "max_frames")]
+    public int MaxFrames { get; set; }
 }
