@@ -102,10 +102,10 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 
 | Metric | Value |
 |--------|-------|
-| C# Projects | 12 |
-| Source Files | 180+ |
-| Test Files | 60+ |
-| Test Coverage | 430/430 tests passing (0 skipped) |
+| C# Projects | 20 |
+| Source Files | 500+ |
+| Test Files | 12 test projects |
+| Test Coverage | 1,419/1,419 tests passing (4 skipped) |
 | Code Coverage | 85%+ per module (Panel: 86.9%, FPGA: 98.7%, MCU: 92.3%, Host: 86.4%) |
 | Documentation | 50+ pages |
 | SPEC Documents | 11 |
@@ -128,12 +128,12 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 >
 > **M3-Integ 통합 테스트 완료 ✅** (2026-03-01)
 >
-> - PanelSimulator: 52 tests, 86.9% coverage
-> - FpgaSimulator: 81 tests, 98.7% coverage
-> - McuSimulator: 28 tests, 92.3% coverage
+> - PanelSimulator: 294 tests, 86.9% coverage
+> - FpgaSimulator: 212 tests, 98.7% coverage
+> - McuSimulator: 146 tests, 92.3% coverage
 > - HostSimulator: 61 tests, 86.4% coverage
-> - IntegrationTests: 213 tests (IT-01~IT19)
-> - **전체: 430 tests passing, 모든 모듈 85%+ coverage**
+> - IntegrationTests: 250 tests (IT-01~IT19), 4 skipped
+> - **전체: 1,419 tests passing, 4 skipped, 모든 모듈 85%+ coverage**
 
 ## 프로젝트 개요
 
@@ -384,8 +384,8 @@ flowchart TD
 
 | Metric | Value |
 |--------|-------|
-| Unit Tests (Simulators) | 222 tests passing (Panel: 52, FPGA: 81, MCU: 28, Host: 61) |
-| Integration Tests | 169 passing / 4 skipped (IT-01~IT-12, 12 scenarios) |
+| Unit Tests (Simulators) | 766 tests passing (Panel: 294, FPGA: 212, MCU: 146, Host: 61) |
+| Integration Tests | 250 passing / 4 skipped (IT-01~IT-19, 19 scenarios) |
 | Code Coverage | 85%+ per module (FPGA: 98.7%, MCU: 92.3%, Panel: 86.9%, Host: 86.4%) |
 | Simulator Projects | 4 (Panel, FPGA, MCU, Host) |
 | Test Projects | 12 |
@@ -903,19 +903,19 @@ Solution/
 | 모듈 | 상태 | 커버리지 | 테스트 |
 |------|------|---------|--------|
 | Common.Dto | ✅ 완료 | 97.08% | 53 passing |
-| PanelSimulator | ✅ 완료 | 86.9% | 52 passing |
-| FpgaSimulator | ✅ 완료 | 98.7% | 81 passing |
-| McuSimulator | ✅ 완료 | 92.3% | 28 passing |
+| PanelSimulator | ✅ 완료 | 86.9% | 294 passing |
+| FpgaSimulator | ✅ 완료 | 98.7% | 212 passing |
+| McuSimulator | ✅ 완료 | 92.3% | 146 passing |
 | HostSimulator | ✅ 완료 | 86.4% | 61 passing |
-| **Host SDK** (XrayDetector.Sdk) | ✅ 완료 | 85%+ | 242 passing |
+| **Host SDK** (XrayDetector.Sdk) | ✅ 완료 | 85%+ | 227 passing |
 | **CodeGenerator** | ✅ 완료 | 85%+ | 9 passing |
-| **ConfigConverter** | ✅ 완료 | 85%+ | 37 passing |
-| **IntegrationRunner** | ✅ 완료 | - | CLI 빌드 |
+| **ConfigConverter** | ✅ 완료 | 85%+ | 21 passing |
+| **IntegrationRunner** | ✅ 완료 | 85%+ | 23 passing |
 | **ParameterExtractor** | ✅ 완료 | 85%+ | 41 passing |
 | **GUI.Application** | ✅ 완료 | 85%+ | 83 passing |
 | **meta-detector** (Yocto) | ✅ 완료 | - | 레시피 완료 |
-| **IntegrationTests** | ✅ 완료 | - | 213 passing |
-| **합계** | **M2~M5 완료** | **85%+** | **430 passing (simulators + integration + GUI)** |
+| **IntegrationTests** | ✅ 완료 | - | 250 passing (4 skipped) |
+| **합계** | **M2~M5 완료** | **85%+** | **1,419 passing (4 skipped)** |
 
 ### 의존성 규칙
 
@@ -982,8 +982,8 @@ W22-W28: Phase 8 - 시스템 검증 및 확인
 |---------|------|------------|------|
 | **M0** | W1 | P0 결정 확정 (성능 목표, Host 링크, SoC 플랫폼) | ✅ 완료 |
 | **M1-Doc** | W8 | 모든 SPEC/아키텍처/API 문서 완료 및 승인 | ✅ Phase 1 교차검증 완전 승인 (2026-02-17) |
-| **M2-Impl** | W14 | 모든 시뮬레이터 단위 테스트 통과 | ✅ 완료 (2026-02-17) - 222 simulator tests, 85%+ coverage |
-| **M3-Integ** | W22 | IT-01~IT-12 통합 시나리오 모두 통과 | ✅ 완료 (2026-03-01) - 169 passing, 4 skipped |
+| **M2-Impl** | W14 | 모든 시뮬레이터 단위 테스트 통과 | ✅ 완료 (2026-02-17) - 766 simulator tests, 85%+ coverage |
+| **M3-Integ** | W22 | IT-01~IT-19 통합 시나리오 모두 통과 | ✅ 완료 (2026-03-01) - 250 passing, 4 skipped |
 | **M0.5-PoC** | W26 | CSI-2 PoC: 목표 처리량의 ≥70% 측정 완료 (구현 완료 후 수행) | ⏳ 연기 |
 | M6-Final | W28 | 실제 패널 프레임 획득, 시뮬레이터 보정 완료 | ⏳ 대기 |
 
