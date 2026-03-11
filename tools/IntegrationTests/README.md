@@ -16,11 +16,16 @@ X-ray Detector Panel System integration test suite. Validates end-to-end system 
 ```
 tools/IntegrationTests/
 ├── Helpers/                    # Common test utilities
-│   ├── TestFrameFactory.cs     # Test frame generation
+│   ├── TestFrameFactory.cs     # Test frame generation (hardware-independent)
 │   ├── PacketFactory.cs        # CSI-2/Ethernet packets
 │   ├── SimulatorPipelineBuilder.cs # Pipeline setup
 │   ├── LatencyMeasurer.cs      # Latency analysis
-│   └── HMACTestHelper.cs       # HMAC test vectors
+│   ├── HMACTestHelper.cs       # HMAC test vectors
+│   └── Mock/                   # Mock infrastructure for hardware independence
+│       ├── IFileSystem.cs      # File system abstraction
+│       ├── MemoryFileSystem.cs # In-memory file system implementation
+│       ├── MemoryFileSystemTests.cs
+│       └── MemoryFileSystemVerificationTests.cs
 ├── Integration/                # Integration test scenarios
 │   ├── It01FullPipelineTests.cs
 │   ├── It02PerformanceTargetTierTests.cs
@@ -31,7 +36,11 @@ tools/IntegrationTests/
 │   ├── IT07_SequenceEngineTests.cs
 │   ├── IT08_PacketLossRetransmissionTests.cs
 │   ├── IT09_MaximumTierStressTests.cs
-│   └── IT10_LatencyMeasurementTests.cs
+│   ├── IT10_LatencyMeasurementTests.cs
+│   ├── IT15_FrameBufferOverflowTests.cs
+│   ├── IT15_RaceConditionCharacterizationTests.cs
+│   ├── IT15_RaceConditionDiagnostics.cs
+│   └── IT19_CliRoundTripTests.cs
 └── IntegrationTests.csproj
 ```
 
@@ -76,6 +85,25 @@ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 | Target | 2048×2048 | 30 fps | 2.01 Gbps |
 | Maximum | 3072×3072 | 30 fps | 4.53 Gbps |
 
+## Hardware Independence
+
+This test suite is designed to run **without actual hardware** dependencies:
+
+- **File System**: Uses `MemoryFileSystem` (in-memory) instead of disk I/O
+- **Networking**: `NetworkChannel` simulates packets in-memory (no UDP sockets)
+- **Test Data**: `TestFrameFactory` generates predictable test frames programmatically
+- **CLI Execution**: IT19 supports both process execution and in-memory invocation
+
+**Benefits:**
+- CI/CD execution without hardware requirements
+- Fast, deterministic test results
+- No side effects on host system
+
+For detailed implementation, see:
+- `Helpers/Mock/IFileSystem.cs`
+- `Helpers/Mock/MemoryFileSystem.cs`
+- `Helpers/NetworkChannel.cs` (already in-memory)
+
 ## Acceptance Criteria
 
 - All tests pass (100% success rate)
@@ -83,6 +111,7 @@ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 - Frame drop rate <1%
 - End-to-end latency p95 <50ms
 - TRUST 5 compliance
+- Hardware-independent execution (no actual HW required)
 
 ## TRUST 5 Quality Framework
 
@@ -94,6 +123,11 @@ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 
 ## References
 
-- SPEC Document: `.moai/specs/SPEC-INTEG-001/spec.md`
-- CSI-2 Protocol: `docs/api/csi2-protocol.md`
-- Ethernet Protocol: `docs/api/ethernet-protocol.md`
+- SPEC Documents:
+  - `.moai/specs/SPEC-INTEG-001/spec.md` - Original Integration Tests SPEC
+  - `.moai/specs/SPEC-INTSIM-001/spec.md` - Hardware Independence Improvements
+- Protocol Documentation:
+  - `docs/api/csi2-protocol.md` - CSI-2 Protocol Specification
+  - `docs/api/ethernet-protocol.md` - Ethernet Protocol Specification
+- Related:
+  - `.github/workflows/ci.yml` - CI/CD Pipeline Configuration
