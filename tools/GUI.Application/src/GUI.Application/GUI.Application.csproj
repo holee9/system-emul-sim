@@ -26,6 +26,8 @@
   <ItemGroup>
     <!-- Optional: CommunityToolkit.Mvvm for MVVM helpers -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <!-- YamlDotNet for configuration management (SPEC-UI-001) -->
+    <PackageReference Include="YamlDotNet" Version="16.0.0" />
   </ItemGroup>
 
 </Project>

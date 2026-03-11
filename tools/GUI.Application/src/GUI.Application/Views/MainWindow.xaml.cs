@@ -50,7 +50,10 @@ public partial class MainWindow : Window
         int height = frame.Height;
 
         // Must run on the UI thread
-        Dispatcher.Invoke(() => RenderPixels(pixels, width, height));
+        if (Dispatcher.CheckAccess())
+            RenderPixels(pixels, width, height);
+        else
+            Dispatcher.BeginInvoke(() => RenderPixels(pixels, width, height));
     }
 
     private void RenderPixels(byte[] pixels, int width, int height)

@@ -4,15 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:XrayDetector.Gui.ViewModels"
+        xmlns:views="clr-namespace:XrayDetector.Gui.Views"
         mc:Ignorable="d"
         Title="X-ray Detector Panel System"
         Width="1200" Height="800"
         MinWidth="800" MinHeight="600"
         WindowStartupLocation="CenterScreen">
-
-    <Window.DataContext>
-        <vm:MainViewModel />
-    </Window.DataContext>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -183,6 +180,21 @@
                         </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 4: Simulator Control (REQ-UI-012) -->
+            <TabItem Header="Simulator Control">
+                <views:SimulatorControlView DataContext="{Binding SimulatorControlViewModel}"/>
+            </TabItem>
+
+            <!-- Tab 5: Pipeline Status (REQ-UI-013) -->
+            <TabItem Header="Pipeline Status">
+                <views:PipelineStatusView DataContext="{Binding PipelineStatusViewModel}"/>
+            </TabItem>
+
+            <!-- Tab 6: Scenario Runner (REQ-UI-014) -->
+            <TabItem Header="Scenario Runner">
+                <views:ScenarioRunnerView DataContext="{Binding ScenarioRunnerViewModel}"/>
             </TabItem>
 
         </TabControl>

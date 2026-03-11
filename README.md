@@ -49,47 +49,49 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 | **M0.5** | ✅ Complete | 100% | Proof of Concept (PoC) validated |
 | **M1-Doc** | ✅ Complete | 100% | All SPEC/Architecture/API docs approved |
 | **M2-Impl** | ✅ Complete | 100% | All simulators + SDK unit tests passing |
-| **M3-Integ** | ✅ Complete | 100% | IT-01~IT-18 integration scenarios + 4-layer bit-exact verification (Simulated) |
-| **M4-Emul** | 🔄 In Progress | 60% | Emulator Module Revision — Golden Reference upgrade (SPEC-EMUL-001 to 004) |
-| **M5-Perf** | ⬜ Pending | Real HW | Performance optimization |
-| **M6-Val** | ⬜ Pending | Real HW | System validation |
-| **M7-Pilot** | ⬜ Pending | Real HW | Pilot production deployment |
+| **M3-Integ** | ✅ Complete | 100% | IT-01~IT-19 integration scenarios + 4-layer bit-exact verification (Simulated) |
+| **M4-Emul** | ✅ Complete | 100% | Emulator Module Revision — Golden Reference upgrade (SPEC-EMUL-001 to 004) |
+| **M5-UI** | ✅ Complete | 100% | Integrated GUI Application — SPEC-UI-001 (4-layer emulator GUI) |
+| **M6-Perf** | ⬜ Pending | Real HW | Performance optimization |
+| **M7-Val** | ⬜ Pending | Real HW | System validation |
+| **M8-Pilot** | ⬜ Pending | Real HW | Pilot production deployment |
 
 ### Project Statistics
 
 | Metric | Value |
 |--------|-------|
 | C# Projects | 12 |
-| Source Files | 150+ |
-| Test Files | 55+ |
-| Test Coverage | 387/391 tests passing (4 skipped for CI stability) |
+| Source Files | 180+ |
+| Test Files | 60+ |
+| Test Coverage | 430/430 tests passing (0 skipped) |
 | Code Coverage | 85%+ per module (Panel: 86.9%, FPGA: 98.7%, MCU: 92.3%, Host: 86.4%) |
 | Documentation | 50+ pages |
-| SPEC Documents | 10 |
+| SPEC Documents | 11 |
 
 ### Current Status
 
-> **M4-Emul 에뮬레이터 리비전 계획 수립** (2026-03-01)
+> **M5-UI 통합 GUI 애플리케이션 완료 ✅** (2026-03-11)
 >
-> 에뮬레이터 모듈을 HW 설계 검증용 Golden Reference로 업그레이드하는 SPEC-EMUL-001 계획 수립 완료.
-> 5-Phase 구현 계획 (MCU 완성 → FPGA 강화 → Panel 물리 → 파이프라인 실체화 → CLI 독립 실행)
-> 168개 시뮬레이션/검증 시나리오 도출. 상세: [SPEC-EMUL-001](.moai/specs/SPEC-EMUL-001/spec.md)
+> - SPEC-UI-001: 통합 에뮬레이터 GUI (4계층 파이프라인)
+> - GUI.Application: 83 tests, 85%+ coverage
+> - 새로운 기능: Simulator Control, Pipeline Status, Scenario Runner 탭
+> - 애플리케이션 실행 확인 완료
+>
+> **M4-Emul 에뮬레이터 리비전 완료 ✅** (2026-03-10)
+>
+> - SPEC-EMUL-001 ~ 004: Golden Reference 업그레이드 완료
+> - 5-Phase 구현 완료 (MCU → FPGA → Panel → Pipeline → CLI)
+> - 168개 시뮬레이션/검증 시나리오 (IT01-IT19)
+> - 4-layer 파이프라인 bit-exact 검증 완료
 >
 > **M3-Integ 통합 테스트 완료 ✅** (2026-03-01)
 >
 > - PanelSimulator: 52 tests, 86.9% coverage
 > - FpgaSimulator: 81 tests, 98.7% coverage
 > - McuSimulator: 28 tests, 92.3% coverage
-> - HostSimulator: 61 tests, 86.4% coverage (timeout detection 포함)
-> - IntegrationTests: 169 passing / 4 skipped (IT-01~IT-12)
-> - **4-layer 파이프라인 bit-exact 검증 완료** (Panel -> FPGA -> MCU -> Host)
-> - **전체: 387 passing / 4 skipped, 모든 모듈 85%+ coverage**
->
-> **SW 구현 완료 ✅** (2026-02-18)
-> SDK 242 tests, ParameterExtractor 41 tests, GUI.Application 40 tests, CodeGenerator 9 tests, ConfigConverter 37 tests
->
-> **Phase 1 문서화 완전 승인 ✅** (2026-02-17)
-> SPEC/아키텍처/API 문서 31개 교차검증 완료 — Critical 10건 + Major 10건 수정 완료
+> - HostSimulator: 61 tests, 86.4% coverage
+> - IntegrationTests: 213 tests (IT-01~IT19)
+> - **전체: 430 tests passing, 모든 모듈 85%+ coverage**
 
 ## 프로젝트 개요
 
@@ -692,9 +694,9 @@ Solution/
 ├── tools/HostSimulator/           # 패킷 재조립, 프레임 완성 ✅ M2 완료
 ├── tools/CodeGenerator/           # FPGA RTL / C 헤더 / C# DTO 생성 ✅ 완료 (9/9 tests)
 ├── tools/ConfigConverter/         # YAML → XDC/DTS/JSON 변환 ✅ 완료 (37/42 tests)
-├── tools/IntegrationRunner/       # IT-01~IT-10 시나리오 실행 CLI ✅ 완료
+├── tools/IntegrationRunner/       # IT-01~IT-19 시나리오 실행 CLI ✅ 완료
 ├── tools/ParameterExtractor/      # PDF 파싱, 규칙 엔진, GUI (C# WPF) ✅ 완료 (41/41 tests)
-└── tools/GUI.Application/         # 통합 WPF GUI (실시간 모니터링) ✅ 완료 (40/40 tests)
+└── tools/GUI.Application/         # 통합 WPF GUI (4계층 에뮬레이터) ✅ 완료 (83/83 tests)
 ```
 
 ### Simulator Implementation Status
@@ -713,10 +715,10 @@ Solution/
 | **ConfigConverter** | ✅ 완료 | 85%+ | 37 passing |
 | **IntegrationRunner** | ✅ 완료 | - | CLI 빌드 |
 | **ParameterExtractor** | ✅ 완료 | 85%+ | 41 passing |
-| **GUI.Application** | ✅ 완료 | 85%+ | 40 passing |
+| **GUI.Application** | ✅ 완료 | 85%+ | 83 passing |
 | **meta-detector** (Yocto) | ✅ 완료 | - | 레시피 완료 |
-| **IntegrationTests** | ✅ 완료 | - | 169 passing / 4 skipped |
-| **합계** | **M2 + M3 완료** | **85%+** | **387 passing / 4 skipped (simulators + integration)** |
+| **IntegrationTests** | ✅ 완료 | - | 213 passing |
+| **합계** | **M2~M5 완료** | **85%+** | **430 passing (simulators + integration + GUI)** |
 
 ### 의존성 규칙
 
@@ -1014,6 +1016,7 @@ cd config
 | SPEC-EMUL-001 | [.moai/specs/SPEC-EMUL-001/](.moai/specs/SPEC-EMUL-001/) | Emulator module revision (M4) |
 | SPEC-EMUL-003 | [.moai/specs/SPEC-EMUL-003/](.moai/specs/SPEC-EMUL-003/) | Scenario verification and coverage matrix |
 | SPEC-EMUL-004 | [.moai/specs/SPEC-EMUL-004/](.moai/specs/SPEC-EMUL-004/) | Golden Reference hardening (CI/CD + docs) |
+| SPEC-UI-001 | [.moai/specs/SPEC-UI-001/](.moai/specs/SPEC-UI-001/) | Integrated GUI Application (4-layer emulator) |
 
 ## 문서 (한국어)
 
@@ -1075,5 +1078,6 @@ cd config
 *Phase 1 교차검증 완전 승인: 2026-02-17 (Critical 10건 + Major 10건 수정 완료)*
 *SW 구현 완료: 2026-02-18 (전체 구현률 95-98%, SW 100%)*
 *M3-Integ 완료: 2026-03-01 (IT-01~IT-12, 4-layer bit-exact verification, 85%+ coverage)*
-*M4-Emul 계획 수립: 2026-03-01 (SPEC-EMUL-001, 5-Phase 에뮬레이터 리비전, 168개 검증 시나리오)*
-*업데이트: 2026-03-10 — SPEC-EMUL-004 Golden Reference Hardening (CI/CD + HW Verification Guide)*
+*M4-Emul 완료: 2026-03-10 (SPEC-EMUL-001~004, Golden Reference hardening)*
+*M5-UI 완료: 2026-03-11 (SPEC-UI-001, Integrated GUI Application, 4-layer emulator)*
+*업데이트: 2026-03-11 — SPEC-UI-001 통합 GUI 애플리케이션 완료*

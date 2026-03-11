@@ -291,7 +291,9 @@ public sealed class SimulatorControlViewModel : ObservableObject
             _canExecute = canExecute ?? (() => true);
         }
 
+#pragma warning disable CS0067 // CanExecuteChanged is required by ICommand interface
         public event EventHandler? CanExecuteChanged;
+#pragma warning restore CS0067
 
         public bool CanExecute(object? parameter) => _canExecute();
 

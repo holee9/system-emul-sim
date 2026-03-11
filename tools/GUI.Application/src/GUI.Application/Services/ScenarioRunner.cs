@@ -26,7 +26,7 @@ public sealed class ScenarioResult
 
 /// <summary>
 /// Executes predefined test scenarios (REQ-UI-014).
-/// Uses JSON for scenario definition and IProgress<int> for reporting.
+/// Uses JSON for scenario definition and IProgress&lt;int&gt; for reporting.
 /// </summary>
 public sealed class ScenarioRunner
 {

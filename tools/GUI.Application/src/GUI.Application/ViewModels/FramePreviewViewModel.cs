@@ -70,13 +70,13 @@ public sealed class FramePreviewViewModel : ObservableObject
     }
 
     /// <summary>Minimum pixel value in current frame (for info display).</summary>
-    public ushort MinValue => CurrentFrame?.MinValue ?? 0;
+    public ushort MinValue => CurrentFrame?.Statistics.Min ?? 0;
 
     /// <summary>Maximum pixel value in current frame (for info display).</summary>
-    public ushort MaxValue => CurrentFrame?.MaxValue ?? 0;
+    public ushort MaxValue => CurrentFrame?.Statistics.Max ?? 0;
 
     /// <summary>Mean pixel value in current frame (for info display).</summary>
-    public double MeanValue => CurrentFrame?.MeanValue ?? 0.0;
+    public double MeanValue => CurrentFrame?.Statistics.Mean ?? 0.0;
 
     /// <summary>
     /// Sets the current frame and updates display pixels.

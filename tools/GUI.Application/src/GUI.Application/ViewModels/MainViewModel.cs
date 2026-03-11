@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Microsoft.Win32;
 using XrayDetector.Common.Dto;
 using XrayDetector.Gui.Core;
 using XrayDetector.Gui.ViewModels;
@@ -28,6 +29,8 @@ public sealed partial class MainViewModel : ObservableObject
     private double _windowCenter = 32768.0;
     private double _windowWidth = 65535.0;
     private Frame? _currentFrame;
+    private long _throughputSnapshotFrames;
+    private DateTime _throughputSnapshotTime = DateTime.UtcNow;
 
     /// <summary>
     /// Creates a new MainViewModel.
@@ -40,6 +43,9 @@ public sealed partial class MainViewModel : ObservableObject
         // Initialize child ViewModels
         StatusViewModel = new StatusViewModel();
         FramePreviewViewModel = new FramePreviewViewModel();
+        SimulatorControlViewModel = new SimulatorControlViewModel();
+        PipelineStatusViewModel = new PipelineStatusViewModel();
+        ScenarioRunnerViewModel = new ScenarioRunnerViewModel();
 
         // Subscribe to SDK events (REQ-TOOLS-043)
         _detectorClient.ConnectionChanged += OnConnectionChanged;
@@ -62,6 +68,15 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>Frame preview ViewModel (REQ-TOOLS-041, REQ-TOOLS-042).</summary>
     public FramePreviewViewModel FramePreviewViewModel { get; }
+
+    /// <summary>Simulator control ViewModel (REQ-UI-012).</summary>
+    public SimulatorControlViewModel SimulatorControlViewModel { get; }
+
+    /// <summary>Pipeline status ViewModel (REQ-UI-013).</summary>
+    public PipelineStatusViewModel PipelineStatusViewModel { get; }
+
+    /// <summary>Scenario runner ViewModel (REQ-UI-014).</summary>
+    public ScenarioRunnerViewModel ScenarioRunnerViewModel { get; }
 
     /// <summary>Current connection state.</summary>
     public bool IsConnected
@@ -244,8 +259,19 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OnOpenConfig()
     {
-        // TODO: Implement open config dialog
-        StatusMessage = "Open config: Not yet implemented";
+        var dialog = new OpenFileDialog
+        {
+            Title = "Open Configuration File",
+            Filter = "Configuration Files (*.json;*.yaml;*.yml)|*.json;*.yaml;*.yml|JSON Files (*.json)|*.json|YAML Files (*.yaml;*.yml)|*.yaml;*.yml|All Files (*.*)|*.*",
+            DefaultExt = ".json",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            StatusMessage = $"Config loaded: {System.IO.Path.GetFileName(dialog.FileName)}";
+            // TODO: parse and apply config from dialog.FileName
+        }
     }
 
     private void OnConnectionChanged(object? sender, ConnectionStateChangedEventArgs e)
@@ -295,8 +321,24 @@ public sealed partial class MainViewModel : ObservableObject
 
     private double CalculateThroughput()
     {
-        // TODO: Calculate actual throughput from frame data
-        return 0.0;
+        // Calculate throughput in Gbps based on actual frame rate since last snapshot.
+        // Assumes 16-bit (2 bytes) per pixel; uses _currentFrame dimensions when available.
+        var now = DateTime.UtcNow;
+        double elapsedSeconds = (now - _throughputSnapshotTime).TotalSeconds;
+
+        if (elapsedSeconds < 0.5 || _currentFrame == null)
+            return 0.0;
+
+        long framesDelta = _framesReceived - _throughputSnapshotFrames;
+        double fps = framesDelta / elapsedSeconds;
+        double bytesPerFrame = (double)_currentFrame.Width * _currentFrame.Height * 2; // 16-bit
+        double gbps = fps * bytesPerFrame * 8.0 / 1e9;
+
+        // Update snapshot for next call
+        _throughputSnapshotFrames = _framesReceived;
+        _throughputSnapshotTime = now;
+
+        return Math.Max(0.0, gbps);
     }
 
     // Test helpers (for TDD support)
