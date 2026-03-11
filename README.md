@@ -37,7 +37,49 @@ dotnet test tools/IntegrationTests/IntegrationTests.csproj --verbosity normal
 dotnet test tools/IntegrationTests/IntegrationTests.csproj \
     --collect:"XPlat Code Coverage" \
     --results-directory ./coverage-results
+
+# Run Integrated GUI Application (4-layer emulator)
+dotnet run --project tools/GUI.Application/GUI.Application.csproj
 ```
+
+## GUI Application (통합 에뮬레이터 GUI)
+
+**SPEC-UI-001**로 구현된 통합 GUI 애플리케이션은 4계층 파이프라인 에뮬레이터를 제공합니다.
+
+### 실행 방법
+
+```bash
+# GUI 애플리케이션 실행
+dotnet run --project tools/GUI.Application/GUI.Application.csproj
+
+# 또는 빌드 후 실행
+dotnet build tools/GUI.Application/GUI.Application.csproj --configuration Release
+tools/GUI.Application/bin/Release/net8.0-windows/GUI.Application.exe
+```
+
+### 주요 기능
+
+| 탭 | 기능 | 설명 |
+|----|------|------|
+| Tab 1: Frame Preview | 실시간 프레임 표시 | 16-bit 그레이스케일, 윈도우 레벨 조정 |
+| Tab 2: Connection Status | 연결 상태 모니터링 | DetectorClient 상태, 연결/분리 |
+| Tab 3: Simulator Control | 에뮬레이터 파라미터 제어 | Panel/FPGA/MCU/Network 구성 |
+| Tab 4: Pipeline Status | 파이프라인 모니터링 | 계층별 처리량, NetworkChannel 통계 |
+| Tab 5: Scenario Runner | 시나리오 실행 | IT01-IT19 통합 테스트 시나리오 |
+| Tab 6: Configuration | 구성 관리 | detector_config.yaml 로드/저장 |
+
+### 에뮬레이터 모드
+
+- **Simulated Mode (기본값)**: SimulatedDetectorClient로 독립 프레임 생성
+- **Pipeline Mode**: 4계층 in-memory 파이프라인 (Panel → FPGA → MCU → Host)
+
+### 테스트 상태
+
+- 83/83 tests passing
+- 85%+ code coverage
+- MVVM 패턴, WPF 표준 준수
+
+See [SPEC-UI-001](.moai/specs/SPEC-UI-001/spec.md) for detailed requirements and implementation notes.
 
 See [HW Verification Guide](docs/hw-verification-guide.md) for the complete verification procedure.
 
@@ -477,6 +519,161 @@ IT-11 Full 4-Layer Pipeline Bit-Exact... ✅ Passed (256~2048 resolutions)
 IT-12 Module Isolation ISimulator Contract... ✅ Passed
 
 총 테스트: 169개, 통과: 169개, 실패: 0개, 스킵: 4개
+```
+
+## GUI Application 사용법
+
+### 개요
+
+GUI.Application은 WPF 기반 통합 에뮬레이터 제어 센터로, 4계층 파이프라인을 시각적으로 제어하고 모니터링할 수 있습니다.
+
+### 아키텍처
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        GUI.Application (WPF)                       │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌───────────┐ │
+│  │   Tab 1     │  │   Tab 2     │  │   Tab 3     │  │   Tab 4   │ │
+│  │ Frame       │  │ Connection  │  │ Simulator   │  │ Pipeline  │ │
+│  │ Preview     │  │ Status      │  │ Control     │  │ Status    │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └───────────┘ │
+│  ┌─────────────┐  ┌─────────────┐                                │
+│  │   Tab 5     │  │   Tab 6     │                                │
+│  │ Scenario    │  │ Config      │                                │
+│  │ Runner      │  │ Management  │                                │
+│  └─────────────┘  └─────────────┘                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                    IDetectorClient (Interface)                     │
+│  ┌──────────────────────┬─────────────────────────────────────┐   │
+│  │ SimulatedDetector    │ PipelineDetectorClient              │   │
+│  │ Client (Default)     │ (4-layer in-memory)                 │   │
+│  └──────────────────────┴─────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────────┤
+│                    SimulatorPipeline (IntegrationRunner)           │
+│  Panel → FPGA/CSI-2 → MCU/UDP → NetworkChannel → Host             │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 탭별 상세 기능
+
+#### Tab 1: Frame Preview (프레임 미리보기)
+
+- 16-bit 그레이스케일 실시간 렌더링
+- 윈도우 레벨/폭 조정 (Window/Level)
+- 픽셀 값 inspect (마우스 hover)
+- 프레임 캡처 및 TIFF 저장
+
+#### Tab 2: Connection Status (연결 상태)
+
+- DetectorClient 연결 상태 표시
+- 연결/분리 버튼
+- 취득 시작/중지 버튼
+- 실시간 통계 (Frames Received, Failed, FPS)
+
+#### Tab 3: Simulator Control (에뮬레이터 제어)
+
+**Panel 파라미터:**
+- kVp (40-150): X선 튜브 전압
+- mAs: X선 튜브 전류×시간
+- Noise: None/Gaussian/Composite
+- Test Pattern: Counter/Checkerboard/FlatField
+- Fidelity: Low/Medium/High
+- Defect Rate: 픽셀 결함 비율 (0.0-1.0)
+
+**FPGA 파라미터:**
+- CSI-2 Lanes: 레인 수
+- CSI-2 Data Rate: Mbps
+- Line Buffer Depth: 라인 버퍼 깊이
+
+**MCU 파라미터:**
+- Frame Buffer Count: 1-8
+- UDP Port: 1024-65535
+- Ethernet Port: 1024-65535
+- Frame Buffer 상태: Free/Filling/Ready/Sending
+
+**Network Channel:**
+- Packet Loss Rate: 0.0-1.0
+- Reorder Rate: 0.0-1.0
+- Corruption Rate: 0.0-1.0
+- Min/Max Delay Ms
+
+#### Tab 4: Pipeline Status (파이프라인 상태)
+
+- 계층별 처리량 (FramesProcessed, FramesFailed, AvgProcessingTimeMs)
+- 계층별 상태 인디케이터 (Green/Yellow/Red)
+- NetworkChannel 통계 (PacketsSent, Lost, Reordered, Corrupted)
+- 2Hz (500ms) 폴링으로 실시간 갱신
+
+#### Tab 5: Scenario Runner (시나리오 실행)
+
+- IT01-IT19 통합 테스트 시나리오 실행
+- 진행률 표시 (프로그레스 바)
+- PASS/FAIL 결과 및 상세 메시지
+- 사용자 정의 시나리오 JSON 지원
+
+```json
+{
+  "name": "High Frame Rate Test",
+  "description": "2048x2048 @ 30fps for 100 frames",
+  "detectorConfig": { /* ... */ },
+  "networkConfig": { /* ... */ },
+  "frameCount": 100,
+  "assertions": [
+    { "type": "minFrames", "value": 95 },
+    { "type": "maxFailedFrames", "value": 5 }
+  ]
+}
+```
+
+#### Tab 6: Configuration Management (구성 관리)
+
+- detector_config.yaml 로드/저장
+- 파라미터 범위 유효성 검사
+- 파이프라인 실행 중 hot-reload 지원 (NetworkChannel)
+
+### 빌드 및 배포
+
+```bash
+# Debug 빌드
+dotnet build tools/GUI.Application/GUI.Application.csproj
+
+# Release 빌드
+dotnet build tools/GUI.Application/GUI.Application.csproj --configuration Release
+
+# 단일 파일 게시 (독립 실행형)
+dotnet publish tools/GUI.Application/GUI.Application.csproj \
+    --configuration Release \
+    --self-contained true \
+    -r win-x64 \
+    -p:PublishSingleFile=true \
+    -p:PublishTrimmed=true \
+    -o ./publish
+```
+
+### 의존성
+
+| 패키지 | 버전 | 용도 |
+|--------|------|------|
+| IntegrationRunner.Core | Project Reference | SimulatorPipeline |
+| YamlDotNet | Transitive | YAML 구성 파싱 |
+| System.Text.Json | Built-in | 시나리오 JSON |
+
+### MVVM 아키텍처
+
+```
+Views (XAML)           ViewModels               Services/Models
+├── MainWindow.xaml    ├── MainViewModel        ├── SimulatedDetectorClient
+├── FramePreview.xaml  ├── FramePreviewViewModel├── PipelineDetectorClient
+├── Connection.xaml    ├── StatusViewModel      ├── SimulatorPipeline
+├── SimulatorControl   ├── SimulatorControl     ├── ScenarioRunner
+│   .xaml              │   ViewModel            └── NetworkChannel
+├── PipelineStatus     ├── PipelineStatus
+│   .xaml              │   ViewModel
+├── ScenarioRunner     └── ScenarioRunner
+│   .xaml              │   ViewModel
+└── Configuration
+    .xaml
 ```
 
 ## M4-Emul: Emulator Module Revision Roadmap
