@@ -50,11 +50,11 @@ dotnet run --project tools/GUI.Application/GUI.Application.csproj
 
 ```bash
 # GUI 애플리케이션 실행
-dotnet run --project tools/GUI.Application/GUI.Application.csproj
+dotnet run --project tools/GUI.Application/src/GUI.Application/GUI.Application.csproj
 
 # 또는 빌드 후 실행
-dotnet build tools/GUI.Application/GUI.Application.csproj --configuration Release
-tools/GUI.Application/bin/Release/net8.0-windows/GUI.Application.exe
+dotnet build tools/GUI.Application/src/GUI.Application/GUI.Application.csproj --configuration Release
+tools/GUI.Application/src/GUI.Application/bin/Release/net8.0-windows/GUI.Application.exe
 ```
 
 ### 주요 기능
@@ -636,13 +636,13 @@ GUI.Application은 WPF 기반 통합 에뮬레이터 제어 센터로, 4계층 �
 
 ```bash
 # Debug 빌드
-dotnet build tools/GUI.Application/GUI.Application.csproj
+dotnet build tools/GUI.Application/src/GUI.Application/GUI.Application.csproj
 
 # Release 빌드
-dotnet build tools/GUI.Application/GUI.Application.csproj --configuration Release
+dotnet build tools/GUI.Application/src/GUI.Application/GUI.Application.csproj --configuration Release
 
 # 단일 파일 게시 (독립 실행형)
-dotnet publish tools/GUI.Application/GUI.Application.csproj \
+dotnet publish tools/GUI.Application/src/GUI.Application/GUI.Application.csproj \
     --configuration Release \
     --self-contained true \
     -r win-x64 \
