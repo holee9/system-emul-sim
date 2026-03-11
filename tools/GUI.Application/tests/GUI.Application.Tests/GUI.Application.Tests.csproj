@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\sdk\XrayDetector.Sdk\XrayDetector.Sdk.csproj" />
     <ProjectReference Include="..\..\src\GUI.Application\GUI.Application.csproj" />
+    <ProjectReference Include="..\..\..\IntegrationRunner\src\IntegrationRunner.Core\IntegrationRunner.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

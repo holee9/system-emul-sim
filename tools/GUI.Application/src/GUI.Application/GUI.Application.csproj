@@ -19,6 +19,8 @@
   <ItemGroup>
     <!-- SDK Reference (SPEC-SDK-001, REQ-TOOLS-043) -->
     <ProjectReference Include="..\..\..\..\sdk\XrayDetector.Sdk\XrayDetector.Sdk.csproj" />
+    <!-- IntegrationRunner Reference (SPEC-UI-001: PipelineDetectorClient) -->
+    <ProjectReference Include="..\..\..\IntegrationRunner\src\IntegrationRunner.Core\IntegrationRunner.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
