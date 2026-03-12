@@ -22,7 +22,7 @@
 
         <!-- App Name -->
         <TextBlock Grid.Row="0"
-                   Text="{Binding AppName}"
+                   Text="{Binding AppName, Mode=OneWay}"
                    FontSize="22" FontWeight="Bold"
                    Margin="0,0,0,4"/>
 
@@ -31,9 +31,9 @@
                    AutomationProperties.AutomationId="AboutVersionText"
                    Margin="0,0,0,16">
             <Run Text="Version: " FontWeight="Bold"/>
-            <Run Text="{Binding Version}"/>
+            <Run Text="{Binding Version, Mode=OneWay}"/>
             <Run Text="   Build: "/>
-            <Run Text="{Binding BuildDate}"/>
+            <Run Text="{Binding BuildDate, Mode=OneWay}"/>
         </TextBlock>
 
         <!-- Runtime Info -->
@@ -51,17 +51,17 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text=".NET:" Margin="0,2"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DotNetVersion}" Margin="0,2" TextWrapping="Wrap"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DotNetVersion, Mode=OneWay}" Margin="0,2" TextWrapping="Wrap"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="OS:" Margin="0,2"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OSVersion}" Margin="0,2" TextWrapping="Wrap"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OSVersion, Mode=OneWay}" Margin="0,2" TextWrapping="Wrap"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Processors:" Margin="0,2"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ProcessorCount}" Margin="0,2"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ProcessorCount, Mode=OneWay}" Margin="0,2"/>
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Memory (avail):" Margin="0,2"/>
                 <TextBlock Grid.Row="3" Grid.Column="1"
-                           Text="{Binding AvailableMemoryMB, StringFormat={}{0} MB}"
+                           Text="{Binding AvailableMemoryMB, StringFormat={}{0} MB, Mode=OneWay}"
                            Margin="0,2"/>
             </Grid>
         </GroupBox>
