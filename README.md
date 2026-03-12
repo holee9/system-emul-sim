@@ -73,9 +73,18 @@ tools/GUI.Application/src/GUI.Application/bin/Release/net8.0-windows/GUI.Applica
 - **Simulated Mode (기본값)**: SimulatedDetectorClient로 독립 프레임 생성
 - **Pipeline Mode**: 4계층 in-memory 파이프라인 (Panel → FPGA → MCU → Host)
 
+### Help System (SPEC-HELP-001)
+
+GUI 내 도움말 시스템이 통합되어 있습니다.
+
+- **F1** 또는 메뉴 > Help > About: Help/About 창 열기
+- **Ctrl+/** : 키보드 단축키 오버레이 표시/숨기기
+- 내장 Markdown 도움말 (9개 토픽): 시스템 개요, 빠른 시작, 패널 시뮬레이션, FPGA/CSI-2, MCU/UDP, Host 파이프라인, 파라미터 레퍼런스, 키보드 단축키, 문제 해결
+
 ### 테스트 상태
 
-- 83/83 tests passing
+- 83/83 tests passing (GUI.Application)
+- 15/15 E2E tests passing (SPEC-HELP-001 Wave 3)
 - 85%+ code coverage
 - MVVM 패턴, WPF 표준 준수
 
@@ -108,10 +117,17 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 | Test Coverage | 1,419/1,419 tests passing (4 skipped) |
 | Code Coverage | 85%+ per module (Panel: 86.9%, FPGA: 98.7%, MCU: 92.3%, Host: 86.4%) |
 | Documentation | 50+ pages |
-| SPEC Documents | 11 |
+| SPEC Documents | 12 |
 
 ### Current Status
 
+> **SPEC-HELP-001 GUI Help System 완료 ✅** (2026-03-12)
+>
+> - About 다이얼로그, 내장 Markdown 도움말 (9개 토픽), E2E 로깅 시스템
+> - 키보드 단축키 오버레이 (Ctrl+/), F1 Help 바인딩
+> - E2E 테스트 15/15 통과, 빌드 경고 0건
+> - 코드 품질: 예외 구체화(AboutViewModel), InMemoryLogSink 경쟁 조건 제거, E2E 환경변수 처리(FirstRunManager)
+>
 > **M5-UI 통합 GUI 애플리케이션 완료 ✅** (2026-03-11)
 >
 > - SPEC-UI-001: 통합 에뮬레이터 GUI (4계층 파이프라인)

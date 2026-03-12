@@ -77,7 +77,8 @@ public class HelpViewModel : ObservableObject
     /// <summary>Command to select a topic by its ID string.</summary>
     public ICommand SelectTopicCommand { get; }
 
-    private void OnSelectTopic(string? topicId)
+    // async void is acceptable here: this is a UI command callback (event handler equivalent)
+    private async void OnSelectTopic(string? topicId)
     {
         if (string.IsNullOrWhiteSpace(topicId))
             return;
@@ -89,6 +90,6 @@ public class HelpViewModel : ObservableObject
         SelectedTopic = topic;
 
         var markdown = _contentService.GetContent(topicId);
-        CurrentContent = _converter.Convert(markdown);
+        CurrentContent = await _converter.ConvertAsync(markdown);
     }
 }

@@ -6,11 +6,13 @@ namespace XrayDetector.Gui.Help;
 /// <summary>
 /// Loads help content from embedded Markdown resources (SPEC-HELP-001 Wave 2).
 /// Resource naming: GUI.Application.Help.Topics.{filename}.md
+/// Caches loaded content in memory to avoid repeated assembly stream reads.
 /// </summary>
 public class EmbeddedHelpContentService : IHelpContentService
 {
     private static readonly IReadOnlyList<HelpTopic> _topics = BuildTopicList();
     private static readonly Dictionary<string, HelpTopic> _topicIndex = _topics.ToDictionary(t => t.Id);
+    private static readonly Dictionary<string, string> _contentCache = new();
 
     /// <inheritdoc/>
     public IReadOnlyList<HelpTopic> GetTopics() => _topics;
@@ -25,16 +27,32 @@ public class EmbeddedHelpContentService : IHelpContentService
     /// <inheritdoc/>
     public string GetContent(string topicId)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        // Resource name follows RootNamespace convention: XrayDetector.Gui.Help.Topics.{id}.md
-        var resourceName = $"XrayDetector.Gui.Help.Topics.{topicId}.md";
+        if (_contentCache.TryGetValue(topicId, out var cached))
+            return cached;
 
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null)
-            return string.Empty;
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            // Resource name follows RootNamespace convention: XrayDetector.Gui.Help.Topics.{id}.md
+            var resourceName = $"XrayDetector.Gui.Help.Topics.{topicId}.md";
 
-        using var reader = new StreamReader(stream);
-        return reader.ReadToEnd();
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+                return string.Empty;
+
+            using var reader = new StreamReader(stream);
+            var content = reader.ReadToEnd();
+            _contentCache[topicId] = content;
+            return content;
+        }
+        catch (IOException ex)
+        {
+            return $"# 콘텐츠 로드 오류\n\n도움말 '{topicId}'을 불러오지 못했습니다.\n\n```\n{ex.Message}\n```";
+        }
+        catch (NotSupportedException ex)
+        {
+            return $"# 콘텐츠 로드 오류\n\n도움말 '{topicId}'을 불러오지 못했습니다.\n\n```\n{ex.Message}\n```";
+        }
     }
 
     private static IReadOnlyList<HelpTopic> BuildTopicList()

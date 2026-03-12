@@ -167,7 +167,7 @@ public sealed class LineBufferSimulator
     }
 
     /// <summary>
-    /// Toggles the active write bank (A <-> B).
+    /// Toggles the active write bank (A &lt;-&gt; B).
     /// Called after each line is written to implement ping-pong.
     /// </summary>
     public void ToggleWriteBank()
@@ -179,7 +179,7 @@ public sealed class LineBufferSimulator
     }
 
     /// <summary>
-    /// Toggles the active read bank (A <-> B).
+    /// Toggles the active read bank (A &lt;-&gt; B).
     /// Called after each line is read to implement ping-pong.
     /// </summary>
     public void ToggleReadBank()

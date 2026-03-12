@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Markdig;
@@ -31,6 +32,16 @@ public class MarkdownFlowDocumentConverter
         .UseTaskLists()
         .Build();
 
+    // Cached shared resources to avoid repeated allocations per block
+    private static readonly FontFamily _consolasFont = new("Consolas");
+    private static readonly SolidColorBrush _codeBackground;
+
+    static MarkdownFlowDocumentConverter()
+    {
+        _codeBackground = new SolidColorBrush(Color.FromRgb(240, 240, 240));
+        _codeBackground.Freeze(); // Thread-safe for cross-element sharing
+    }
+
     /// <summary>
     /// Converts the given Markdown string to a FlowDocument.
     /// Returns an empty FlowDocument for null or empty input.
@@ -48,6 +59,37 @@ public class MarkdownFlowDocumentConverter
             return doc;
 
         var parsed = Markdown.Parse(markdown, _pipeline);
+        foreach (var block in parsed)
+        {
+            var wpfBlock = ConvertBlock(block);
+            if (wpfBlock != null)
+                doc.Blocks.Add(wpfBlock);
+        }
+
+        return doc;
+    }
+
+    /// <summary>
+    /// Asynchronously converts Markdown to FlowDocument.
+    /// Runs CPU-bound Markdown.Parse() on a background thread,
+    /// then creates WPF objects on the calling (UI) thread.
+    /// </summary>
+    public async Task<WpfFlowDocument> ConvertAsync(string? markdown)
+    {
+        var doc = new WpfFlowDocument
+        {
+            FontFamily = new FontFamily("Segoe UI"),
+            FontSize = 13,
+            PagePadding = new Thickness(12)
+        };
+
+        if (string.IsNullOrWhiteSpace(markdown))
+            return doc;
+
+        // Offload CPU-bound parsing to thread pool; Markdig has no WPF dependency
+        var parsed = await Task.Run(() => Markdown.Parse(markdown, _pipeline));
+
+        // WPF DependencyObjects must be created on the UI thread (continuation runs here)
         foreach (var block in parsed)
         {
             var wpfBlock = ConvertBlock(block);
@@ -99,9 +141,9 @@ public class MarkdownFlowDocumentConverter
         var code = codeBlock.Lines.ToString() ?? string.Empty;
         var para = new WpfParagraph(new WpfRun(code))
         {
-            FontFamily = new FontFamily("Consolas"),
+            FontFamily = _consolasFont,
             FontSize = 12,
-            Background = new SolidColorBrush(Color.FromRgb(240, 240, 240)),
+            Background = _codeBackground,
             Padding = new Thickness(8),
             Margin = new Thickness(0, 4, 0, 4)
         };
@@ -126,7 +168,7 @@ public class MarkdownFlowDocumentConverter
 
         return new WpfParagraph(new WpfRun(sb.ToString().TrimEnd()))
         {
-            FontFamily = new FontFamily("Consolas"),
+            FontFamily = _consolasFont,
             FontSize = 12,
             Margin = new Thickness(0, 4, 0, 4)
         };
@@ -183,8 +225,8 @@ public class MarkdownFlowDocumentConverter
                 => new WpfItalic(new WpfRun(string.Concat(emphasis.Select(i => GetInlineText(i))))),
             CodeInline code => new WpfRun(code.Content)
             {
-                FontFamily = new FontFamily("Consolas"),
-                Background = new SolidColorBrush(Color.FromRgb(240, 240, 240))
+                FontFamily = _consolasFont,
+                Background = _codeBackground
             },
             LinkInline link => new WpfRun($"[{string.Concat(link.Select(i => GetInlineText(i)))}]({link.Url})"),
             LineBreakInline => new WpfLineBreak(),

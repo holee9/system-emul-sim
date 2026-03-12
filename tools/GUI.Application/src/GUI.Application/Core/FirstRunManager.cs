@@ -34,6 +34,10 @@ public class FirstRunManager
     /// </summary>
     public bool IsFirstRun()
     {
+        // E2E test mode suppresses the Welcome Wizard to prevent UI interruption
+        if (Environment.GetEnvironmentVariable("XRAY_E2E_MODE") == "true")
+            return false;
+
         if (!File.Exists(_settingsFilePath))
             return true;
 

@@ -229,6 +229,58 @@
 
         </TabControl>
 
+        <!-- Keyboard Shortcut Overlay (Ctrl+/ toggles, click to dismiss) -->
+        <Border Grid.Row="0" Grid.RowSpan="3"
+                Background="#CC000000"
+                Visibility="{Binding IsShortcutOverlayVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                AutomationProperties.AutomationId="ShortcutOverlay">
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding ShowShortcutOverlayCommand}"/>
+            </Border.InputBindings>
+            <Border Background="White" CornerRadius="8" Padding="32"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="400">
+                <StackPanel>
+                    <TextBlock Text="Keyboard Shortcuts" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"
+                               HorizontalAlignment="Center"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="180"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Ctrl+R" FontWeight="Bold" Margin="0,4"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Start Acquisition" Margin="0,4"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Ctrl+S" FontWeight="Bold" Margin="0,4"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="Stop Acquisition" Margin="0,4"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Ctrl+Q" FontWeight="Bold" Margin="0,4"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="Exit" Margin="0,4"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="F11" FontWeight="Bold" Margin="0,4"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="Toggle Full Screen" Margin="0,4"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Alt+1 ~ Alt+6" FontWeight="Bold" Margin="0,4"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="Switch Tab" Margin="0,4"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Ctrl+/" FontWeight="Bold" Margin="0,4"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="Show / Hide This Panel" Margin="0,4"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="F1" FontWeight="Bold" Margin="0,4"/>
+                        <TextBlock Grid.Row="6" Grid.Column="1" Text="Open Help" Margin="0,4"/>
+                    </Grid>
+                    <TextBlock Text="Click anywhere to close" Foreground="Gray" FontSize="11"
+                               HorizontalAlignment="Center" Margin="0,16,0,0"/>
+                </StackPanel>
+            </Border>
+        </Border>
+
         <!-- Status Bar -->
         <StatusBar Grid.Row="2"
                    AutomationProperties.AutomationId="StatusBarMain"

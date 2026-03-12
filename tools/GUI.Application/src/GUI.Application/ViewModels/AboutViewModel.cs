@@ -1,6 +1,8 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
+using Serilog;
 using XrayDetector.Gui.Core;
 
 namespace XrayDetector.Gui.ViewModels;
@@ -96,9 +98,13 @@ public sealed class AboutViewModel : ObservableObject
                 UseShellExecute = true
             });
         }
-        catch (Exception ex)
+        catch (PlatformNotSupportedException ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to open GitHub: {ex.Message}");
+            Log.Warning(ex, "Failed to open GitHub URL: platform does not support shell execute");
+        }
+        catch (Win32Exception ex)
+        {
+            Log.Warning(ex, "Failed to open GitHub URL: OS process error (code {ErrorCode})", ex.NativeErrorCode);
         }
     }
 }

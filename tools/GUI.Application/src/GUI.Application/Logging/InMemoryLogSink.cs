@@ -23,11 +23,9 @@ public sealed class InMemoryLogSink : ILogEventSink
     {
         _events.Enqueue(logEvent);
 
-        // Enforce capacity limit - drop oldest when over capacity
-        while (_events.Count > MaxCapacity)
-        {
+        // Enforce capacity limit - drop oldest when over capacity (one-for-one: enqueue one, dequeue one)
+        if (_events.Count > MaxCapacity)
             _events.TryDequeue(out _);
-        }
     }
 
     /// <summary>
