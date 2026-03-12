@@ -1,0 +1,107 @@
+<Window x:Class="XrayDetector.Gui.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="About X-ray Detector GUI"
+        Width="480" Height="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- App Name -->
+        <TextBlock Grid.Row="0"
+                   Text="{Binding AppName}"
+                   FontSize="22" FontWeight="Bold"
+                   Margin="0,0,0,4"/>
+
+        <!-- Version -->
+        <TextBlock Grid.Row="1"
+                   AutomationProperties.AutomationId="AboutVersionText"
+                   Margin="0,0,0,16">
+            <Run Text="Version: " FontWeight="Bold"/>
+            <Run Text="{Binding Version}"/>
+            <Run Text="   Build: "/>
+            <Run Text="{Binding BuildDate}"/>
+        </TextBlock>
+
+        <!-- Runtime Info -->
+        <GroupBox Grid.Row="2" Header="Runtime Information" Margin="0,0,0,12">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text=".NET:" Margin="0,2"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DotNetVersion}" Margin="0,2" TextWrapping="Wrap"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="OS:" Margin="0,2"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OSVersion}" Margin="0,2" TextWrapping="Wrap"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Processors:" Margin="0,2"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ProcessorCount}" Margin="0,2"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Memory (avail):" Margin="0,2"/>
+                <TextBlock Grid.Row="3" Grid.Column="1"
+                           Text="{Binding AvailableMemoryMB, StringFormat={}{0} MB}"
+                           Margin="0,2"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Pipeline Status -->
+        <GroupBox Grid.Row="3" Header="Pipeline Status" Margin="0,0,0,12">
+            <ItemsControl ItemsSource="{Binding PipelineStatusItems}" Margin="8">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Margin="8,0">
+                            <Ellipse Width="12" Height="12" Fill="#4CAF50" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </GroupBox>
+
+        <!-- Spacer -->
+        <Rectangle Grid.Row="4"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button AutomationProperties.AutomationId="BtnCopyClipboard"
+                    Content="클립보드에 복사"
+                    Command="{Binding CopyToClipboardCommand}"
+                    Padding="16,6" Margin="0,0,8,0"/>
+            <Button AutomationProperties.AutomationId="BtnGitHub"
+                    Content="GitHub"
+                    Command="{Binding OpenGitHubCommand}"
+                    Padding="16,6" Margin="0,0,8,0"/>
+            <Button Content="닫기"
+                    Padding="16,6"
+                    Click="OnCloseClick"
+                    IsDefault="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

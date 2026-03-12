@@ -6,6 +6,7 @@ using Microsoft.Win32;
 using XrayDetector.Common.Dto;
 using XrayDetector.Gui.Core;
 using XrayDetector.Gui.ViewModels;
+using XrayDetector.Gui.Views;
 using XrayDetector.Implementation;
 using XrayDetector.Models;
 
@@ -31,6 +32,10 @@ public sealed partial class MainViewModel : ObservableObject
     private Frame? _currentFrame;
     private long _throughputSnapshotFrames;
     private DateTime _throughputSnapshotTime = DateTime.UtcNow;
+    private bool _isStatusBarVisible = true;
+    private bool _isFullScreen;
+    private int _selectedTabIndex;
+    private bool _isShortcutOverlayVisible;
 
     /// <summary>
     /// Creates a new MainViewModel.
@@ -153,6 +158,40 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>Whether the status bar is visible (SPEC-HELP-001).</summary>
+    public bool IsStatusBarVisible
+    {
+        get => _isStatusBarVisible;
+        set => SetField(ref _isStatusBarVisible, value);
+    }
+
+    /// <summary>Whether the application is in full-screen mode (SPEC-HELP-001).</summary>
+    public bool IsFullScreen
+    {
+        get => _isFullScreen;
+        private set => SetField(ref _isFullScreen, value);
+    }
+
+    /// <summary>Selected tab index for tab switching (SPEC-HELP-001 Wave 2).</summary>
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set => SetField(ref _selectedTabIndex, value);
+    }
+
+    /// <summary>Whether the keyboard shortcut overlay is visible (SPEC-HELP-001 Wave 2).</summary>
+    public bool IsShortcutOverlayVisible
+    {
+        get => _isShortcutOverlayVisible;
+        set => SetField(ref _isShortcutOverlayVisible, value);
+    }
+
+    /// <summary>Application version string from ApplicationInfo (SPEC-HELP-001).</summary>
+    public string AppVersion { get; } = ApplicationInfo.Instance.Version;
+
+    /// <summary>Raised when the full-screen state changes. Param = isFullScreen.</summary>
+    public event Action<bool>? FullScreenRequested;
+
     // Commands (will be initialized by CommunityToolkit.Mvvm source generators)
     public ICommand ConnectCommand { get; private set; } = null!;
     public ICommand DisconnectCommand { get; private set; } = null!;
@@ -161,6 +200,17 @@ public sealed partial class MainViewModel : ObservableObject
     public ICommand SaveFrameCommand { get; private set; } = null!;
     public ICommand AutoWindowLevelCommand { get; private set; } = null!;
     public ICommand OpenConfigCommand { get; private set; } = null!;
+
+    // New commands for SPEC-HELP-001
+    public ICommand ExitCommand { get; private set; } = null!;
+    public ICommand ShowAboutCommand { get; private set; } = null!;
+    public ICommand ToggleStatusBarCommand { get; private set; } = null!;
+    public ICommand ToggleFullScreenCommand { get; private set; } = null!;
+
+    // SPEC-HELP-001 Wave 2: Phase 4 commands
+    public ICommand ShowHelpCommand { get; private set; } = null!;
+    public ICommand SwitchTabCommand { get; private set; } = null!;
+    public ICommand ShowShortcutOverlayCommand { get; private set; } = null!;
 
     private void InitializeCommands()
     {
@@ -171,6 +221,17 @@ public sealed partial class MainViewModel : ObservableObject
         SaveFrameCommand = new RelayCommand<string>(async path => await OnSaveFrameAsync(path), path => CanSaveFrame());
         AutoWindowLevelCommand = new RelayCommand(OnAutoWindowLevel, () => FramePreviewViewModel.CanSaveFrame());
         OpenConfigCommand = new RelayCommand(OnOpenConfig);
+
+        // SPEC-HELP-001: New commands
+        ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
+        ShowAboutCommand = new RelayCommand(OnShowAbout);
+        ToggleStatusBarCommand = new RelayCommand(() => IsStatusBarVisible = !IsStatusBarVisible);
+        ToggleFullScreenCommand = new RelayCommand(OnToggleFullScreen);
+
+        // SPEC-HELP-001 Wave 2: Phase 4 commands
+        ShowHelpCommand = new RelayCommand(OnShowHelp);
+        SwitchTabCommand = new RelayCommand<string>(OnSwitchTab);
+        ShowShortcutOverlayCommand = new RelayCommand(OnShowShortcutOverlay);
     }
 
     private async Task OnConnectAsync()
@@ -256,6 +317,42 @@ public sealed partial class MainViewModel : ObservableObject
         WindowCenter = FramePreviewViewModel.WindowCenter;
         WindowWidth = FramePreviewViewModel.WindowWidth;
     }
+
+    private void OnShowAbout()
+    {
+        var dialog = new AboutWindow
+        {
+            DataContext = new AboutViewModel(new ClipboardService()),
+            Owner = Application.Current.MainWindow
+        };
+        dialog.ShowDialog();
+    }
+
+    private void OnToggleFullScreen()
+    {
+        IsFullScreen = !IsFullScreen;
+        FullScreenRequested?.Invoke(IsFullScreen);
+    }
+
+    private void OnShowHelp()
+    {
+        // Open HelpWindow singleton - actual window creation handled in code-behind
+        HelpRequested?.Invoke();
+    }
+
+    private void OnSwitchTab(string? indexStr)
+    {
+        if (int.TryParse(indexStr, out int index))
+            SelectedTabIndex = index;
+    }
+
+    private void OnShowShortcutOverlay()
+    {
+        IsShortcutOverlayVisible = !IsShortcutOverlayVisible;
+    }
+
+    /// <summary>Raised when help window should be shown.</summary>
+    public event Action? HelpRequested;
 
     private void OnOpenConfig()
     {

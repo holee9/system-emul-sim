@@ -15,6 +15,9 @@ public partial class MainWindow : Window
 {
     private WriteableBitmap? _bitmap;
     private FramePreviewViewModel? _frameVm;
+    private WindowState _previousWindowState = WindowState.Normal;
+    private WindowStyle _previousWindowStyle = WindowStyle.SingleBorderWindow;
+    private ResizeMode _previousResizeMode = ResizeMode.CanResize;
 
     public MainWindow()
     {
@@ -25,12 +28,36 @@ public partial class MainWindow : Window
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (e.OldValue is MainViewModel oldVm)
+        {
             oldVm.FramePreviewViewModel.PropertyChanged -= OnFramePreviewPropertyChanged;
+            oldVm.FullScreenRequested -= OnFullScreenRequested;
+        }
 
         if (e.NewValue is MainViewModel newVm)
         {
             _frameVm = newVm.FramePreviewViewModel;
             _frameVm.PropertyChanged += OnFramePreviewPropertyChanged;
+            newVm.FullScreenRequested += OnFullScreenRequested;
+        }
+    }
+
+    private void OnFullScreenRequested(bool isFullScreen)
+    {
+        if (isFullScreen)
+        {
+            _previousWindowState = WindowState;
+            _previousWindowStyle = WindowStyle;
+            _previousResizeMode = ResizeMode;
+
+            WindowStyle = WindowStyle.None;
+            WindowState = WindowState.Maximized;
+            ResizeMode = ResizeMode.NoResize;
+        }
+        else
+        {
+            WindowStyle = _previousWindowStyle;
+            ResizeMode = _previousResizeMode;
+            WindowState = _previousWindowState;
         }
     }
 

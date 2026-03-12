@@ -17,6 +17,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- AssemblyMetadata for build date (SPEC-HELP-001) -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>BuildDate</_Parameter1>
+      <_Parameter2>$([System.DateTime]::UtcNow.ToString('yyyy-MM-dd'))</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- SDK Reference (SPEC-SDK-001, REQ-TOOLS-043) -->
     <ProjectReference Include="..\..\..\..\sdk\XrayDetector.Sdk\XrayDetector.Sdk.csproj" />
     <!-- IntegrationRunner Reference (SPEC-UI-001: PipelineDetectorClient) -->
@@ -28,6 +36,19 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <!-- YamlDotNet for configuration management (SPEC-UI-001) -->
     <PackageReference Include="YamlDotNet" Version="16.0.0" />
+    <!-- Serilog logging infrastructure (SPEC-HELP-001) -->
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.0" />
+    <!-- Markdig Markdown parser (SPEC-HELP-001 Wave 2) -->
+    <PackageReference Include="Markdig" Version="0.37.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded Help Markdown resources (SPEC-HELP-001 Wave 2) -->
+    <EmbeddedResource Include="Help\Topics\**\*.md" />
   </ItemGroup>
 
 </Project>

@@ -5,11 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:XrayDetector.Gui.ViewModels"
         xmlns:views="clr-namespace:XrayDetector.Gui.Views"
+        xmlns:core="clr-namespace:XrayDetector.Gui.Core"
         mc:Ignorable="d"
         Title="X-ray Detector Panel System"
         Width="1200" Height="800"
         MinWidth="800" MinHeight="600"
         WindowStartupLocation="CenterScreen">
+
+    <Window.InputBindings>
+        <KeyBinding Key="R" Modifiers="Control" Command="{Binding StartAcquisitionCommand}"/>
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding StopAcquisitionCommand}"/>
+        <KeyBinding Key="Q" Modifiers="Control" Command="{Binding ExitCommand}"/>
+        <KeyBinding Key="F11" Command="{Binding ToggleFullScreenCommand}"/>
+        <KeyBinding Key="D1" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="0"/>
+        <KeyBinding Key="D2" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="1"/>
+        <KeyBinding Key="D3" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="2"/>
+        <KeyBinding Key="D4" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="3"/>
+        <KeyBinding Key="D5" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="4"/>
+        <KeyBinding Key="D6" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="5"/>
+        <KeyBinding Key="OemQuestion" Modifiers="Control" Command="{Binding ShowShortcutOverlayCommand}"/>
+        <KeyBinding Key="F1" Command="ApplicationCommands.Help"/>
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <core:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -24,7 +44,9 @@
                 <MenuItem Header="_Open Config..." Command="{Binding OpenConfigCommand}"/>
                 <MenuItem Header="_Save Frame..." Command="{Binding SaveFrameCommand}"/>
                 <Separator/>
-                <MenuItem Header="E_xit"/>
+                <MenuItem Header="E_xit"
+                          Command="{Binding ExitCommand}"
+                          AutomationProperties.AutomationId="MenuFileExit"/>
             </MenuItem>
             <MenuItem Header="_Connection">
                 <MenuItem Header="_Connect" Command="{Binding ConnectCommand}"/>
@@ -35,19 +57,27 @@
                 <MenuItem Header="S_top" Command="{Binding StopAcquisitionCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="_Status Bar" IsCheckable="True" IsChecked="True"/>
-                <MenuItem Header="_Full Screen"/>
+                <MenuItem Header="_Status Bar"
+                          IsCheckable="True"
+                          IsChecked="{Binding IsStatusBarVisible}"
+                          Command="{Binding ToggleStatusBarCommand}"
+                          AutomationProperties.AutomationId="MenuViewStatusBar"/>
+                <MenuItem Header="_Full Screen"
+                          Command="{Binding ToggleFullScreenCommand}"
+                          AutomationProperties.AutomationId="MenuViewFullScreen"/>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_About"/>
+                <MenuItem Header="_About"
+                          Command="{Binding ShowAboutCommand}"
+                          AutomationProperties.AutomationId="MenuHelpAbout"/>
             </MenuItem>
         </Menu>
 
         <!-- Main Content: Tabbed Interface per REQ-TOOLS-040 -->
-        <TabControl Grid.Row="1" Margin="8">
+        <TabControl Grid.Row="1" Margin="8" SelectedIndex="{Binding SelectedTabIndex}">
 
             <!-- Tab 1: Status Dashboard (REQ-TOOLS-045) -->
-            <TabItem Header="Status Dashboard">
+            <TabItem Header="Status Dashboard" AutomationProperties.AutomationId="TabStatus">
                 <ScrollViewer>
                     <StackPanel Margin="16">
                         <TextBlock Text="System Status" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
@@ -108,7 +138,7 @@
             </TabItem>
 
             <!-- Tab 2: Frame Preview (REQ-TOOLS-041, REQ-TOOLS-042) -->
-            <TabItem Header="Frame Preview">
+            <TabItem Header="Frame Preview" AutomationProperties.AutomationId="TabImage">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -151,7 +181,7 @@
             </TabItem>
 
             <!-- Tab 3: Configuration -->
-            <TabItem Header="Configuration">
+            <TabItem Header="Configuration" AutomationProperties.AutomationId="TabConfig">
                 <ScrollViewer>
                     <StackPanel Margin="16">
                         <TextBlock Text="Detector Configuration" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
@@ -183,29 +213,32 @@
             </TabItem>
 
             <!-- Tab 4: Simulator Control (REQ-UI-012) -->
-            <TabItem Header="Simulator Control">
+            <TabItem Header="Simulator Control" AutomationProperties.AutomationId="TabSimulator">
                 <views:SimulatorControlView DataContext="{Binding SimulatorControlViewModel}"/>
             </TabItem>
 
             <!-- Tab 5: Pipeline Status (REQ-UI-013) -->
-            <TabItem Header="Pipeline Status">
+            <TabItem Header="Pipeline Status" AutomationProperties.AutomationId="TabPipeline">
                 <views:PipelineStatusView DataContext="{Binding PipelineStatusViewModel}"/>
             </TabItem>
 
             <!-- Tab 6: Scenario Runner (REQ-UI-014) -->
-            <TabItem Header="Scenario Runner">
+            <TabItem Header="Scenario Runner" AutomationProperties.AutomationId="TabScenario">
                 <views:ScenarioRunnerView DataContext="{Binding ScenarioRunnerViewModel}"/>
             </TabItem>
 
         </TabControl>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="2">
+        <StatusBar Grid.Row="2"
+                   AutomationProperties.AutomationId="StatusBarMain"
+                   Visibility="{Binding IsStatusBarVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}"/>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <TextBlock Text="v1.0.0"/>
+                <TextBlock AutomationProperties.AutomationId="StatusBarVersion"
+                           Text="{Binding AppVersion, StringFormat={}v{0}}"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

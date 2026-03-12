@@ -23,16 +23,40 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Rows:" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PanelRows, Mode=TwoWay}" Margin="0,0,0,5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PanelRows, Mode=TwoWay}" Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputRows"/>
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Cols:" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PanelCols, Mode=TwoWay}" Margin="0,0,0,5"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PanelCols, Mode=TwoWay}" Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputCols"/>
 
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="kVp (40-150):" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PanelKvp, Mode=TwoWay}" Margin="0,0,0,5"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PanelKvp, Mode=TwoWay}" Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputKvp">
+                        <TextBox.ToolTip>
+                            <ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" Text="kVp"/>
+                                    <TextBlock Text="Range: 40–150 kV"/>
+                                    <TextBlock Text="X선관 가속 전압 - 높을수록 투과력 증가"/>
+                                </StackPanel>
+                            </ToolTip>
+                        </TextBox.ToolTip>
+                    </TextBox>
 
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="mAs:" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PanelMas, Mode=TwoWay}"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PanelMas, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputMas">
+                        <TextBox.ToolTip>
+                            <ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" Text="mAs"/>
+                                    <TextBlock Text="Range: 1–1000 mAs"/>
+                                    <TextBlock Text="X선 노출량 - 높을수록 신호 강도 증가"/>
+                                </StackPanel>
+                            </ToolTip>
+                        </TextBox.ToolTip>
+                    </TextBox>
                 </Grid>
             </GroupBox>
 
@@ -56,11 +80,16 @@
             </GroupBox>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Load Config" Command="{Binding LoadConfigCommand}" Width="100" Margin="0,0,5,0"/>
-                <Button Content="Save Config" Command="{Binding SaveConfigCommand}" Width="100" Margin="0,0,5,0"/>
-                <Button Content="Start" Command="{Binding StartCommand}" Width="80" Margin="0,0,5,0"/>
-                <Button Content="Stop" Command="{Binding StopCommand}" Width="80" Margin="0,0,5,0"/>
-                <Button Content="Reset" Command="{Binding ResetCommand}" Width="80"/>
+                <Button Content="Load Config" Command="{Binding LoadConfigCommand}" Width="100" Margin="0,0,5,0"
+                        AutomationProperties.AutomationId="BtnLoadConfig"/>
+                <Button Content="Save Config" Command="{Binding SaveConfigCommand}" Width="100" Margin="0,0,5,0"
+                        AutomationProperties.AutomationId="BtnSaveConfig"/>
+                <Button Content="Start" Command="{Binding StartCommand}" Width="80" Margin="0,0,5,0"
+                        AutomationProperties.AutomationId="BtnStart"/>
+                <Button Content="Stop" Command="{Binding StopCommand}" Width="80" Margin="0,0,5,0"
+                        AutomationProperties.AutomationId="BtnStop"/>
+                <Button Content="Reset" Command="{Binding ResetCommand}" Width="80"
+                        AutomationProperties.AutomationId="BtnReset"/>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

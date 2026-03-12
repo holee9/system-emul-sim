@@ -1,4 +1,6 @@
 using System.Windows;
+using Serilog;
+using XrayDetector.Gui.Logging;
 using XrayDetector.Gui.Views;
 using XrayDetector.Gui.ViewModels;
 using XrayDetector.Gui.Simulation;
@@ -18,6 +20,10 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Initialize Serilog logging infrastructure (SPEC-HELP-001)
+        LoggingBootstrap.Initialize();
+        Log.ForContext("SourceContext", LogCategories.App).Information("Application starting up");
+
         // Configure unhandled exception handling
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         DispatcherUnhandledException += OnDispatcherUnhandledException;
@@ -32,28 +38,37 @@ public partial class App : Application
         MainWindow = mainWindow;
         mainWindow.Show();
 
-        // Auto-connect and start acquisition in simulation mode
-        try
+        // Auto-connect and start acquisition in simulation mode.
+        // In E2E test mode, skip acquisition to avoid Dispatcher saturation from the 10fps
+        // simulation timer, which defers UIAutomation peer registration and causes test failures.
+        var isE2EMode = Environment.GetEnvironmentVariable("XRAY_E2E_MODE") == "true";
+        if (!isE2EMode)
         {
-            await _simulatedClient.ConnectAsync("sim", 0);
-            await _simulatedClient.StartAcquisitionAsync();
+            try
+            {
+                await _simulatedClient.ConnectAsync("sim", 0);
+                await _simulatedClient.StartAcquisitionAsync();
+                Log.ForContext("SourceContext", LogCategories.App).Information("Simulation auto-start completed");
+            }
+            catch (Exception ex)
+            {
+                Log.ForContext("SourceContext", LogCategories.App).Warning(ex, "Auto-start failed");
+            }
         }
-        catch (Exception ex)
+        else
         {
-            System.Diagnostics.Debug.WriteLine($"Auto-start failed: {ex.Message}");
+            Log.ForContext("SourceContext", LogCategories.App).Information("E2E mode: simulation auto-start skipped");
         }
     }
 
     private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        // Log critical exceptions
-        System.Diagnostics.Debug.WriteLine($"CRITICAL: {e.ExceptionObject}");
+        Log.ForContext("SourceContext", LogCategories.App).Fatal("Unhandled domain exception: {Exception}", e.ExceptionObject);
     }
 
     private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
-        // Log UI thread exceptions
-        System.Diagnostics.Debug.WriteLine($"UI Exception: {e.Exception}");
+        Log.ForContext("SourceContext", LogCategories.App).Error(e.Exception, "Unhandled UI thread exception");
 
         // Prevent application crash (optional: show error dialog)
         e.Handled = true;
