@@ -9,6 +9,7 @@ namespace XrayDetector.Gui.E2ETests.Infrastructure;
 /// <summary>
 /// Manages GUI.Application process lifecycle for E2E tests.
 /// SPEC-HELP-001: REQ-HELP-051
+/// SPEC-E2E-002: REQ-E2E2-001 (E2ELogger), REQ-E2E2-003 (timing instrumentation)
 /// </summary>
 public sealed class AppFixture : IAsyncLifetime, IDisposable
 {
@@ -19,6 +20,9 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
     public AutomationElement? MainWindow { get; private set; }
     public bool IsDesktopAvailable { get; private set; } = true;
     public UIA3Automation Automation => _automation ?? throw new InvalidOperationException("Automation not initialized");
+
+    /// <summary>Structured logger for this E2E session. SPEC-E2E-002: REQ-E2E2-001</summary>
+    public E2ELogger Logger { get; } = new E2ELogger();
 
     // Path to the built executable
     private static string GetAppExePath()
@@ -55,11 +59,13 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
             Trace.WriteLine(
                 "[AppFixture] Non-interactive session detected. Skipping WPF process launch. " +
                 "Run E2E tests from an interactive desktop session (PowerShell terminal or Visual Studio).");
+            Logger.Warn("Non-interactive session. WPF process launch skipped.");
             return;
         }
 
+        var totalSw = Stopwatch.StartNew();
         var exePath = GetAppExePath();
-        Trace.WriteLine($"[AppFixture] Starting GUI.Application: {exePath}");
+        Logger.Step($"Starting GUI.Application: {exePath}");
 
         var startInfo = new ProcessStartInfo(exePath)
         {
@@ -70,7 +76,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
 
         _appProcess = Process.Start(startInfo)
             ?? throw new InvalidOperationException("Failed to start GUI.Application");
-        Trace.WriteLine($"[AppFixture] Process started. PID={_appProcess.Id}");
+        Logger.Step($"Process started. PID={_appProcess.Id}");
 
         _automation = new UIA3Automation();
         _flaUiApp = FlaUI.Core.Application.Attach(_appProcess);
@@ -85,7 +91,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                 MainWindow = _flaUiApp.GetMainWindow(_automation);
                 if (MainWindow != null)
                 {
-                    Trace.WriteLine($"[AppFixture] Main window found after {sw.Elapsed.TotalSeconds:F1}s");
+                    Logger.Step($"MainWindow found after {sw.Elapsed.TotalSeconds:F1}s");
 
                     // Initial settle: allow WPF Dispatcher to process startup events.
                     await Task.Delay(2000);
@@ -99,7 +105,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                     await WarmupSingleMenuAsync("File", "MenuFileExit");
                     await WarmupSingleMenuAsync("Help", "MenuHelpTopics");
 
-                    Trace.WriteLine("[AppFixture] Menu warmup complete. E2E fixture ready.");
+                    Logger.Step($"Menu warmup complete. Total init: {totalSw.Elapsed.TotalSeconds:F1}s");
                     await Task.Delay(500);
                     break;
                 }
@@ -109,7 +115,10 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
         }
 
         if (MainWindow == null)
+        {
+            Logger.Fail("MainWindow did not appear within 30 seconds.");
             throw new TimeoutException("GUI.Application main window did not appear within 30 seconds");
+        }
     }
 
     /// <summary>
@@ -120,6 +129,8 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
     /// </summary>
     private async Task WarmupSingleMenuAsync(string menuName, string targetAutomationId)
     {
+        var warmupSw = Stopwatch.StartNew();
+        Logger.Step($"Warmup start: {menuName} (target={targetAutomationId})");
         try
         {
             var menu = MainWindow?.FindFirstDescendant(
@@ -148,9 +159,13 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                     // Trigger full peer initialization by accessing properties.
                     _ = target.AutomationId;
                     _ = target.Name;
+                    Logger.Step($"Warmup done: {menuName} ({warmupSw.Elapsed.TotalSeconds:F1}s)");
                     break;
                 }
             }
+
+            if (warmupSw.Elapsed.TotalSeconds >= 90)
+                Logger.Warn($"Warmup timeout: {menuName} ({targetAutomationId} not found in 90s)");
 
             // Collapse menu.
             FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
@@ -183,5 +198,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
         {
             _appProcess?.Dispose();
         }
+
+        Logger.Dispose();
     }
 }
