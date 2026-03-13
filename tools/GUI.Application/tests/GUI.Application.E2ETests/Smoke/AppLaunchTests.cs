@@ -12,14 +12,14 @@ namespace XrayDetector.Gui.E2ETests.Smoke;
 [Collection("E2E")]
 public sealed class AppLaunchTests(AppFixture fixture) : E2ETestBase(fixture)
 {
-    [Fact]
+    [RequiresDesktopFact]
     public void App_Launches_AndMainWindowIsVisible()
     {
         MainWindow.Should().NotBeNull();
         MainWindow.Name.Should().Contain("X-ray");
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public void StatusBar_DisplaysDynamicVersion_NotHardcoded()
     {
         var page = new MainWindowPage(MainWindow, Fixture);
@@ -28,7 +28,7 @@ public sealed class AppLaunchTests(AppFixture fixture) : E2ETestBase(fixture)
         version.Should().NotBe("v1.0.0", "version should be dynamic from assembly");
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task AllSixTabs_AreAccessible()
     {
         await WaitHelper.DelayAsync(500);
@@ -38,7 +38,7 @@ public sealed class AppLaunchTests(AppFixture fixture) : E2ETestBase(fixture)
         tabs.Length.Should().BeGreaterThanOrEqualTo(6, "all 6 tabs should be accessible");
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public void FileExit_ClosesApplication()
     {
         // WPF MenuItem sub-items only appear in UIAutomation tree when the parent menu is expanded.

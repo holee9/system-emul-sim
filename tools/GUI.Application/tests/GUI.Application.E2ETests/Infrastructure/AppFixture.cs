@@ -17,6 +17,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
     private Application? _flaUiApp;
 
     public AutomationElement? MainWindow { get; private set; }
+    public bool IsDesktopAvailable { get; private set; } = true;
     public UIA3Automation Automation => _automation ?? throw new InvalidOperationException("Automation not initialized");
 
     // Path to the built executable
@@ -48,7 +49,17 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
 
     public async Task InitializeAsync()
     {
+        IsDesktopAvailable = RequiresDesktopFactAttribute.IsInteractiveDesktop();
+        if (!IsDesktopAvailable)
+        {
+            Trace.WriteLine(
+                "[AppFixture] Non-interactive session detected. Skipping WPF process launch. " +
+                "Run E2E tests from an interactive desktop session (PowerShell terminal or Visual Studio).");
+            return;
+        }
+
         var exePath = GetAppExePath();
+        Trace.WriteLine($"[AppFixture] Starting GUI.Application: {exePath}");
 
         var startInfo = new ProcessStartInfo(exePath)
         {
@@ -59,6 +70,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
 
         _appProcess = Process.Start(startInfo)
             ?? throw new InvalidOperationException("Failed to start GUI.Application");
+        Trace.WriteLine($"[AppFixture] Process started. PID={_appProcess.Id}");
 
         _automation = new UIA3Automation();
         _flaUiApp = FlaUI.Core.Application.Attach(_appProcess);
@@ -73,6 +85,8 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                 MainWindow = _flaUiApp.GetMainWindow(_automation);
                 if (MainWindow != null)
                 {
+                    Trace.WriteLine($"[AppFixture] Main window found after {sw.Elapsed.TotalSeconds:F1}s");
+
                     // Initial settle: allow WPF Dispatcher to process startup events.
                     await Task.Delay(2000);
 
@@ -85,6 +99,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                     await WarmupSingleMenuAsync("File", "MenuFileExit");
                     await WarmupSingleMenuAsync("Help", "MenuHelpTopics");
 
+                    Trace.WriteLine("[AppFixture] Menu warmup complete. E2E fixture ready.");
                     await Task.Delay(500);
                     break;
                 }

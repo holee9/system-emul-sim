@@ -11,7 +11,13 @@ namespace XrayDetector.Gui.E2ETests.Infrastructure;
 public abstract class E2ETestBase
 {
     protected readonly AppFixture Fixture;
-    protected AutomationElement MainWindow => Fixture.MainWindow ?? throw new InvalidOperationException("Main window not available");
+    protected AutomationElement MainWindow =>
+        Fixture.IsDesktopAvailable
+            ? Fixture.MainWindow ?? throw new InvalidOperationException("Main window not available")
+            : throw new InvalidOperationException(
+                "E2E tests require an interactive desktop session. " +
+                "Run from PowerShell terminal or Visual Studio (not CI/bash). " +
+                "Use [RequiresDesktopFact] to auto-skip in non-interactive environments.");
 
     protected E2ETestBase(AppFixture fixture)
     {

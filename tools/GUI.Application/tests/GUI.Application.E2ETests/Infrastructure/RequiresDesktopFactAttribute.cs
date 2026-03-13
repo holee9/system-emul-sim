@@ -16,7 +16,7 @@ public sealed class RequiresDesktopFactAttribute : FactAttribute
             Skip = "Requires interactive desktop session (FlaUI UIAutomation unavailable in CI)";
     }
 
-    private static bool IsInteractiveDesktop()
+    internal static bool IsInteractiveDesktop()
     {
         if (Environment.GetEnvironmentVariable("CI") == "true") return false;
         if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true") return false;
