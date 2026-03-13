@@ -1,5 +1,11 @@
 // Copyright (c) 2026 ABYZ Lab. All rights reserved.
 
+// @MX:NOTE: 4버퍼 링 버퍼 관리자 - fw/src/frame_manager.c의 1:1 C# 포트
+// REQ-FW-050~052: oldest-drop 정책을 사용하는 4버퍼 링
+// REQ-FW-111: 런타임 통계 제공
+// @MX:ANCHOR: 프레임 버퍼 할당/해제 핵심 API - McuTopSimulator, 테스트에서 호출
+// @MX:WARN: 모든 상태 변경 작업은 lock으로 보호됩니다 (스레드 안전성)
+
 namespace McuSimulator.Core.Buffer;
 
 /// <summary>
@@ -61,6 +67,7 @@ public class FrameBufferManager
     /// <param name="buffer">Output: buffer data array.</param>
     /// <param name="size">Output: buffer size in bytes.</param>
     /// <returns>0 on success, -1 on error (all buffers FILLING).</returns>
+    // @MX:ANCHOR: CSI-2 RX용 버퍼 획득 (Producer) - McuTopSimulator에서 호출
     public int GetBuffer(uint frameNumber, out byte[] buffer, out int size)
     {
         lock (_lock)
@@ -146,6 +153,7 @@ public class FrameBufferManager
     /// </summary>
     /// <param name="frameNumber">Frame sequence number.</param>
     /// <returns>0 on success, -1 if buffer is not in FILLING state.</returns>
+    // @MX:ANCHOR: 버퍼 커밋 (Producer) - McuTopSimulator에서 호출
     public int CommitBuffer(uint frameNumber)
     {
         lock (_lock)
@@ -183,6 +191,7 @@ public class FrameBufferManager
     /// <param name="size">Output: buffer size in bytes.</param>
     /// <param name="frameNumber">Output: frame sequence number.</param>
     /// <returns>0 on success, -1 if no READY buffers.</returns>
+    // @MX:ANCHOR: TX용 READY 버퍼 획득 (Consumer) - McuTopSimulator에서 호출
     public int GetReadyBuffer(out byte[]? buffer, out int size, out uint frameNumber)
     {
         lock (_lock)
@@ -226,6 +235,7 @@ public class FrameBufferManager
     /// </summary>
     /// <param name="frameNumber">Frame sequence number.</param>
     /// <returns>0 on success, -1 if buffer is not in SENDING state.</returns>
+    // @MX:ANCHOR: 버퍼 해제 (Consumer) - McuTopSimulator에서 호출
     public int ReleaseBuffer(uint frameNumber)
     {
         lock (_lock)

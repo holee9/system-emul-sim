@@ -1,3 +1,5 @@
+// @MX:NOTE: 정수 값을 Visibility로 변환하는 값 컨버터
+// 0보다 크면 Visible, 그렇지 않으면 Collapsed를 반환합니다 (inverse 모드 지원)
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;

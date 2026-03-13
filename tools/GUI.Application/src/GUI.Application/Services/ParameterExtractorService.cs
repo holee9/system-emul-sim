@@ -1,3 +1,5 @@
+// @MX:NOTE: PDF 데이터시트에서 파라미터 추출을 위한 서비스 클래스
+// ParameterExtractor.Core를 래핑하여 GUI 통합을 제공합니다
 using System.Diagnostics;
 using System.IO;
 using IntegrationRunner.Core.Models;
@@ -37,6 +39,7 @@ public sealed class ParameterExtractorService
     /// <param name="filePath">Path to the PDF file.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Extraction result with parameters and status.</returns>
+    // @MX:ANCHOR: PDF 파싱 핵심 진입점 - ParameterExtractorViewModel에서 호출
     public async Task<ParamExtractorModels.ExtractionResult> ParsePdfAsync(string filePath, CancellationToken cancellationToken = default)
     {
         try
@@ -71,6 +74,7 @@ public sealed class ParameterExtractorService
     /// </summary>
     /// <param name="parameters">Extracted parameter list.</param>
     /// <returns>DetectorConfig with populated values.</returns>
+    // @MX:ANCHOR: 추출된 파라미터를 DetectorConfig로 변환 - ParameterExtractorViewModel에서 호출
     public DetectorConfig ToDetectorConfig(IEnumerable<ParamExtractorModels.ParameterInfo> parameters)
     {
         var paramDict = parameters

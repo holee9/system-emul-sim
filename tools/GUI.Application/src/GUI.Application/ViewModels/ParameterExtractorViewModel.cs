@@ -1,3 +1,6 @@
+// @MX:NOTE: PDF 데이터시트 파라미터 추출용 ViewModel (REQ-UI-013)
+// ParameterExtractor.Core를 통합 GUI에 통합합니다
+// @MX:ANCHOR: MVVM 패턴으로 파라미터 추출 UI 상태 관리
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -93,16 +96,19 @@ public sealed class ParameterExtractorViewModel : ObservableObject
     /// <summary>
     /// Command to load and parse a PDF datasheet.
     /// </summary>
+    // @MX:ANCHOR: PDF 로드 명령 - ParameterExtractorView.xaml에서 바인딩
     public ICommand LoadPdfCommand { get; }
 
     /// <summary>
     /// Command to apply extracted parameters to simulator control.
     /// </summary>
+    // @MX:ANCHOR: 시뮬레이터 적용 명령 - ParameterExtractorView.xaml에서 바인딩
     public ICommand ApplyToSimulatorCommand { get; }
 
     /// <summary>
     /// Command to clear all extracted parameters.
     /// </summary>
+    // @MX:ANCHOR: 초기화 명령 - ParameterExtractorView.xaml에서 바인딩
     public ICommand ClearCommand { get; }
 
     /// <summary>
