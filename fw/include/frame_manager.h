@@ -64,6 +64,15 @@ typedef struct {
     uint64_t overruns;         /**< Buffer overrun count */
 } frame_stats_t;
 
+/**
+ * @brief Frame Manager context for main.c compatibility
+ *
+ * Wrapper type for daemon main.c integration.
+ */
+typedef struct {
+    bool initialized;
+} frame_manager_t;
+
 /* Default configuration */
 #define FRAME_MGR_DEFAULT_ROWS      2048
 #define FRAME_MGR_DEFAULT_COLS      2048
@@ -167,6 +176,25 @@ const char *frame_mgr_state_to_string(buf_state_t state);
  * @return true if initialized, false otherwise
  */
 bool frame_mgr_is_initialized(void);
+
+/* ==========================================================================
+ * Wrapper Functions for main.c Compatibility
+ * ========================================================================== */
+
+/**
+ * @brief Initialize Frame Manager (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ * @return 0 on success, -errno on failure
+ */
+int frame_manager_init(frame_manager_t *ctx);
+
+/**
+ * @brief Cleanup Frame Manager (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ */
+void frame_manager_cleanup(frame_manager_t *ctx);
 
 #ifdef __cplusplus
 }

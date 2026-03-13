@@ -1,8 +1,5 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/tsconfig.json"
+paths: "**/*.ts,**/*.tsx,**/tsconfig.json"
 ---
 
 # TypeScript Rules
@@ -55,8 +52,3 @@ Version: TypeScript 5.9+
 - Prefer function components over class components
 - Use React.memo() for expensive renders
 - Avoid prop drilling with Context or state libraries
-
-## MoAI Integration
-
-- Use Skill("moai-lang-typescript") for detailed patterns
-- Follow TRUST 5 quality gates

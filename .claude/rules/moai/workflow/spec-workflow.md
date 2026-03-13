@@ -1,7 +1,5 @@
 ---
-paths:
-  - ".moai/specs/**/*"
-  - "**/spec.md"
+paths: "**/.moai/specs/**,**/.moai/config/sections/quality.yaml"
 ---
 
 # SPEC Workflow
@@ -20,6 +18,11 @@ MoAI's three-phase development workflow with token budget management.
 
 Create comprehensive specification using EARS format.
 
+Sub-phases:
+1. Research: Deep codebase analysis producing research.md artifact
+2. Planning: SPEC document creation with EARS format requirements
+3. Annotation: Iterative plan review cycle (1-6 iterations) before implementation approval
+
 Token Strategy:
 - Allocation: 30,000 tokens
 - Load requirements only
@@ -27,6 +30,7 @@ Token Strategy:
 - Saves 45-50K tokens for implementation
 
 Output:
+- Research document at `.moai/specs/SPEC-XXX/research.md` (deep codebase analysis)
 - SPEC document at `.moai/specs/SPEC-XXX/spec.md`
 - EARS format requirements
 - Acceptance criteria
@@ -42,7 +46,7 @@ Token Strategy:
 - Enables 70% larger implementations
 
 Development Methodology:
-- Configured in quality.yaml (development_mode: ddd, tdd, or hybrid)
+- Configured in quality.yaml (development_mode: ddd or tdd)
 - See @workflow-modes.md for detailed methodology cycles
 
 Success Criteria:
@@ -50,6 +54,33 @@ Success Criteria:
 - Methodology-specific tests passing
 - 85%+ code coverage
 - TRUST 5 quality gates passed
+- MX tags added for new code (NOTE, ANCHOR, WARN as appropriate)
+
+### Re-planning Gate
+
+Detect when implementation is stuck or diverging from SPEC and trigger re-assessment.
+
+Triggers:
+- 3+ iterations with no new SPEC acceptance criteria met
+- Test coverage dropping instead of increasing across iterations
+- New errors introduced exceed errors fixed in a cycle
+- Agent explicitly reports inability to meet a SPEC requirement
+
+Communication path:
+- Implementation agent (manager-ddd/tdd) detects trigger condition
+- Agent returns structured stagnation report to MoAI (agents cannot call AskUserQuestion)
+- MoAI presents gap analysis to user via AskUserQuestion with options:
+  - Continue with current approach (minor adjustments needed)
+  - Revise SPEC (requirements need refinement)
+  - Try alternative approach (re-delegate to manager-strategy)
+  - Pause for manual intervention (user takes over)
+
+Detection method:
+- Append acceptance criteria completion count and error count delta to `.moai/specs/SPEC-{ID}/progress.md` at the end of each iteration
+- Compare against previous entry to detect stagnation
+- Flag stagnation when acceptance criteria completion rate is zero for 3+ consecutive entries
+
+Integration: Referenced by run.md Phase 2.7 and loop.md iteration checks
 
 ## Sync Phase
 
@@ -87,7 +118,7 @@ Progressive Disclosure:
 ## Phase Transitions
 
 Plan to Run:
-- Trigger: SPEC document approved
+- Trigger: SPEC document approved (annotation cycle completed, user confirmed "Proceed")
 - Action: Execute /clear, then /moai run SPEC-XXX
 
 Run to Sync:
@@ -102,21 +133,28 @@ When team mode is enabled (workflow.team.enabled and AGENT_TEAMS env), phases ca
 
 | Phase | Sub-agent Mode | Team Mode | Condition |
 |-------|---------------|-----------|-----------|
-| Plan | manager-spec (single) | team-researcher + team-analyst + team-architect (parallel) | Complexity >= threshold |
-| Run | manager-ddd/tdd (sequential) | team-backend-dev + team-frontend-dev + team-tester (parallel) | Domains >= 3 or files >= 10 |
+| Plan | manager-spec (single) | team-reader (researcher) + team-reader (analyst) + team-reader (architect) (parallel) | Complexity >= threshold |
+| Run | manager-ddd/tdd (sequential) | team-coder (backend) + team-coder (frontend) + team-tester (parallel) | Domains >= 3 or files >= 10 |
 | Sync | manager-docs (single) | manager-docs (always sub-agent) | N/A |
 
 ### Team Mode Plan Phase
 - TeamCreate for parallel research team
-- Teammates explore codebase, analyze requirements, design approach
+- Teammates explore codebase deeply, analyze requirements, design approach
+- researcher teammate produces research.md with deep codebase analysis
+- analyst teammate validates requirements against research findings
+- architect teammate designs solution using reference implementations found in research
+- MoAI runs annotation cycle with user for plan refinement (1-6 iterations)
 - MoAI synthesizes into SPEC document
 - Shutdown team, /clear before Run phase
 
 ### Team Mode Run Phase
 - TeamCreate for implementation team
 - Task decomposition with file ownership boundaries
+- [HARD] Implementation teammates (backend-dev, frontend-dev, tester) MUST use `isolation: "worktree"` for parallel file safety
+- [HARD] Read-only teammates (quality) MUST NOT use isolation — permissionMode: plan is sufficient
 - Teammates self-claim tasks from shared list
 - Quality validation after all implementation completes
+- Worktree cleanup via `git worktree prune` after team shutdown
 - Shutdown team
 
 ### Token Cost Awareness
@@ -146,31 +184,22 @@ When to prefer sub-agent mode:
 
 Detailed team orchestration steps are defined in dedicated workflow files:
 
-- Plan phase: @.claude/skills/moai/workflows/team-plan.md
-- Run phase: @.claude/skills/moai/workflows/team-run.md
-- Fix phase: @.claude/skills/moai/workflows/team-debug.md
-- Review: @.claude/skills/moai/workflows/team-review.md
+- Plan phase: .claude/skills/moai/team/plan.md
+- Run phase: .claude/skills/moai/team/run.md
+- Fix phase: .claude/skills/moai/team/debug.md
+- Review: .claude/skills/moai/team/review.md
 
 ### Known Limitations
 
-Agent teams are experimental. Current limitations from Claude Code documentation:
-
-- No session resumption: /resume and /rewind do not restore in-process teammates. After resuming a session, the lead may attempt to message teammates that no longer exist. Spawn new teammates if this occurs.
-- Task status can lag: Teammates sometimes fail to mark tasks as completed, which blocks dependent tasks. Check whether work is actually done and update task status manually if needed.
-- Shutdown can be slow: Teammates finish their current request or tool call before shutting down.
-- One team per session: A lead can only manage one team at a time. Clean up the current team before starting a new one.
-- No nested teams: Teammates cannot spawn their own teams or teammates. Only the lead can manage the team.
-- Lead is fixed: The session that creates the team is the lead for its lifetime. Leadership cannot be transferred.
-- Permissions set at spawn: All teammates start with the lead's permission mode. Individual teammate modes can be changed after spawning via permissionMode in agent definitions.
-- Split panes require tmux or iTerm2: The default in-process mode works in any terminal. Split-pane mode is not supported in VS Code integrated terminal, Windows Terminal, or Ghostty.
+For complete limitations list, see CLAUDE.md Section 15.
 
 ### Prerequisites
 
-Both conditions must be met for team mode:
-- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in environment or settings.json env
+Both conditions must be met:
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json env
 - `workflow.team.enabled: true` in `.moai/config/sections/workflow.yaml`
 
-If prerequisites are not met, all subcommands gracefully fall back to sub-agent mode.
+See @CLAUDE.md Section 15 for details.
 
 ### Mode Selection
 - --team flag: Force team mode

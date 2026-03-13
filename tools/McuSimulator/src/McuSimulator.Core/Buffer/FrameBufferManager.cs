@@ -53,24 +53,34 @@ public class FrameBufferManager
     /// Acquire buffer for CSI-2 RX (Producer).
     /// Transitions buffer from FREE to FILLING state.
     /// Implements oldest-drop policy (REQ-FW-051):
-    ///   If target slot is not FREE, find oldest non-FREE buffer
+    ///   If all buffers are busy, find oldest non-FREE buffer
     ///   (prefer READY over SENDING), drop it, and reuse.
+    ///   NEVER drops FILLING buffers to avoid race with pending CommitBuffer calls.
     /// </summary>
     /// <param name="frameNumber">Frame sequence number.</param>
     /// <param name="buffer">Output: buffer data array.</param>
     /// <param name="size">Output: buffer size in bytes.</param>
-    /// <returns>0 on success, negative on error.</returns>
+    /// <returns>0 on success, -1 on error (all buffers FILLING).</returns>
     public int GetBuffer(uint frameNumber, out byte[] buffer, out int size)
     {
         lock (_lock)
         {
-            int index = (int)(frameNumber % (uint)_numBuffers);
-            var desc = _buffers[index];
-
-            if (desc.State != BufferState.Free)
+            // First, try to find a FREE buffer
+            int freeIndex = -1;
+            for (int i = 0; i < _numBuffers; i++)
             {
-                // Oldest-drop policy: find oldest non-FREE buffer to drop.
-                // Prefer READY over SENDING (READY is less costly to drop).
+                if (_buffers[i].State == BufferState.Free)
+                {
+                    freeIndex = i;
+                    break;
+                }
+            }
+
+            // If no FREE buffer, use oldest-drop policy
+            if (freeIndex < 0)
+            {
+                // Prefer READY over SENDING (READY is less costly to drop)
+                // NEVER drop FILLING to avoid race with pending CommitBuffer calls
                 int dropIndex = -1;
 
                 // First pass: look for oldest READY buffer
@@ -85,8 +95,7 @@ public class FrameBufferManager
                     }
                 }
 
-                // Second pass: if no READY, look for any non-FREE buffer (except FILLING which is being actively filled)
-                // FILLING buffers are excluded to prevent race condition with pending CommitBuffer calls
+                // Second pass: if no READY, look for oldest SENDING buffer
                 if (dropIndex < 0)
                 {
                     for (int i = 0; i < _numBuffers; i++)
@@ -103,7 +112,7 @@ public class FrameBufferManager
 
                 if (dropIndex < 0)
                 {
-                    // Should not happen since target slot is not FREE
+                    // All buffers are FILLING - cannot proceed
                     buffer = Array.Empty<byte>();
                     size = 0;
                     return -1;
@@ -114,12 +123,11 @@ public class FrameBufferManager
                 _stats.FramesDropped++;
                 _stats.Overruns++;
 
-                // Use the dropped slot
-                index = dropIndex;
-                desc = _buffers[index];
+                freeIndex = dropIndex;
             }
 
-            // Transition to FILLING
+            // Use the FREE buffer
+            var desc = _buffers[freeIndex];
             desc.State = BufferState.Filling;
             desc.FrameNumber = frameNumber;
             desc.TotalPackets = 0;
@@ -142,15 +150,26 @@ public class FrameBufferManager
     {
         lock (_lock)
         {
-            int index = (int)(frameNumber % (uint)_numBuffers);
-            var desc = _buffers[index];
-
-            if (desc.State != BufferState.Filling)
+            // Search for the buffer with matching frameNumber in FILLING state
+            // This is necessary because GetBuffer may have dropped the target slot
+            // and used a different slot (oldest-drop policy)
+            int targetIndex = -1;
+            for (int i = 0; i < _numBuffers; i++)
             {
+                if (_buffers[i].State == BufferState.Filling && _buffers[i].FrameNumber == frameNumber)
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+
+            if (targetIndex < 0)
+            {
+                // Buffer not found in FILLING state with matching frameNumber
                 return -1;
             }
 
-            desc.State = BufferState.Ready;
+            _buffers[targetIndex].State = BufferState.Ready;
             _stats.FramesReceived++;
             return 0;
         }
@@ -211,15 +230,26 @@ public class FrameBufferManager
     {
         lock (_lock)
         {
-            int index = (int)(frameNumber % (uint)_numBuffers);
-            var desc = _buffers[index];
-
-            if (desc.State != BufferState.Sending)
+            // Search for the buffer with matching frameNumber in SENDING state
+            // This is necessary because GetBuffer may have dropped the target slot
+            // and used a different slot (oldest-drop policy)
+            int targetIndex = -1;
+            for (int i = 0; i < _numBuffers; i++)
             {
+                if (_buffers[i].State == BufferState.Sending && _buffers[i].FrameNumber == frameNumber)
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+
+            if (targetIndex < 0)
+            {
+                // Buffer not found in SENDING state with matching frameNumber
                 return -1;
             }
 
-            desc.State = BufferState.Free;
+            _buffers[targetIndex].State = BufferState.Free;
             _stats.FramesSent++;
             return 0;
         }
@@ -239,17 +269,29 @@ public class FrameBufferManager
     }
 
     /// <summary>
-    /// Get the current state of the buffer mapped to the given frame number.
+    /// Get the current state of the buffer with the given frame number.
+    /// Searches all buffers to find the one matching the frame number.
     /// Useful for debugging and testing.
     /// </summary>
     /// <param name="frameNumber">Frame sequence number.</param>
-    /// <returns>Current buffer state.</returns>
+    /// <returns>Current buffer state, or Free if not found.</returns>
     public BufferState GetBufferState(uint frameNumber)
     {
         lock (_lock)
         {
-            int index = (int)(frameNumber % (uint)_numBuffers);
-            return _buffers[index].State;
+            // Search for the buffer with matching frameNumber
+            // This is necessary because GetBuffer may have dropped the target slot
+            // and used a different slot (oldest-drop policy)
+            for (int i = 0; i < _numBuffers; i++)
+            {
+                if (_buffers[i].FrameNumber == frameNumber)
+                {
+                    return _buffers[i].State;
+                }
+            }
+
+            // Frame not found, return Free state
+            return BufferState.Free;
         }
     }
 

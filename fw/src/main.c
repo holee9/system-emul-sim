@@ -34,6 +34,9 @@
 #include <pwd.h>
 #include <grp.h>
 #include <syslog.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "health_monitor.h"
 #include "config/config_loader.h"
@@ -111,8 +114,8 @@ typedef struct {
     pthread_mutex_t state_mutex;
 
     /* Module contexts */
-    spi_master_context_t spi_ctx;
-    csi2_rx_context_t csi2_ctx;
+    spi_master_t *spi_ctx;
+    csi2_rx_t *csi2_ctx;
     eth_tx_context_t eth_ctx;
     bq40z50_context_t battery_ctx;
     sequence_engine_t seq_eng;
@@ -131,6 +134,9 @@ typedef struct {
 
 static daemon_context_t g_daemon_ctx = {0};
 static volatile sig_atomic_t g_signal_received = 0;
+
+/* Global SPI master context for FPGA register access */
+spi_master_t *g_spi_master = NULL;
 
 /* ==========================================================================
  * Signal Handling (TDD)
@@ -402,11 +408,54 @@ static void *eth_tx_thread(void *arg) {
 
     prctl(PR_SET_NAME, "eth_tx", 0, 0, 0);
 
-    while (ctx->running && !ctx->shutdown_requested) {
-        /* Transmit frame queue */
-        /* TODO: Implement UDP transmission */
+    uint32_t frame_number = 0;
 
-        usleep(100);  /* 100us */
+    while (ctx->running && !ctx->shutdown_requested) {
+        /* Get ready buffer from frame manager */
+        uint8_t *frame_data = NULL;
+        size_t frame_size = 0;
+        uint32_t ready_frame_number = 0;
+
+        int ret = frame_mgr_get_ready_buffer(&frame_data, &frame_size, &ready_frame_number);
+        if (ret == 0) {
+            /* Frame available, transmit via UDP */
+            /* REQ-FW-040: Frame fragmentation and transmission */
+            eth_tx_status_t tx_result = eth_tx_send_frame(
+                ctx->eth_ctx.handle,
+                frame_data,
+                frame_size,
+                ctx->config.detector.rows,      /* Width */
+                ctx->config.detector.cols,      /* Height */
+                ctx->config.detector.bit_depth, /* Bit depth */
+                ready_frame_number              /* Frame number */
+            );
+
+            if (tx_result == ETH_TX_OK) {
+                /* Transmission successful, release buffer */
+                frame_mgr_release_buffer(ready_frame_number);
+                health_monitor_update_stat("frames_sent", 1);
+
+                /* Notify sequence engine of transmission complete */
+                seq_handle_event(EVT_COMPLETE, NULL);
+            } else {
+                /* Transmission failed */
+                health_monitor_log(LOG_ERROR, "tx_thread",
+                                 "Failed to send frame %u: %d",
+                                 ready_frame_number, tx_result);
+                health_monitor_update_stat("frames_dropped", 1);
+
+                /* Still release buffer on error */
+                frame_mgr_release_buffer(ready_frame_number);
+            }
+        } else if (ret == -ENOENT) {
+            /* No ready buffers, wait */
+            usleep(100);  /* 100us */
+        } else {
+            /* Error getting buffer */
+            health_monitor_log(LOG_ERROR, "tx_thread",
+                             "Failed to get ready buffer: %d", ret);
+            usleep(1000);  /* 1ms */
+        }
     }
 
     health_monitor_log(LOG_INFO, "tx_thread", "Ethernet TX thread exiting");
@@ -424,13 +473,107 @@ static void *command_thread(void *arg) {
 
     prctl(PR_SET_NAME, "command", 0, 0, 0);
 
-    while (ctx->running && !ctx->shutdown_requested) {
-        /* Process incoming commands */
-        /* TODO: Implement UDP command listener */
-
-        usleep(10000);  /* 10ms */
+    /* Create UDP socket for command listening */
+    int cmd_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (cmd_fd < 0) {
+        health_monitor_log(LOG_ERROR, "cmd_thread", "Failed to create command socket");
+        return NULL;
     }
 
+    /* Set socket options */
+    int opt = 1;
+    setsockopt(cmd_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    /* Bind to command port */
+    struct sockaddr_in cmd_addr = {0};
+    cmd_addr.sin_family = AF_INET;
+    cmd_addr.sin_addr.s_addr = INADDR_ANY;
+    cmd_addr.sin_port = htons(ETH_DEFAULT_CMD_PORT);
+
+    if (bind(cmd_fd, (struct sockaddr *)&cmd_addr, sizeof(cmd_addr)) < 0) {
+        health_monitor_log(LOG_ERROR, "cmd_thread", "Failed to bind command socket to port %d",
+                         ETH_DEFAULT_CMD_PORT);
+        close(cmd_fd);
+        return NULL;
+    }
+
+    health_monitor_log(LOG_INFO, "cmd_thread", "Command listener started on port %d",
+                     ETH_DEFAULT_CMD_PORT);
+
+    /* Command buffer */
+    uint8_t cmd_buf[2048];
+    uint8_t resp_buf[2048];
+    struct sockaddr_in client_addr;
+    socklen_t client_len;
+
+    while (ctx->running && !ctx->shutdown_requested) {
+        /* Set socket timeout for non-blocking operation */
+        struct timeval tv = {0, 100000};  /* 100ms timeout */
+        setsockopt(cmd_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+        /* Receive command packet */
+        client_len = sizeof(client_addr);
+        ssize_t recv_len = recvfrom(cmd_fd, cmd_buf, sizeof(cmd_buf), 0,
+                                    (struct sockaddr *)&client_addr, &client_len);
+
+        if (recv_len < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                /* Timeout, continue */
+                continue;
+            }
+            /* Error */
+            health_monitor_log(LOG_ERROR, "cmd_thread", "recvfrom error: %d", errno);
+            break;
+        }
+
+        /* Parse command packet */
+        command_frame_t cmd;
+        int parse_result = cmd_parse_packet(cmd_buf, recv_len, &cmd);
+        if (parse_result != 0) {
+            health_monitor_log(LOG_WARNING, "cmd_thread", "Failed to parse command packet");
+            continue;
+        }
+
+        /* Get client IP for replay protection */
+        char client_ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip));
+
+        /* Check for replay attack */
+        int replay_result = cmd_check_replay(cmd.sequence, client_ip);
+        if (replay_result != 0) {
+            health_monitor_log(LOG_WARNING, "cmd_thread",
+                             "Replay attack detected from %s (seq=%u)",
+                             client_ip, cmd.sequence);
+            health_monitor_update_stat("auth_failures", 1);
+            continue;
+        }
+
+        /* Handle command */
+        size_t resp_len = sizeof(resp_buf);
+        int handle_result = cmd_handle_command(&cmd, resp_buf, &resp_len);
+        if (handle_result != 0) {
+            health_monitor_log(LOG_ERROR, "cmd_thread", "Failed to handle command");
+            continue;
+        }
+
+        /* Update replay protection state */
+        cmd_update_replay_state(cmd.sequence, client_ip);
+
+        /* Send response */
+        ssize_t sent_len = sendto(cmd_fd, resp_buf, resp_len, 0,
+                                  (struct sockaddr *)&client_addr, client_len);
+        if (sent_len < 0) {
+            health_monitor_log(LOG_ERROR, "cmd_thread", "Failed to send response");
+        } else if ((size_t)sent_len != resp_len) {
+            health_monitor_log(LOG_WARNING, "cmd_thread", "Partial response sent");
+        }
+
+        health_monitor_log(LOG_DEBUG, "cmd_thread",
+                         "Command processed: id=0x%02X, seq=%u, from=%s",
+                         cmd.command_id, cmd.sequence, client_ip);
+    }
+
+    close(cmd_fd);
     health_monitor_log(LOG_INFO, "cmd_thread", "Command thread exiting");
     return NULL;
 }
@@ -511,15 +654,34 @@ static int init_modules(daemon_context_t *ctx) {
     ctx->health_ctx = (health_monitor_context_t *)&g_health_ctx;
 
     /* Initialize SPI master */
-    ret = spi_master_init(&ctx->spi_ctx, "/dev/spidev0.0");
-    if (ret != 0) {
+    spi_config_t spi_config = {
+        .device = "/dev/spidev0.0",
+        .speed = SPI_DEFAULT_SPEED,
+        .bits_per_word = SPI_DEFAULT_BITS,
+        .mode = SPI_DEFAULT_MODE
+    };
+
+    ctx->spi_ctx = spi_master_create(&spi_config);
+    if (ctx->spi_ctx == NULL) {
         health_monitor_log(LOG_ERROR, "main", "Failed to initialize SPI master");
         return -1;
     }
 
+    /* Set global SPI master context */
+    g_spi_master = ctx->spi_ctx;
+
     /* Initialize CSI-2 RX */
-    ret = csi2_rx_init(&ctx->csi2_ctx, "/dev/video0");
-    if (ret != 0) {
+    csi2_config_t csi2_config = {
+        .device = "/dev/video0",
+        .width = ctx->config.detector.cols,
+        .height = ctx->config.detector.rows,
+        .format = CSI2_PIX_FMT_RAW16,
+        .buffer_count = 4,
+        .fps = 15
+    };
+
+    ctx->csi2_ctx = csi2_rx_create(&csi2_config);
+    if (ctx->csi2_ctx == NULL) {
         health_monitor_log(LOG_ERROR, "main", "Failed to initialize CSI-2 RX");
         return -1;
     }
@@ -645,8 +807,9 @@ static void cleanup_modules(daemon_context_t *ctx) {
     sequence_engine_cleanup(&ctx->seq_eng);
     bq40z50_cleanup(&ctx->battery_ctx);
     eth_tx_cleanup(&ctx->eth_ctx);
-    csi2_rx_cleanup(&ctx->csi2_ctx);
-    spi_master_cleanup(&ctx->spi_ctx);
+    csi2_rx_destroy(ctx->csi2_ctx);
+    spi_master_destroy(ctx->spi_ctx);
+    g_spi_master = NULL;
     health_monitor_deinit();
 
     config_loader_cleanup(&ctx->config);

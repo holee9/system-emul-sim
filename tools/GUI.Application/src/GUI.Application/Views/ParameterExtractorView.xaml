@@ -1,0 +1,132 @@
+<UserControl x:Class="XrayDetector.Gui.Views.ParameterExtractorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Panel Datasheet Parameter Extraction"
+                   FontSize="18" FontWeight="Bold" Margin="10"/>
+
+        <!-- File Selection -->
+        <Border Grid.Row="1" BorderBrush="#ddd" BorderThickness="1" Margin="10,0,10,10" Padding="10" Background="#f9f9f9">
+            <StackPanel>
+                <TextBlock Text="Load a PDF datasheet to automatically extract panel parameters."
+                           FontStyle="Italic" Foreground="#666" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Load PDF Datasheet" Command="{Binding LoadPdfCommand}"
+                            Width="150" Height="32" Padding="10,5"
+                            AutomationProperties.AutomationId="BtnLoadPdf"/>
+                    <TextBlock Text="{Binding SourceFilePath}" Margin="10,0,0,0" VerticalAlignment="Center"
+                               Foreground="#666" TextTrimming="CharacterEllipsis" MaxWidth="400"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Validation Summary -->
+        <Border Grid.Row="2" BorderBrush="#ddd" BorderThickness="1" Margin="10,0,10,10" Padding="10"
+                Visibility="{Binding ValidationSummary.Count, Converter={StaticResource IntToVisibilityConverter}}">
+            <ItemsControl ItemsSource="{Binding ValidationSummary}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,10,0" Padding="10,5" CornerRadius="4"
+                                Background="{Binding Status, Converter={StaticResource StatusToBrushConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Label}" FontWeight="Bold" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding Count}"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <!-- Parameters Grid -->
+        <Border Grid.Row="3" BorderBrush="#ddd" BorderThickness="1" Margin="10,0,10,10">
+            <Grid>
+                <!-- Empty State -->
+                <TextBlock Text="No parameters loaded. Load a PDF datasheet to begin."
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="#999" FontStyle="Italic"
+                           Visibility="{Binding Parameters.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=inverse}"/>
+
+                <!-- Data Grid -->
+                <DataGrid ItemsSource="{Binding Parameters}"
+                          SelectedItem="{Binding SelectedParameter}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          AlternatingRowBackground="#f5f5f5"
+                          RowBackground="White"
+                          Visibility="{Binding Parameters.Count, Converter={StaticResource IntToVisibilityConverter}}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Parameter Name" Binding="{Binding Name}" Width="200" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Unit" Binding="{Binding Unit}" Width="80" IsReadOnly="True"/>
+                        <DataGridTemplateColumn Header="Status" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ValidationStatus}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ValidationStatus}" Value="Valid">
+                                                        <Setter Property="Foreground" Value="Green"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ValidationStatus}" Value="Warning">
+                                                        <Setter Property="Foreground" Value="Orange"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ValidationStatus}" Value="Error">
+                                                        <Setter Property="Foreground" Value="Red"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ValidationStatus}" Value="Pending">
+                                                        <Setter Property="Foreground" Value="Gray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Message" Binding="{Binding ValidationMessage}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="4" BorderBrush="#ddd" BorderThickness="0,1,0,0" Margin="10"
+                Padding="10" Background="#f0f0f0">
+            <Grid>
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Apply to Simulator" Command="{Binding ApplyToSimulatorCommand}"
+                            Width="130" Height="28" Margin="0,0,5,0"
+                            AutomationProperties.AutomationId="BtnApplyToSimulator"/>
+                    <Button Content="Clear" Command="{Binding ClearCommand}"
+                            Width="80" Height="28"
+                            AutomationProperties.AutomationId="BtnClearParams"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

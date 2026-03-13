@@ -49,8 +49,12 @@ public sealed partial class MainViewModel : ObservableObject
         StatusViewModel = new StatusViewModel();
         FramePreviewViewModel = new FramePreviewViewModel();
         SimulatorControlViewModel = new SimulatorControlViewModel();
+        ParameterExtractorViewModel = new ParameterExtractorViewModel();
         PipelineStatusViewModel = new PipelineStatusViewModel();
         ScenarioRunnerViewModel = new ScenarioRunnerViewModel();
+
+        // Wire up ParameterExtractor event
+        ParameterExtractorViewModel.ParametersApplied += OnParametersApplied;
 
         // Subscribe to SDK events (REQ-TOOLS-043)
         _detectorClient.ConnectionChanged += OnConnectionChanged;
@@ -76,6 +80,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>Simulator control ViewModel (REQ-UI-012).</summary>
     public SimulatorControlViewModel SimulatorControlViewModel { get; }
+
+    /// <summary>Parameter extraction ViewModel for PDF datasheet parsing.</summary>
+    public ParameterExtractorViewModel ParameterExtractorViewModel { get; }
 
     /// <summary>Pipeline status ViewModel (REQ-UI-013).</summary>
     public PipelineStatusViewModel PipelineStatusViewModel { get; }
@@ -400,6 +407,13 @@ public sealed partial class MainViewModel : ObservableObject
     private void OnErrorOccurred(object? sender, ErrorOccurredEventArgs e)
     {
         StatusMessage = $"Error: {e.Message}";
+    }
+
+    private void OnParametersApplied(object? sender, IntegrationRunner.Core.Models.DetectorConfig config)
+    {
+        // Apply extracted parameters to SimulatorControlViewModel
+        SimulatorControlViewModel.UpdateFromConfig(config);
+        StatusMessage = $"Applied parameters from PDF to simulator. Rows: {config.Panel?.Rows}, Cols: {config.Panel?.Cols}";
     }
 
     private async void OnStatusTimerTick(object? sender, EventArgs e)

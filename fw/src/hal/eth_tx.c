@@ -24,6 +24,14 @@
 #include <time.h>
 
 /**
+ * @brief Ethernet TX context type for main.c compatibility
+ */
+typedef struct {
+    eth_tx_t *handle;  /**< Pointer to actual eth_tx_t instance */
+    bool initialized;  /**< Initialization flag */
+} eth_tx_context_t;
+
+/**
  * @brief Ethernet TX internal state
  */
 struct eth_tx {
@@ -354,4 +362,57 @@ size_t eth_tx_calc_packet_count(eth_tx_t *eth, size_t frame_size) {
     size_t payload_per_packet = max_payload - header_size;
 
     return (frame_size + payload_per_packet - 1) / payload_per_packet;
+}
+
+/* ==========================================================================
+ * Wrapper Functions for main.c Compatibility
+ * ========================================================================== */
+
+/**
+ * @brief Initialize Ethernet TX (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ * @param dest_ip Destination IP address
+ * @return 0 on success, -errno on failure
+ */
+int eth_tx_init(eth_tx_context_t *ctx, const char *dest_ip) {
+    if (ctx == NULL || dest_ip == NULL) {
+        return -EINVAL;
+    }
+
+    eth_tx_config_t config = {
+        .dest_ip = dest_ip,
+        .data_port = ETH_DEFAULT_DATA_PORT,
+        .cmd_port = ETH_DEFAULT_CMD_PORT,
+        .mtu = ETH_DEFAULT_MTU,
+        .max_payload = ETH_DEFAULT_MAX_PAYLOAD,
+        .enable_crc = true,
+        .fps = 15.0  /* Default frame rate */
+    };
+
+    ctx->handle = eth_tx_create(&config);
+    if (ctx->handle == NULL) {
+        return -ENOMEM;
+    }
+
+    ctx->initialized = true;
+    return 0;
+}
+
+/**
+ * @brief Cleanup Ethernet TX (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ */
+void eth_tx_cleanup(eth_tx_context_t *ctx) {
+    if (ctx == NULL || !ctx->initialized) {
+        return;
+    }
+
+    if (ctx->handle != NULL) {
+        eth_tx_destroy(ctx->handle);
+        ctx->handle = NULL;
+    }
+
+    ctx->initialized = false;
 }

@@ -1,8 +1,5 @@
 ---
-paths:
-  - "**/*.php"
-  - "**/composer.json"
-  - "**/composer.lock"
+paths: "**/*.php,**/composer.json,**/composer.lock"
 ---
 
 # PHP Rules
@@ -48,8 +45,3 @@ Version: PHP 8.3+
 - Use Mockery or PHPUnit mocks
 - Use Pest for expressive tests
 - Use database transactions for isolation
-
-## MoAI Integration
-
-- Use Skill("moai-lang-php") for detailed patterns
-- Follow TRUST 5 quality gates

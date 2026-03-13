@@ -89,6 +89,15 @@ typedef struct {
 } seq_stats_t;
 
 /**
+ * @brief Sequence Engine context for main.c compatibility
+ *
+ * Wrapper type for daemon main.c integration.
+ */
+typedef struct {
+    bool initialized;
+} sequence_engine_t;
+
+/**
  * @brief Initialize Sequence Engine
  *
  * @return 0 on success, -errno on failure
@@ -158,6 +167,25 @@ uint32_t seq_get_retry_count(void);
  * @brief Reset retry count
  */
 void seq_reset_retry_count(void);
+
+/* ==========================================================================
+ * Wrapper Functions for main.c Compatibility
+ * ========================================================================== */
+
+/**
+ * @brief Initialize Sequence Engine (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ * @return 0 on success, -errno on failure
+ */
+int sequence_engine_init(sequence_engine_t *ctx);
+
+/**
+ * @brief Cleanup Sequence Engine (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ */
+void sequence_engine_cleanup(sequence_engine_t *ctx);
 
 #ifdef __cplusplus
 }

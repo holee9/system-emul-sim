@@ -1,10 +1,3 @@
----
-paths:
-  - ".claude/**/*"
-  - ".moai/**/*"
-  - "CLAUDE.md"
----
-
 # Coding Standards
 
 MoAI-specific coding standards. General coding conventions are not included as Claude already knows them.
@@ -54,9 +47,7 @@ Use paths frontmatter for conditional rule loading:
 
 ```yaml
 ---
-paths:
-  - "**/*.py"
-  - "**/pyproject.toml"
+paths: "**/*.py,**/pyproject.toml"
 ---
 ```
 

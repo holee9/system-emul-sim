@@ -1,0 +1,65 @@
+name: E2E Tests (Windows)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  e2e-tests:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore tools/GUI.Application/src/GUI.Application/GUI.Application.csproj
+
+    - name: Build GUI Application
+      run: dotnet build tools/GUI.Application/src/GUI.Application/GUI.Application.csproj --configuration Release --no-restore
+
+    - name: Restore E2E test dependencies
+      run: dotnet restore tools/GUI.Application/tests/GUI.Application.E2ETests/GUI.Application.E2ETests.csproj
+
+    - name: Build E2E Tests
+      run: dotnet build tools/GUI.Application/tests/GUI.Application.E2ETests/GUI.Application.E2ETests.csproj --no-restore
+
+    - name: Run E2E Tests
+      run: |
+        dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/GUI.Application.E2ETests.csproj `
+          --no-build `
+          --logger "trx;LogFileName=e2e-results.trx" `
+          --results-directory ./TestResults/E2E `
+          -- xunit.maxParallelThreads=1
+      env:
+        XRAY_E2E_MODE: "true"
+      continue-on-error: true
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-test-results
+        path: |
+          ./TestResults/E2E/**/*.trx
+          ./TestResults/Screenshots/**/*.png
+        if-no-files-found: ignore
+
+    - name: Upload screenshots on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: failure-screenshots
+        path: ./TestResults/Screenshots/
+        if-no-files-found: ignore

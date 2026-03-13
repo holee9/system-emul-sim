@@ -1,8 +1,5 @@
 ---
-paths:
-  - "**/*.kt"
-  - "**/*.kts"
-  - "**/build.gradle.kts"
+paths: "**/*.kt,**/*.kts,**/build.gradle.kts"
 ---
 
 # Kotlin Rules
@@ -48,8 +45,3 @@ Version: Kotlin 2.0+
 - Use MockK for mocking (Kotlin-native)
 - Use Kotest for property-based testing
 - Use Testcontainers for integration tests
-
-## MoAI Integration
-
-- Use Skill("moai-lang-kotlin") for detailed patterns
-- Follow TRUST 5 quality gates

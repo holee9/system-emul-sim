@@ -78,6 +78,19 @@ typedef struct __attribute__((packed)) {
 #define SPI_MAX_RETRY_COUNT     3
 #define SPI_DEFAULT_TIMEOUT_MS  1000
 
+/* FPGA Register Map */
+#define FPGA_REG_TEMP           0x30   /**< Temperature register (0.1 C units) */
+#define FPGA_REG_CTRL           0x10   /**< Control register */
+#define FPGA_REG_STATUS         0x00   /**< Status register */
+#define FPGA_REG_CONFIG         0x01   /**< Configuration register */
+#define FPGA_REG_MODE           0x02   /**< Mode register */
+#define FPGA_REG_TIMING         0x03   /**< Timing register */
+#define FPGA_REG_GAIN           0x04   /**< Gain register */
+#define FPGA_REG_RESET          0x05   /**< Reset register */
+
+/* FPGA Control Register Bits */
+#define FPGA_CTRL_ARM           (1U << 0)  /**< Arm bit */
+
 /**
  * @brief Create and initialize SPI master
  *

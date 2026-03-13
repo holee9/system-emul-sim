@@ -1,6 +1,5 @@
 ---
-paths:
-  - ".claude/agents/**/*"
+paths: "**/.claude/agents/**"
 ---
 
 # Agent Authoring
@@ -14,6 +13,8 @@ Custom agents are defined in `.claude/agents/*.md` or `.claude/agents/**/*.md` (
 Directory convention:
 - User custom agents: `.claude/agents/<agent-name>.md` (root level)
 - MoAI-ADK system agents: `.claude/agents/moai/<agent-name>.md` (moai subdirectory)
+
+Platform Support: Windows ARM64 (`win32-arm64`) is natively supported as of Claude Code v2.1.41. No WSL required for ARM-based Windows devices.
 
 ## Supported Frontmatter Fields
 
@@ -32,6 +33,8 @@ All agent definitions use YAML frontmatter. The following fields are available:
 | mcpServers | No | None | MCP servers available to this agent |
 | hooks | No | None | Lifecycle hooks scoped to this agent |
 | memory | No | None | Persistent memory scope for cross-session learning |
+| background | No | false | Run agent in background without blocking conversation (v2.1.46+) |
+| isolation | No | none | Isolation mode: "worktree" creates isolated git worktree (v2.1.49+) |
 
 ### Field Details
 
@@ -44,6 +47,10 @@ All agent definitions use YAML frontmatter. The following fields are available:
 **mcpServers**: Either a server name reference (matching a key in `.mcp.json`) or an inline server definition with command and args.
 
 **hooks**: Supports PreToolUse, PostToolUse, and SubagentStop events scoped to this agent. See @hooks-system.md for configuration format.
+
+**background**: When set to true, the agent runs in the background without blocking the main conversation. Results are delivered asynchronously on the next turn. Available since Claude Code v2.1.46.
+
+**isolation**: Controls agent execution isolation. When set to "worktree", the agent runs in an isolated git worktree, preventing conflicts with the main working directory. Available since Claude Code v2.1.49.
 
 ## Task(agent_type) Restrictions
 
@@ -113,20 +120,30 @@ Create new MoAI components:
 - builder-skill: New skill creation
 - builder-plugin: Plugin creation
 
-### Team Agents (8) - Experimental
+### Team Agents (5) - Experimental
 
-Agents for Claude Code Agent Teams (v2.1.32+, requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1):
+**Architecture**: team-* agents are sub-agent DEFINITIONS (`.claude/agents/`) used as ROLE TEMPLATES for Agent Teams teammates. They are NOT invoked as standalone subagents.
 
-| Agent | Model | Phase | Mode | Purpose |
-|-------|-------|-------|------|---------|
-| team-researcher | haiku | plan | plan (read-only) | Codebase exploration and research |
-| team-analyst | inherit | plan | plan (read-only) | Requirements analysis |
-| team-architect | inherit | plan | plan (read-only) | Technical design |
-| team-backend-dev | inherit | run | acceptEdits | Server-side implementation |
-| team-designer | inherit | run | acceptEdits | UI/UX design with Pencil/Figma MCP (requires Pencil MCP server) |
-| team-frontend-dev | inherit | run | acceptEdits | Client-side implementation |
-| team-tester | inherit | run | acceptEdits | Test creation with exclusive test file ownership |
-| team-quality | inherit | run | plan (read-only) | TRUST 5 quality validation |
+**Key distinction from regular subagents**:
+- Regular subagents: spawned from main conversation, return results, cannot communicate with each other
+- team-* as teammates: spawned with `team_name` + `name` parameters, get Agent Teams tools (SendMessage, TaskList etc.) automatically injected by the framework
+
+**Spawn pattern** (Agent Teams only):
+```
+Agent(subagent_type: "team-reader", team_name: "...", name: "researcher", model: "haiku")
+```
+
+**DO NOT** invoke team-* agents without `team_name` parameter. They reference SendMessage/TaskList in their body which are only available in Agent Teams context.
+
+Requires: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json env
+
+| Agent | Default Model | Phase | Mode | Isolation | Background | Purpose |
+|-------|---------------|-------|------|-----------|------------|---------|
+| team-reader | sonnet | plan | plan (read-only) | none | true | Codebase exploration, requirements analysis, technical design (role via prompt) |
+| team-coder | sonnet | run | acceptEdits | worktree | true | Backend, frontend, or full-stack implementation (role via prompt) |
+| team-tester | sonnet | run | acceptEdits | worktree | true | Test creation with exclusive test file ownership |
+| team-designer | sonnet | run | acceptEdits | worktree | true | UI/UX design with Pencil/Figma MCP (requires Pencil MCP server) |
+| team-validator | haiku | run | plan (read-only) | none | true | TRUST 5 quality validation |
 
 ## Rules
 
@@ -141,7 +158,7 @@ Agents for Claude Code Agent Teams (v2.1.32+, requires CLAUDE_CODE_EXPERIMENTAL_
 
 Recommended tool sets by category:
 
-Manager agents: Read, Write, Edit, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate
+Manager agents: Read, Write, Edit, Grep, Glob, Bash, Skill, TodoWrite (NOTE: Agent tool is NOT included - subagents cannot spawn other subagents per official docs)
 
 Expert agents: Read, Write, Edit, Grep, Glob, Bash
 
@@ -158,21 +175,14 @@ Notes:
 
 ## Agent Invocation
 
-Invoke agents via Task tool:
+Invoke agents via Agent tool:
 
 - "Use the expert-backend subagent to implement the API"
-- Task tool with subagent_type parameter
+- Agent tool with subagent_type parameter
 
 For team mode invocation:
 - TeamCreate to initialize team structure
-- Task() with team_name and name parameters to spawn teammates
+- Agent() with team_name and name parameters to spawn teammates
 - SendMessage for inter-teammate coordination
 - TeamDelete after all teammates shut down
 - See team-plan.md and team-run.md for complete workflow examples
-
-## MoAI Integration
-
-- Use builder-agent subagent for creation
-- Skill("moai-foundation-claude") for patterns
-- Follow skill-authoring.md for YAML schema
-- See @hooks-system.md for agent hook configuration

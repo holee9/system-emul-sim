@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private WindowState _previousWindowState = WindowState.Normal;
     private WindowStyle _previousWindowStyle = WindowStyle.SingleBorderWindow;
     private ResizeMode _previousResizeMode = ResizeMode.CanResize;
+    private HelpWindow? _helpWindow;
 
     public MainWindow()
     {
@@ -31,6 +32,7 @@ public partial class MainWindow : Window
         {
             oldVm.FramePreviewViewModel.PropertyChanged -= OnFramePreviewPropertyChanged;
             oldVm.FullScreenRequested -= OnFullScreenRequested;
+            oldVm.HelpRequested -= OnHelpRequested;
         }
 
         if (e.NewValue is MainViewModel newVm)
@@ -38,6 +40,7 @@ public partial class MainWindow : Window
             _frameVm = newVm.FramePreviewViewModel;
             _frameVm.PropertyChanged += OnFramePreviewPropertyChanged;
             newVm.FullScreenRequested += OnFullScreenRequested;
+            newVm.HelpRequested += OnHelpRequested;
         }
     }
 
@@ -58,6 +61,19 @@ public partial class MainWindow : Window
             WindowStyle = _previousWindowStyle;
             ResizeMode = _previousResizeMode;
             WindowState = _previousWindowState;
+        }
+    }
+
+    private void OnHelpRequested()
+    {
+        if (_helpWindow == null || !_helpWindow.IsVisible)
+        {
+            _helpWindow = new HelpWindow { Owner = this };
+            _helpWindow.Show();
+        }
+        else
+        {
+            _helpWindow.Activate();
         }
     }
 

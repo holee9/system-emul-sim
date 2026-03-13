@@ -84,6 +84,11 @@ typedef struct {
 } cmd_protocol_ctx_t;
 
 /**
+ * @brief Command Protocol context alias for main.c compatibility
+ */
+typedef cmd_protocol_ctx_t command_context_t;
+
+/**
  * @brief Initialize Command Protocol
  *
  * @param hmac_key HMAC key for authentication
@@ -157,6 +162,26 @@ void cmd_update_replay_state(uint32_t sequence, const char *source_ip);
  * @return Auth failure count
  */
 uint32_t cmd_get_auth_failures(void);
+
+/* ==========================================================================
+ * Wrapper Functions for main.c Compatibility
+ * ========================================================================== */
+
+/**
+ * @brief Initialize Command Protocol (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ * @param port UDP port number for command listener
+ * @return 0 on success, -errno on failure
+ */
+int command_protocol_init(command_context_t *ctx, uint16_t port);
+
+/**
+ * @brief Cleanup Command Protocol (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ */
+void command_protocol_cleanup(command_context_t *ctx);
 
 #ifdef __cplusplus
 }

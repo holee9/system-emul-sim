@@ -1,9 +1,9 @@
 # ============================================
-# X-ray Detector Panel System .gitignore
+# MoAI-ADK Package Distribution .gitignore
 # ============================================
-# Version: 1.0.0
-# Updated: 2026-02-16
-# Purpose: Multi-language project (C#/.NET, FPGA/Vivado, C/C++ firmware)
+# Version: 0.33.0
+# Updated: 2026-01-10
+# Purpose: Essential patterns for user projects
 # ============================================
 
 # ===========================================
@@ -163,6 +163,8 @@ secret-*.*
 .claude/.env.local*
 .claude/local/
 .claude/plans/
+.claude/agent-memory/
+.claude/worktrees/
 
 # Skill-specific credentials
 .claude/skills/*/.env*
@@ -172,6 +174,13 @@ secret-*.*
 .claude/skills/*/*/*token*
 # Re-include legitimate skill module files containing "token" in their name
 !.claude/skills/*/modules/*token*.md
+
+# ===========================================
+# Local-Only Files (never sync via git pull)
+# ===========================================
+.moai/status_line.sh
+.moai/memory/
+.moai/worktrees/
 
 # ===========================================
 # Node.js (for docs/Nextra)
@@ -196,24 +205,16 @@ dist-ssr/
 .netlify/
 .firebase/
 
-# ===========================================
-# .NET / C# (Simulators, GUI, Tools)
-# ===========================================
-# Build outputs
+# User Custom Patterns (preserved by moai update)
 [Bb]in/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-
-# Visual Studio
 .vs/
 *.user
-*.suo
 *.userosscache
 *.sln.docstates
 *.rsuser
-
-# Build results
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -225,32 +226,19 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]uild/
-
-# .NET Core
 project.lock.json
 project.fragment.lock.json
 artifacts/
-
-# NuGet Packages
 *.nupkg
 *.snupkg
 **/[Pp]ackages/*
 !**/[Pp]ackages/build/
 *.nuget.props
 *.nuget.targets
-
-# Test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
-
-# Coverage
 *.coverage
 *.coveragexml
-
-# ===========================================
-# FPGA / Vivado (RTL Development)
-# ===========================================
-# Vivado generated files
 *.jou
 *.str
 *.xpr.bak
@@ -258,102 +246,56 @@ vivado*.backup.log
 vivado_*.backup.log
 webtalk*.log
 webtalk*.jou
-
-# Vivado project directories
 .Xil/
 .cache/
 xsim.dir/
-
-# Simulation outputs
 *.wdb
 *.wcfg
 *.vcd
 *.saif
 isim/
 xsim/
-
-# Synthesis outputs
 *.dcp
 *.bit
 *.mcs
 *.ltx
-
-# Implementation
 *.runs/
 *.hw/
 *.ip_user_files/
 *.gen/
-
-# Vivado IP
 managed_ip_project/
 ip_repo/
-
-# ===========================================
-# Embedded / Firmware (C/C++)
-# ===========================================
-# Object files
 *.o
 *.obj
 *.elf
 *.hex
 *.map
 *.lst
-
-# Compiled libraries
 *.a
 *.lib
-
-# Executables
 *.out
 *.app
-
-# Debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
-
-# CMake
 cmake-build-*/
 CMakeFiles/
 CMakeCache.txt
-
-# ===========================================
-# Project Specific
-# ===========================================
-# Local Claude Code memory (user-specific)
 .claude/agent-memory-local/
-
-# Generated config files (keep templates)
 **/detector_config.generated.*
-
-# Test data / frames
 frames/
 *.raw
 *.tiff
 *.tif
-
-# Lock files
 *.lock
-
-# ===========================================
-# Exceptions (Force Include)
-# ===========================================
-# Include constraint files for FPGA
 !*.xdc
 !*.ucf
-
-# Include essential scripts
 !*.sh
 !*.bat
-
-# ===========================================
-# Phase 2 Additions (2026-03-05)
-# ===========================================
 generated/
 coverage-results/
 tools/IntegrationTests/*.xml
 tools/IntegrationTests/*.txt
 .moai/custom-settings/
-.claude/agent-memory/
 nul

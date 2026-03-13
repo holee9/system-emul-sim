@@ -15,6 +15,13 @@
 #include <errno.h>
 #include <string.h>
 
+/**
+ * @brief Sequence Engine context type for main.c compatibility
+ */
+typedef struct {
+    bool initialized;  /**< Initialization flag */
+} sequence_engine_t;
+
 /* Maximum retry count for error recovery */
 #define MAX_RETRY_COUNT 3
 
@@ -106,8 +113,27 @@ static int handle_configure_state(void) {
  * Arm FPGA for scanning
  */
 static int handle_arm_state(void) {
-    /* TODO: Write FPGA ARM register via SPI */
-    /* For now, just transition to SCANNING state */
+    /* Write FPGA ARM register via SPI */
+    extern spi_master_t *g_spi_master;  /* Global SPI context from main.c */
+
+    if (g_spi_master != NULL) {
+        /* Set ARM bit in FPGA control register */
+        uint16_t ctrl_value = FPGA_CTRL_ARM;
+
+        spi_status_t spi_result = spi_write_register(g_spi_master, FPGA_REG_CTRL, ctrl_value);
+        if (spi_result != SPI_OK) {
+            health_monitor_log(LOG_ERROR, "seq",
+                             "Failed to write FPGA ARM register: %d",
+                             spi_result);
+            return -EIO;
+        }
+
+        health_monitor_log(LOG_INFO, "seq", "FPGA ARM register written (0x%04X)", ctrl_value);
+    } else {
+        /* SPI not available, just log and continue */
+        health_monitor_log(LOG_WARNING, "seq", "SPI not available, skipping FPGA ARM");
+    }
+
     return transition_to(SEQ_STATE_SCANNING);
 }
 
@@ -399,4 +425,42 @@ uint32_t seq_get_retry_count(void) {
  */
 void seq_reset_retry_count(void) {
     seq_ctx.retry_count = 0;
+}
+
+/* ==========================================================================
+ * Wrapper Functions for main.c Compatibility
+ * ========================================================================== */
+
+/**
+ * @brief Initialize Sequence Engine (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ * @return 0 on success, -errno on failure
+ */
+int sequence_engine_init(sequence_engine_t *ctx) {
+    if (ctx == NULL) {
+        return -EINVAL;
+    }
+
+    int ret = seq_init();
+    if (ret != 0) {
+        return ret;
+    }
+
+    ctx->initialized = true;
+    return 0;
+}
+
+/**
+ * @brief Cleanup Sequence Engine (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ */
+void sequence_engine_cleanup(sequence_engine_t *ctx) {
+    if (ctx == NULL || !ctx->initialized) {
+        return;
+    }
+
+    seq_deinit();
+    ctx->initialized = false;
 }

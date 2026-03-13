@@ -1,7 +1,10 @@
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Windows.Input;
 using IntegrationRunner.Core.Models;
 using IntegrationRunner.Core.Network;
+using Microsoft.Win32;
 using XrayDetector.Gui.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -251,12 +254,38 @@ public sealed class SimulatorControlViewModel : ObservableObject
     /// </summary>
     private async Task OnLoadConfigAsync()
     {
-        var deserializer = new DeserializerBuilder()
-            .WithNamingConvention(UnderscoredNamingConvention.Instance)
-            .Build();
+        var dialog = new OpenFileDialog
+        {
+            Title = "Load Detector Configuration",
+            Filter = "YAML Files (*.yaml;*.yml)|*.yaml;*.yml|All Files (*.*)|*.*",
+            CheckFileExists = true
+        };
 
-        // TODO: Implement file dialog and load logic
-        // For now, this is a placeholder for the command
+        if (dialog.ShowDialog() != true)
+            return;
+
+        try
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .IgnoreUnmatchedProperties()
+                .Build();
+
+            var yaml = await File.ReadAllTextAsync(dialog.FileName);
+            var config = deserializer.Deserialize<DetectorConfig>(yaml);
+
+            if (config != null)
+            {
+                UpdateFromConfig(config);
+                Debug.WriteLine($"Loaded configuration from {dialog.FileName}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Load config error: {ex.Message}");
+            // TODO: Show error dialog to user
+        }
+
         await Task.CompletedTask;
     }
 
@@ -265,15 +294,35 @@ public sealed class SimulatorControlViewModel : ObservableObject
     /// </summary>
     private async Task OnSaveConfigAsync()
     {
-        var serializer = new SerializerBuilder()
-            .WithNamingConvention(UnderscoredNamingConvention.Instance)
-            .Build();
+        var dialog = new SaveFileDialog
+        {
+            Title = "Save Detector Configuration",
+            Filter = "YAML Files (*.yaml)|*.yaml|All Files (*.*)|*.*",
+            FileName = "detector_config.yaml",
+            DefaultExt = "yaml"
+        };
 
-        var config = ToDetectorConfig();
-        var yaml = serializer.Serialize(config);
+        if (dialog.ShowDialog() != true)
+            return;
 
-        // TODO: Implement file dialog and save logic
-        // For now, this is a placeholder for the command
+        try
+        {
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
+
+            var config = ToDetectorConfig();
+            var yaml = serializer.Serialize(config);
+
+            await File.WriteAllTextAsync(dialog.FileName, yaml);
+            Debug.WriteLine($"Saved configuration to {dialog.FileName}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Save config error: {ex.Message}");
+            // TODO: Show error dialog to user
+        }
+
         await Task.CompletedTask;
     }
 

@@ -29,13 +29,15 @@
     <ProjectReference Include="..\..\..\..\sdk\XrayDetector.Sdk\XrayDetector.Sdk.csproj" />
     <!-- IntegrationRunner Reference (SPEC-UI-001: PipelineDetectorClient) -->
     <ProjectReference Include="..\..\..\IntegrationRunner\src\IntegrationRunner.Core\IntegrationRunner.Core.csproj" />
+    <!-- ParameterExtractor Reference (Panel Datasheet PDF Parsing) -->
+    <ProjectReference Include="..\..\..\ParameterExtractor\src\ParameterExtractor.Core\ParameterExtractor.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Optional: CommunityToolkit.Mvvm for MVVM helpers -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <!-- YamlDotNet for configuration management (SPEC-UI-001) -->
-    <PackageReference Include="YamlDotNet" Version="16.0.0" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <!-- Serilog logging infrastructure (SPEC-HELP-001) -->
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />

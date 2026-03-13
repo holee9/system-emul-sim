@@ -105,6 +105,7 @@ public class IT15_FrameBufferOverflowTests
         var manager = new FrameBufferManager(_config);
         const int totalFrames = 100;
         var exceptions = new List<Exception>();
+        var framesProcessed = 0;
 
         // Act - Producer runs independently
         var producerTask = Task.Run(() =>
@@ -130,26 +131,23 @@ public class IT15_FrameBufferOverflowTests
         {
             try
             {
-                while (true)
+                int consecutiveEmptyChecks = 0;
+                const int maxEmptyChecks = 10; // Prevent infinite loop
+
+                while (consecutiveEmptyChecks < maxEmptyChecks)
                 {
                     var result = manager.GetReadyBuffer(out var buffer, out var size, out var frameNum);
                     if (result == 0 && buffer != null)
                     {
                         manager.ReleaseBuffer(frameNum);
+                        framesProcessed++;
+                        consecutiveEmptyChecks = 0; // Reset - got a frame
                     }
                     else
                     {
                         // No ready buffers, wait a bit and check again
+                        consecutiveEmptyChecks++;
                         Thread.Sleep(1);
-                    }
-
-                    // Exit when producer is done and no buffers remain
-                    if (producerTask.IsCompleted && result != 0)
-                    {
-                        // Double-check for any last buffers
-                        result = manager.GetReadyBuffer(out buffer, out size, out frameNum);
-                        if (result != 0)
-                            break;
                     }
                 }
             }
@@ -166,8 +164,10 @@ public class IT15_FrameBufferOverflowTests
 
         // Verify basic invariants
         var stats = manager.GetStatistics();
-        stats.FramesReceived.Should().BeGreaterThan(0, "at least some frames should be received");
-        stats.FramesSent.Should().BeGreaterThan(0, "at least some frames should be sent");
+        stats.FramesReceived.Should().Be((uint)totalFrames,
+            $"all {totalFrames} frames should be received");
+        stats.FramesSent.Should().Be((uint)framesProcessed,
+            $"{framesProcessed} frames should be sent (matching framesProcessed)");
     }
 
     [Fact]

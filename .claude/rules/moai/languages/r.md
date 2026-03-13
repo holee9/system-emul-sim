@@ -1,9 +1,5 @@
 ---
-paths:
-  - "**/*.R"
-  - "**/*.Rmd"
-  - "**/DESCRIPTION"
-  - "**/NAMESPACE"
+paths: "**/*.R,**/*.Rmd,**/DESCRIPTION,**/NAMESPACE"
 ---
 
 # R Rules
@@ -50,8 +46,3 @@ Version: R 4.4+
 - Use snapshot tests for complex output
 - Use withr for temporary state changes
 - Test edge cases and NA handling
-
-## MoAI Integration
-
-- Use Skill("moai-lang-r") for detailed patterns
-- Follow TRUST 5 quality gates

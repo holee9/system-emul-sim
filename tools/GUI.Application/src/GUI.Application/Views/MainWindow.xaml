@@ -24,11 +24,13 @@
         <KeyBinding Key="D5" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="4"/>
         <KeyBinding Key="D6" Modifiers="Alt" Command="{Binding SwitchTabCommand}" CommandParameter="5"/>
         <KeyBinding Key="OemQuestion" Modifiers="Control" Command="{Binding ShowShortcutOverlayCommand}"/>
-        <KeyBinding Key="F1" Command="ApplicationCommands.Help"/>
+        <KeyBinding Key="F1" Command="{Binding ShowHelpCommand}"/>
     </Window.InputBindings>
 
     <Window.Resources>
         <core:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <core:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+        <core:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
     </Window.Resources>
 
     <Grid>
@@ -67,6 +69,9 @@
                           AutomationProperties.AutomationId="MenuViewFullScreen"/>
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="_도움말 항목"
+                          Command="{Binding ShowHelpCommand}"
+                          AutomationProperties.AutomationId="MenuHelpTopics"/>
                 <MenuItem Header="_About"
                           Command="{Binding ShowAboutCommand}"
                           AutomationProperties.AutomationId="MenuHelpAbout"/>
@@ -180,36 +185,9 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 3: Configuration -->
-            <TabItem Header="Configuration" AutomationProperties.AutomationId="TabConfig">
-                <ScrollViewer>
-                    <StackPanel Margin="16">
-                        <TextBlock Text="Detector Configuration" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
-
-                        <GroupBox Header="Panel Parameters" Margin="0,0,0,16">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Width (pixels):" Margin="8"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Text="2048" Margin="8" IsReadOnly="True"/>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Height (pixels):" Margin="8"/>
-                                <TextBox Grid.Row="1" Grid.Column="1" Text="2048" Margin="8" IsReadOnly="True"/>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Bit Depth:" Margin="8"/>
-                                <TextBox Grid.Row="2" Grid.Column="1" Text="16" Margin="8" IsReadOnly="True"/>
-                            </Grid>
-                        </GroupBox>
-                    </StackPanel>
-                </ScrollViewer>
+            <!-- Tab 3: Parameter Extraction (PDF Datasheet) -->
+            <TabItem Header="Parameter Extraction" AutomationProperties.AutomationId="TabParamExtract">
+                <views:ParameterExtractorView DataContext="{Binding ParameterExtractorViewModel}"/>
             </TabItem>
 
             <!-- Tab 4: Simulator Control (REQ-UI-012) -->

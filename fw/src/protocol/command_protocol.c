@@ -525,3 +525,48 @@ int cmd_handle_command(const command_frame_t *cmd, uint8_t *resp_buf, size_t *re
 uint32_t cmd_get_auth_failures(void) {
     return cmd_ctx.auth_failures;
 }
+
+/* ==========================================================================
+ * Wrapper Functions for main.c Compatibility
+ * ========================================================================== */
+
+/**
+ * @brief Initialize Command Protocol (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ * @param port UDP port number for command listener (unused, for logging)
+ * @return 0 on success, -errno on failure
+ */
+int command_protocol_init(command_context_t *ctx, uint16_t port) {
+    (void)port;  /* Port is managed by main.c's UDP socket */
+
+    if (ctx == NULL) {
+        return -EINVAL;
+    }
+
+    /* Default HMAC key for testing (should be from config file) */
+    const char *default_hmac_key = "detector_hmac_key_2026";
+
+    int ret = cmd_protocol_init(default_hmac_key);
+    if (ret != 0) {
+        return ret;
+    }
+
+    /* Copy global context to local context */
+    memcpy(ctx, &cmd_ctx, sizeof(command_context_t));
+    return 0;
+}
+
+/**
+ * @brief Cleanup Command Protocol (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ */
+void command_protocol_cleanup(command_context_t *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
+
+    cmd_protocol_deinit();
+    memset(ctx, 0, sizeof(command_context_t));
+}

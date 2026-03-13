@@ -10,19 +10,25 @@ trap 'rm -f "$temp_file"' EXIT
 # Read stdin into temp file
 cat > "$temp_file"
 
+# Load GLM environment variables if configured (for Agent Teams tmux mode)
+if [ -f "$HOME/.moai/.env.glm" ]; then
+	# shellcheck disable=SC1091
+	source "$HOME/.moai/.env.glm"
+fi
+
 # Try moai command in PATH first
 if command -v moai &> /dev/null; then
 	exec moai statusline < "$temp_file"
 fi
 
 # Try detected Go bin path from initialization
-if [ -f "C:/Users/user/go/bin/moai" ]; then
-	exec "C:/Users/user/go/bin/moai" statusline < "$temp_file"
+if [ -f "C:/Users/drake.lee/go/bin/moai" ]; then
+	exec "C:/Users/drake.lee/go/bin/moai" statusline < "$temp_file"
 fi
 
 # Try user local bin directory
-if [ -f "C:/Users/user/.local/bin/moai" ]; then
-	exec "C:/Users/user/.local/bin/moai" statusline < "$temp_file"
+if [ -f "C:/Users/drake.lee/.local/bin/moai" ]; then
+	exec "C:/Users/drake.lee/.local/bin/moai" statusline < "$temp_file"
 fi
 
 # Not found - exit silently (Claude Code handles missing statusline gracefully)

@@ -1,9 +1,5 @@
 ---
-paths:
-  - "**/.moai/config/**"
-  - "**/.mcp.json"
-  - "**/.claude/settings.json"
-  - "**/.claude/settings.local.json"
+paths: "**/.moai/config/**,**/.mcp.json,**/.claude/settings.json,**/.claude/settings.local.json"
 ---
 
 # Settings Management
@@ -27,6 +23,53 @@ Claude Code and MoAI configuration management rules.
 
 - mcpServers: Server command and arguments
 - Environment variables for servers
+
+Standard MCP servers in MoAI-ADK:
+
+- context7: Library documentation lookup
+- sequential-thinking: Complex problem analysis
+- pencil: .pen file design editing. Used by expert-frontend (sub-agent mode) and team-designer (team mode).
+- claude-in-chrome: Browser automation
+
+MCP tools are deferred and must be loaded before use:
+
+1. Use ToolSearch to find and load the tool
+2. Then call the loaded tool directly
+
+Example flow:
+- ToolSearch("context7 docs") loads mcp__context7__* tools
+- mcp__context7__resolve-library-id is then available
+
+MCP rules:
+- Always use ToolSearch before calling MCP tools
+- Prefer MCP tools over manual alternatives
+- Authenticated URLs require specialized MCP tools
+
+Example `.mcp.json` configuration:
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@context7/mcp"]
+    }
+  }
+}
+```
+
+**Context7 Usage** - For up-to-date library documentation:
+
+1. resolve-library-id: Find library identifier
+2. get-library-docs: Retrieve documentation
+
+**Sequential Thinking Usage** - For complex analysis requiring step-by-step reasoning:
+
+- Breaking down multi-step problems
+- Architecture decisions
+- Technology trade-off analysis
+
+Activate with `--ultrathink` flag for enhanced analysis.
 
 ### MoAI Configuration
 
@@ -88,7 +131,7 @@ Tool permissions in settings.json:
 
 Quality gates in quality.yaml:
 
-- development_mode: ddd, tdd, or hybrid
+- development_mode: ddd or tdd
 - test_coverage_target: Minimum coverage percentage
 - lsp_quality_gates: LSP-based validation
 
@@ -124,7 +167,7 @@ Team behavior is controlled by the `workflow.team` section in `.moai/config/sect
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| team.enabled | boolean | false | Master switch for team mode |
+| team.enabled | boolean | true | Master switch for team mode |
 | team.max_teammates | integer | 10 | Maximum teammates per team (2-10 recommended) |
 | team.default_model | string | inherit | Default model for teammates (inherit/haiku/sonnet/opus) |
 | team.require_plan_approval | boolean | true | Require plan approval before implementing |
@@ -151,8 +194,3 @@ When `workflow.execution_mode` is `auto`, these thresholds determine when team m
 - Template sources (.tmpl files) belong in `internal/template/templates/` only
 - Local projects should contain rendered results, not template sources
 
-## MoAI Integration
-
-- Skill("moai-workflow-project") for project setup
-- Skill("moai-foundation-core") for quality framework
-- See hooks-system.md for detailed hook configuration patterns

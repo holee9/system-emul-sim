@@ -1,8 +1,5 @@
 ---
-paths:
-  - "**/*.dart"
-  - "**/pubspec.yaml"
-  - "**/pubspec.lock"
+paths: "**/*.dart,**/pubspec.yaml,**/pubspec.lock"
 ---
 
 # Flutter/Dart Rules
@@ -49,8 +46,3 @@ Version: Flutter 3.24+ / Dart 3.5+
 - Use mockito for mocking
 - Use golden tests for UI verification
 - Use integration_test for E2E
-
-## MoAI Integration
-
-- Use Skill("moai-lang-flutter") for detailed patterns
-- Follow TRUST 5 quality gates

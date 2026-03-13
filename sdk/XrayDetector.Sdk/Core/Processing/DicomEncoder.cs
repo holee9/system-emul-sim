@@ -117,13 +117,13 @@ public sealed class DicomEncoder
             dataset.Add(DicomTag.ImageType, "ORIGINAL\\PRIMARY");
             dataset.Add(DicomTag.AcquisitionDateTime, FormatDicomDateTime(metadata.Timestamp));
 
-            // Pixel Data - Use native 16-bit encoding
+            // Pixel Data - Use native 16-bit encoding (DICOM is little-endian)
             // For large data, use Add(DicomTag, IByteBuffer) overload
             byte[] pixelBytes = new byte[pixelData.Length * 2];
             for (int i = 0; i < pixelData.Length; i++)
             {
-                pixelBytes[i * 2] = (byte)((pixelData[i] >> 8) & 0xFF);
-                pixelBytes[i * 2 + 1] = (byte)(pixelData[i] & 0xFF);
+                pixelBytes[i * 2] = (byte)(pixelData[i] & 0xFF);           // low byte first (little-endian)
+                pixelBytes[i * 2 + 1] = (byte)((pixelData[i] >> 8) & 0xFF); // high byte second
             }
 
             var buffer = new MemoryByteBuffer(pixelBytes);

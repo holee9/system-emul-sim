@@ -15,7 +15,7 @@ MoAI is the Strategic Orchestrator for Claude Code. All tasks must be delegated 
 - [HARD] Post-Implementation Review: List potential issues and suggest tests after coding (See Section 7)
 - [HARD] Reproduction-First Bug Fix: Write reproduction test before fixing bugs (See Section 7)
 
-Core principles (1-4) are defined in @.claude/rules/moai/core/moai-constitution.md. Development safeguards (5-8) are detailed in Section 7.
+Core principles (1-4) are defined in .claude/rules/moai/core/moai-constitution.md. Development safeguards (5-8) are detailed in Section 7.
 
 ### Recommendations
 
@@ -46,7 +46,8 @@ Core Skills (load when needed):
 Route request based on command type:
 
 - **Workflow Subcommands**: /moai project, /moai plan, /moai run, /moai sync
-- **Utility Subcommands**: /moai (default), /moai fix, /moai loop
+- **Utility Subcommands**: /moai (default), /moai fix, /moai loop, /moai clean, /moai mx
+- **Quality Subcommands**: /moai review, /moai coverage, /moai e2e, /moai codemaps
 - **Feedback Subcommand**: /moai feedback
 - **Direct Agent Requests**: Immediate delegation when user explicitly requests an agent
 
@@ -73,7 +74,7 @@ Integrate and report results:
 
 Definition: Single entry point for all MoAI development workflows.
 
-Subcommands: plan, run, sync, project, fix, loop, feedback
+Subcommands: plan, run, sync, project, fix, loop, mx, feedback, review, clean, codemaps, coverage, e2e
 Default (natural language): Routes to autonomous workflow (plan -> run -> sync pipeline)
 
 Allowed Tools: Full access (Task, AskUserQuestion, TaskCreate, TaskUpdate, TaskList, TaskGet, Bash, Read, Write, Edit, Glob, Grep)
@@ -102,27 +103,27 @@ backend, frontend, security, devops, performance, debug, testing, refactoring
 
 agent, skill, plugin
 
-### Team Agents (8) - Experimental
+### Team Agents (5) - Experimental
 
-researcher, analyst, architect, designer, backend-dev, frontend-dev, tester, quality (requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
+reader, coder, tester, designer, validator (requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
 
 Both `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` env var AND `workflow.team.enabled: true` in `.moai/config/sections/workflow.yaml` are required.
 
-For detailed agent descriptions, capabilities, and creation guidelines, see @.claude/rules/moai/development/agent-authoring.md.
+For detailed agent descriptions, see the Agent Catalog section above. For agent creation guidelines, use the builder-agent subagent or see `.claude/rules/moai/development/agent-authoring.md`.
 
 ---
 
 ## 5. SPEC-Based Workflow
 
-MoAI uses DDD (Domain-Driven Development) as its development methodology.
+MoAI uses DDD and TDD as its development methodologies, selected via quality.yaml.
 
 ### MoAI Command Flow
 
 - /moai plan "description" → manager-spec subagent
-- /moai run SPEC-XXX → manager-ddd subagent (ANALYZE-PRESERVE-IMPROVE)
+- /moai run SPEC-XXX → manager-ddd or manager-tdd subagent (per quality.yaml development_mode)
 - /moai sync SPEC-XXX → manager-docs subagent
 
-For detailed workflow specifications, see @.claude/rules/moai/workflow/spec-workflow.md
+For detailed workflow specifications, see .claude/rules/moai/workflow/spec-workflow.md
 
 ### Agent Chain for SPEC Execution
 
@@ -133,13 +134,29 @@ For detailed workflow specifications, see @.claude/rules/moai/workflow/spec-work
 - Phase 5: manager-quality → ensure quality standards
 - Phase 6: manager-docs → create documentation
 
-For team-based parallel execution of these phases, see @.claude/skills/moai/workflows/team-plan.md and @.claude/skills/moai/workflows/team-run.md.
+### MX Tag Integration
+
+All phases include @MX code annotation management:
+
+- **plan**: Identify MX tag targets (high fan_in, danger zones)
+- **run**: Create/update @MX:NOTE, @MX:WARN, @MX:ANCHOR, @MX:TODO tags
+- **sync**: Validate MX tags, add missing annotations
+
+MX Tag Types:
+- `@MX:NOTE` - Context and intent delivery
+- `@MX:WARN` - Danger zone (requires @MX:REASON)
+- `@MX:ANCHOR` - Invariant contract (high fan_in functions)
+- `@MX:TODO` - Incomplete work (resolved in GREEN phase)
+
+For MX protocol details, see .claude/rules/moai/workflow/mx-tag-protocol.md
+
+For team-based parallel execution of these phases, see .claude/skills/moai/team/plan.md and .claude/skills/moai/team/run.md.
 
 ---
 
 ## 6. Quality Gates
 
-For TRUST 5 framework details, see @.claude/rules/moai/core/moai-constitution.md
+For TRUST 5 framework details, see .claude/rules/moai/core/moai-constitution.md
 
 ### LSP Quality Gates
 
@@ -150,7 +167,7 @@ MoAI-ADK implements LSP-based quality gates:
 - **run**: Zero errors, zero type errors, zero lint errors required
 - **sync**: Zero errors, max 10 warnings, clean LSP required
 
-**Configuration:** @.moai/config/sections/quality.yaml
+**Configuration:** .moai/config/sections/quality.yaml
 
 ---
 
@@ -206,12 +223,12 @@ For Go development:
 
 ### Critical Constraint
 
-Subagents invoked via Task() operate in isolated, stateless contexts and cannot interact with users directly.
+Subagents invoked via Agent() operate in isolated, stateless contexts and cannot interact with users directly.
 
 ### Correct Workflow Pattern
 
 - Step 1: MoAI uses AskUserQuestion to collect user preferences
-- Step 2: MoAI invokes Task() with user choices in the prompt
+- Step 2: MoAI invokes Agent() with user choices in the prompt
 - Step 3: Subagent executes based on provided parameters
 - Step 4: Subagent returns structured response
 - Step 5: MoAI uses AskUserQuestion for next decision
@@ -230,34 +247,6 @@ In team mode, MoAI bridges user interaction and teammate coordination:
 - Maximum 4 options per question
 - No emoji characters in question text, headers, or option labels
 - Questions must be in user's conversation_language
-
-### Minimal Question Policy
-
-**CRITICAL**: Minimize AskUserQuestion usage to avoid workflow interruption.
-
-**ONLY ask when**:
-- System destruction risk (rm -rf /, DROP DATABASE, git push --force to main)
-- Data loss risk (overwriting uncommitted changes, deleting files without backup)
-- Security compromise (exposing credentials, disabling security features)
-- Technically impossible to proceed (ambiguous requirements, conflicting constraints)
-
-**NEVER ask for**:
-- Progress confirmation ("계속 진행할까요?", "Should I continue?")
-- Style preferences (already defined in rules)
-- Completion acknowledgment ("완료했습니다. 확인하시겠습니까?")
-- Optional improvements ("더 최적화할까요?")
-- Minor technical decisions (use best practices automatically)
-
-**After user approval**:
-- Execute immediately without additional questions
-- Apply user's decision to entire session scope
-- Make technical decisions automatically based on established patterns
-
-**Example**:
-```
-❌ Bad: User approved plan → Ask "파일 A를 먼저 수정할까요?"
-✅ Good: User approved plan → Execute all changes silently
-```
 
 ---
 
@@ -288,7 +277,7 @@ MoAI-ADK uses Claude Code's official rules system at `.claude/rules/moai/`:
 
 ## 10. Web Search Protocol
 
-For anti-hallucination policy, see @.claude/rules/moai/core/moai-constitution.md
+For anti-hallucination policy, see .claude/rules/moai/core/moai-constitution.md
 
 ### Execution Steps
 
@@ -331,7 +320,7 @@ MoAI-ADK integrates multiple MCP servers for specialized capabilities:
 - **Pencil**: UI/UX design editing for .pen files (used by expert-frontend and team-designer agents).
 - **claude-in-chrome**: Browser automation for web-based tasks.
 
-For MCP configuration and usage patterns, see @.claude/rules/moai/core/mcp-integration.md.
+For MCP configuration and usage patterns, see .claude/rules/moai/core/settings-management.md.
 
 ---
 
@@ -353,13 +342,22 @@ MoAI-ADK implements a 3-level Progressive Disclosure system:
 
 ## 14. Parallel Execution Safeguards
 
-For core parallel execution principles, see @.claude/rules/moai/core/moai-constitution.md.
+For core parallel execution principles, see .claude/rules/moai/core/moai-constitution.md.
 
 - **File Write Conflict Prevention**: Analyze overlapping file access patterns and build dependency graphs before parallel execution
 - **Agent Tool Requirements**: All implementation agents MUST include Read, Write, Edit, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskGet
 - **Loop Prevention**: Maximum 3 retries per operation with failure pattern detection and user intervention
 - **Platform Compatibility**: Always prefer Edit tool over sed/awk
 - **Team File Ownership**: In team mode, each teammate owns specific file patterns to prevent write conflicts
+
+### Worktree Isolation Rules [HARD]
+
+- [HARD] Implementation agents in team mode (team-backend-dev, team-frontend-dev, team-tester, team-designer) MUST use `isolation: "worktree"` when spawned via Task()
+- [HARD] Read-only agents (team-researcher, team-analyst, team-architect, team-quality) MUST NOT use `isolation: "worktree"`
+- [HARD] One-shot sub-agents making cross-file changes SHOULD use `isolation: "worktree"`
+- [HARD] GitHub workflow fixer agents MUST use `isolation: "worktree"` for branch isolation
+
+For the complete worktree selection decision tree, see .claude/rules/moai/workflow/worktree-integration.md
 
 ---
 
@@ -389,7 +387,129 @@ Call TeamDelete only after all teammates have shut down to release team resource
 
 TeammateIdle (exit 2 = keep working), TaskCompleted (exit 2 = reject completion)
 
-For complete Agent Teams documentation including team API reference, agent roster, file ownership strategy, team workflows, and configuration, see @.claude/rules/moai/workflow/spec-workflow.md and @.moai/config/sections/workflow.yaml.
+For complete Agent Teams documentation including team API reference, agent roster, file ownership strategy, team workflows, and configuration, see .claude/rules/moai/workflow/spec-workflow.md and .moai/config/sections/workflow.yaml.
+
+### CG Mode (Claude + GLM Cost Optimization)
+
+MoAI-ADK supports CG Mode for 60-70% cost reduction on implementation-heavy tasks via tmux Agent Teams:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  LEADER (Claude, current tmux pane)                         │
+│  - Orchestrates workflow (no GLM env)                        │
+│  - Delegates tasks via Agent Teams                           │
+│  - Reviews results                                           │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ Agent Teams (tmux panes)
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  TEAMMATES (GLM, new tmux panes)                            │
+│  - Inherit GLM env from tmux session                        │
+│  - Execute implementation tasks                              │
+│  - Full access to codebase                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Activation**: `moai cg` (requires tmux). Uses tmux session-level env isolation.
+
+**When to use**:
+- Implementation-heavy SPECs (run phase)
+- Code generation tasks
+- Test writing
+- Documentation generation
+
+**When NOT to use**:
+- Planning/architecture decisions (needs Opus reasoning)
+- Security reviews (needs Claude's security training)
+- Complex debugging (needs advanced reasoning)
+
+---
+
+## 16. Context Search Protocol
+
+MoAI searches previous Claude Code sessions when context is needed to continue work on existing tasks or discussions.
+
+### When to Search
+
+Search previous sessions when:
+- User references past work without sufficient context in current session
+- User mentions a SPEC-ID that is not loaded in current context
+- User asks to continue previous work or resume interrupted tasks
+- User explicitly requests to find previous discussions
+
+### When NOT to Search
+
+Skip context search when:
+- Relevant SPEC document is already loaded in current context
+- Related documents or code are already present in conversation
+- User references content that exists in current session
+- Context duplication would provide no additional value
+
+### Search Process
+
+1. Check if relevant context already exists in current session (skip if found)
+2. Ask user confirmation before searching (via AskUserQuestion)
+3. Use Grep to search session index and transcript files in ~/.claude/projects/
+4. Limit search to recent sessions (configurable, default 30 days)
+5. Summarize findings and present for user approval
+6. Inject approved context into current conversation (avoid duplicates)
+
+### Token Budget
+
+- Maximum 5,000 tokens per injection
+- Skip search if current token usage exceeds 150,000
+- Summarize lengthy conversations to stay within budget
+
+### Manual Trigger
+
+User can explicitly request context search at any time during conversation.
+
+### Integration Notes
+
+- Complements @MX TAG system for code context
+- Automatically triggered when SPEC reference lacks context
+- Available in both solo and team modes
+
+---
+
+## Troubleshooting
+
+### Debugging MoAI Sessions
+
+When MoAI workflows behave unexpectedly, use Claude Code's built-in debug tools:
+
+```bash
+# Enable hook debugging
+claude --debug "hooks"
+
+# Enable API + hook debugging
+claude --debug "api,hooks"
+
+# Enable MCP debugging
+claude --debug "mcp"
+```
+
+Or use the `/debug` command inside a session to inspect current session state, hook execution logs, and tool traces.
+
+### Common Issues
+
+| Symptom | Cause | Solution |
+|---------|-------|---------|
+| TeammateIdle hook blocks teammate | LSP errors exceed threshold | Fix errors, or set `enforce_quality: false` in quality.yaml |
+| Agent Teams messages not delivered | Session was resumed after interrupt | Spawn new teammates; old teammates are orphaned |
+| `moai hook subagent-stop` fails | Binary not in PATH | Run `which moai` to verify installation |
+| settings.json not updated after `moai update` | Conflict with user modifications | Run `moai update -t` for template-only sync |
+
+### Reading Large PDFs
+
+When agents need to analyze large PDF files (>10 pages), use the `pages` parameter:
+
+```
+Read /path/to/doc.pdf
+pages: "1-20"
+```
+
+Large PDFs (>10 pages) return a lightweight reference when @-mentioned. Always specify page ranges for PDFs over 50 pages to avoid token waste.
 
 ---
 

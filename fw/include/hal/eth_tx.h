@@ -60,6 +60,7 @@ typedef struct {
     uint32_t mtu;              /**< Maximum transmission unit (default: 1500) */
     uint32_t max_payload;      /**< Maximum payload per packet */
     bool enable_crc;           /**< Enable CRC-16 in header */
+    double fps;                /**< Frame rate for TX timing (default: 15.0) */
 } eth_tx_config_t;
 
 /**
@@ -81,6 +82,16 @@ typedef enum {
  * @brief Ethernet TX handle (opaque)
  */
 typedef struct eth_tx eth_tx_t;
+
+/**
+ * @brief Ethernet TX context for main.c compatibility
+ *
+ * Wrapper type for daemon main.c integration.
+ */
+typedef struct {
+    eth_tx_t *handle;
+    bool initialized;
+} eth_tx_context_t;
 
 /**
  * @brief Frame transmission statistics
@@ -203,6 +214,26 @@ eth_tx_status_t eth_tx_set_destination(eth_tx_t *eth, const char *dest_ip);
  * Utility function to estimate packet count before transmission.
  */
 size_t eth_tx_calc_packet_count(eth_tx_t *eth, size_t frame_size);
+
+/* ==========================================================================
+ * Wrapper Functions for main.c Compatibility
+ * ========================================================================== */
+
+/**
+ * @brief Initialize Ethernet TX (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ * @param dest_ip Destination IP address
+ * @return 0 on success, -errno on failure
+ */
+int eth_tx_init(eth_tx_context_t *ctx, const char *dest_ip);
+
+/**
+ * @brief Cleanup Ethernet TX (wrapper for main.c)
+ *
+ * @param ctx Context pointer
+ */
+void eth_tx_cleanup(eth_tx_context_t *ctx);
 
 #ifdef __cplusplus
 }

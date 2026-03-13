@@ -16,13 +16,13 @@ if command -v moai &> /dev/null; then
 fi
 
 # Try detected Go bin path from initialization
-if [ -f "C:/Users/user/go/bin/moai" ]; then
-	exec "C:/Users/user/go/bin/moai" hook user-prompt-submit < "$temp_file"
+if [ -f "C:/Users/drake.lee/go/bin/moai" ]; then
+	exec "C:/Users/drake.lee/go/bin/moai" hook user-prompt-submit < "$temp_file"
 fi
 
 # Try default ~/go/bin/moai
-if [ -f "C:/Users/user/go/bin/moai" ]; then
-	exec "C:/Users/user/go/bin/moai" hook user-prompt-submit < "$temp_file"
+if [ -f "C:/Users/drake.lee/go/bin/moai" ]; then
+	exec "C:/Users/drake.lee/go/bin/moai" hook user-prompt-submit < "$temp_file"
 fi
 
 # Not found - exit silently (Claude Code handles missing hooks gracefully)

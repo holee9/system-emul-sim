@@ -16,7 +16,7 @@
   <ItemGroup>
     <!-- Required NuGet packages -->
     <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-    <!-- LibTiff and fo-dicom will be added in TASK-005 (Image Processing phase) -->
+    <PackageReference Include="fo-dicom" Version="5.1.4" />
   </ItemGroup>
 
 </Project>

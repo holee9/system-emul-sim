@@ -297,8 +297,29 @@ int health_monitor_get_status(system_status_t *status) {
 
     status->uptime_sec = uptime;
 
-    /* TODO: Get FPGA temperature from SPI registers */
-    status->fpga_temp = 350;  /* Default: 35.0 C */
+    /* Get FPGA temperature from SPI registers */
+    /* REQ-FW-070: FPGA thermal monitoring */
+    extern spi_master_t *g_spi_master;  /* Global SPI context from main.c */
+
+    if (g_spi_master != NULL) {
+        uint16_t temp_raw = 0;
+        spi_status_t spi_result = spi_read_register(g_spi_master, FPGA_REG_TEMP, &temp_raw);
+        if (spi_result == SPI_OK) {
+            /* Temperature is in 0.1 C units (e.g., 350 = 35.0 C) */
+            status->fpga_temp = temp_raw;
+            health_monitor_log(LOG_DEBUG, "health",
+                             "FPGA temperature: %u.%u C",
+                             temp_raw / 10, temp_raw % 10);
+        } else {
+            /* Use default temperature on SPI read failure */
+            status->fpga_temp = 350;  /* Default: 35.0 C */
+            health_monitor_log(LOG_WARNING, "health",
+                             "Failed to read FPGA temperature, using default");
+        }
+    } else {
+        /* SPI not available, use default */
+        status->fpga_temp = 350;  /* Default: 35.0 C */
+    }
 
     return 0;
 }

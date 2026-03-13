@@ -82,7 +82,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                     // Critically, the menu MUST remain expanded during the entire wait period;
                     // collapsing and re-expanding resets the registration timer.
                     await WarmupSingleMenuAsync("File", "MenuFileExit");
-                    await WarmupSingleMenuAsync("Help", "MenuHelpAbout");
+                    await WarmupSingleMenuAsync("Help", "MenuHelpTopics");
 
                     await Task.Delay(500);
                     break;
