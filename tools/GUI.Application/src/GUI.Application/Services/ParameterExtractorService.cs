@@ -42,9 +42,24 @@ public sealed class ParameterExtractorService
     // @MX:ANCHOR: PDF 파싱 핵심 진입점 - ParameterExtractorViewModel에서 호출
     public async Task<ParamExtractorModels.ExtractionResult> ParsePdfAsync(string filePath, CancellationToken cancellationToken = default)
     {
+        // @MX:WARN: Path validation to prevent directory traversal attacks - DO NOT REMOVE
+        // CWE-22: Improper Limitation of a Pathname to a Restricted Directory
+        if (string.IsNullOrWhiteSpace(filePath))
+            throw new ArgumentException("File path cannot be empty", nameof(filePath));
+
+        var normalizedPath = Path.GetFullPath(filePath);
+
+        // Validate file extension
+        if (!normalizedPath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Only PDF files are allowed", nameof(filePath));
+
+        // Check for path traversal patterns
+        if (filePath.Contains("..") || filePath.Contains('~'))
+            throw new ArgumentException("Invalid path: directory traversal not allowed", nameof(filePath));
+
         try
         {
-            var result = await _pdfParser.ParseAsync(filePath, cancellationToken);
+            var result = await _pdfParser.ParseAsync(normalizedPath, cancellationToken);
 
             if (result.IsSuccessful && result.Parameters.Any())
             {
@@ -119,9 +134,24 @@ public sealed class ParameterExtractorService
     /// <returns>Loaded DetectorConfig or null if failed.</returns>
     public DetectorConfig? LoadFromYaml(string filePath)
     {
+        // @MX:WARN: Path validation to prevent directory traversal attacks - DO NOT REMOVE
+        if (string.IsNullOrWhiteSpace(filePath))
+            return null;
+
+        var normalizedPath = Path.GetFullPath(filePath);
+
+        // Validate file extension
+        if (!normalizedPath.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) &&
+            !normalizedPath.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        // Check for path traversal patterns
+        if (filePath.Contains("..") || filePath.Contains('~'))
+            return null;
+
         try
         {
-            var yaml = File.ReadAllText(filePath);
+            var yaml = File.ReadAllText(normalizedPath);
             return _yamlDeserializer.Deserialize<DetectorConfig>(yaml);
         }
         catch (Exception ex)
@@ -139,6 +169,21 @@ public sealed class ParameterExtractorService
     /// <returns>True if successful.</returns>
     public bool SaveToYaml(DetectorConfig config, string filePath)
     {
+        // @MX:WARN: Path validation to prevent directory traversal attacks - DO NOT REMOVE
+        if (string.IsNullOrWhiteSpace(filePath))
+            return false;
+
+        var normalizedPath = Path.GetFullPath(filePath);
+
+        // Validate file extension
+        if (!normalizedPath.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) &&
+            !normalizedPath.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // Check for path traversal patterns
+        if (filePath.Contains("..") || filePath.Contains('~'))
+            return false;
+
         try
         {
             var serializer = new SerializerBuilder()
