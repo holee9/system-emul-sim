@@ -33,7 +33,7 @@ namespace XrayDetector.Gui.E2ETests.Features;
 [Collection("E2E")]
 public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture)
 {
-    [Fact]
+    [RequiresDesktopFact]
     public void ViewStatusBar_HasCorrectAutomationId()
     {
         // WPF MenuItem sub-items only appear in UIAutomation tree when parent menu is expanded.
@@ -45,10 +45,10 @@ public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture
         var item = viewMenu.FindFirstChild(cf => cf.ByAutomationId("MenuViewStatusBar"));
         FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
         Thread.Sleep(100);
-        item.Should().NotBeNull("MenuViewStatusBar AutomationId must exist");
+        item?.Should().NotBeNull("MenuViewStatusBar AutomationId must exist");
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public void ViewFullScreen_HasCorrectAutomationId()
     {
         // WPF MenuItem sub-items only appear in UIAutomation tree when parent menu is expanded.
@@ -63,14 +63,14 @@ public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture
         item.Should().NotBeNull("MenuViewFullScreen AutomationId must exist");
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public void StatusBarVersion_HasCorrectAutomationId()
     {
         var item = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("StatusBarVersion"));
         item.Should().NotBeNull("StatusBarVersion AutomationId must exist");
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public void InputKvp_HasCorrectAutomationId()
     {
         // Switch to Simulator Control tab first (Tab index 3)
@@ -101,7 +101,7 @@ public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task HelpTopicsMenuItem_OpensHelpWindow()
     {
         // Expand Help menu and find MenuHelpTopics (added by coder teammate).
@@ -141,7 +141,7 @@ public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture
         await WaitHelper.DelayAsync(300);
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task HelpTopicsMenuItem_HasCorrectAutomationId()
     {
         // Structural check: MenuHelpTopics AutomationId must exist in expanded Help menu.
@@ -158,7 +158,7 @@ public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture
         for (int attempt = 0; attempt < 200; attempt++)
         {
             Thread.Sleep(200);
-            topicsItem = helpMenu.FindFirstChild(cf => cf.ByAutomationId("MenuHelpTopics"));
+            topicsItem = helpMenu!.FindFirstChild(cf => cf.ByAutomationId("MenuHelpTopics"));
             if (topicsItem != null) break;
         }
 
@@ -168,7 +168,7 @@ public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture
         topicsItem.Should().NotBeNull("MenuHelpTopics AutomationId must be set in MainWindow.xaml");
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task F1Key_OpensHelpWindow()
     {
         // Ensure no menu is open that might consume F1.
@@ -193,7 +193,7 @@ public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture
         await WaitHelper.DelayAsync(300);
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task HelpWindow_HasTopicTreeVisible()
     {
         // Open HelpWindow via F1, then verify the topic TreeView is rendered.

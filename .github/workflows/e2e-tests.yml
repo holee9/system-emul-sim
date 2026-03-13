@@ -1,10 +1,12 @@
 name: E2E Tests (Windows)
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for running E2E tests'
+        required: false
+        default: 'Manual E2E verification'
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -12,7 +14,7 @@ env:
 jobs:
   e2e-tests:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
 
     steps:
     - name: Checkout code

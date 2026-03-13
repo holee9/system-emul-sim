@@ -19,7 +19,7 @@ public sealed class ParameterExtractionE2ETests : E2ETestBase
     {
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task Tab3_ParameterExtraction_Should_Exist_And_Be_Clickable()
     {
         // Find the TabControl
@@ -58,7 +58,7 @@ public sealed class ParameterExtractionE2ETests : E2ETestBase
         Assert.Equal("Clear", clearButton.Name);
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task Tab4_SimulatorControl_Should_Have_Config_Buttons()
     {
         // Navigate to Tab 4 (Simulator Control)

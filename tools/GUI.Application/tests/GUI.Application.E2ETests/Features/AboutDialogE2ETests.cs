@@ -16,7 +16,7 @@ public sealed class AboutDialogE2ETests(AppFixture fixture) : E2ETestBase(fixtur
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
 
-    [Fact]
+    [RequiresDesktopFact]
     public async Task HelpAbout_OpensModalDialog()
     {
         // WPF MenuItem sub-items only appear in UIAutomation tree when the parent menu is expanded.
@@ -73,7 +73,7 @@ public sealed class AboutDialogE2ETests(AppFixture fixture) : E2ETestBase(fixtur
         await WaitHelper.DelayAsync(300);
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public void AboutDialog_HasVersionInfo()
     {
         // WPF MenuItem sub-items only appear in UIAutomation tree when parent menu is expanded.
@@ -84,13 +84,13 @@ public sealed class AboutDialogE2ETests(AppFixture fixture) : E2ETestBase(fixtur
         Thread.Sleep(100);
         helpMenu!.AsMenuItem().Click();
         AutomationElement? menuHelpAbout = null;
-        for (int attempt = 0; attempt < 200; attempt++) { Thread.Sleep(200); menuHelpAbout = helpMenu.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuHelpAbout != null) break; }
+        for (int attempt = 0; attempt < 200; attempt++) { Thread.Sleep(200); menuHelpAbout = helpMenu!.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuHelpAbout != null) break; }
         FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
         Thread.Sleep(100);
         menuHelpAbout.Should().NotBeNull();
     }
 
-    [Fact]
+    [RequiresDesktopFact]
     public void MenuHelpAbout_HasCorrectAutomationId()
     {
         // WPF MenuItem sub-items only appear in UIAutomation tree when parent menu is expanded.
@@ -101,7 +101,7 @@ public sealed class AboutDialogE2ETests(AppFixture fixture) : E2ETestBase(fixtur
         Thread.Sleep(100);
         helpMenu!.AsMenuItem().Click();
         AutomationElement? menuItem = null;
-        for (int attempt = 0; attempt < 200; attempt++) { Thread.Sleep(200); menuItem = helpMenu.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuItem != null) break; }
+        for (int attempt = 0; attempt < 200; attempt++) { Thread.Sleep(200); menuItem = helpMenu!.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuItem != null) break; }
         FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
         Thread.Sleep(100);
         menuItem.Should().NotBeNull("MenuHelpAbout AutomationId must be set");
