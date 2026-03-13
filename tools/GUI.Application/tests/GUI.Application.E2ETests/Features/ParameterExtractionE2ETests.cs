@@ -1,9 +1,9 @@
-using System;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
 using FlaUI.Core.WindowsAPI;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 using XrayDetector.Gui.E2ETests.Infrastructure;
 
 namespace XrayDetector.Gui.E2ETests.Features;
@@ -15,7 +15,7 @@ namespace XrayDetector.Gui.E2ETests.Features;
 [Collection("E2E")]
 public sealed class ParameterExtractionE2ETests : E2ETestBase
 {
-    public ParameterExtractionE2ETests(AppFixture fixture) : base(fixture)
+    public ParameterExtractionE2ETests(AppFixture fixture, ITestOutputHelper output) : base(fixture, output)
     {
     }
 

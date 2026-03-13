@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using FlaUI.Core.AutomationElements;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 using XrayDetector.Gui.E2ETests.Infrastructure;
 using XrayDetector.Gui.E2ETests.PageObjects;
 
@@ -31,7 +32,7 @@ namespace XrayDetector.Gui.E2ETests.Features;
 /// E2E tests for Help system. SPEC-HELP-001: REQ-HELP-054
 /// </summary>
 [Collection("E2E")]
-public sealed class HelpSystemE2ETests(AppFixture fixture) : E2ETestBase(fixture)
+public sealed class HelpSystemE2ETests(AppFixture fixture, ITestOutputHelper output) : E2ETestBase(fixture, output)
 {
     [RequiresDesktopFact]
     public void ViewStatusBar_HasCorrectAutomationId()

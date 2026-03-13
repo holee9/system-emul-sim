@@ -1,6 +1,7 @@
 using FlaUI.Core.AutomationElements;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 using XrayDetector.Gui.E2ETests.Infrastructure;
 using XrayDetector.Gui.E2ETests.PageObjects;
 
@@ -10,7 +11,7 @@ namespace XrayDetector.Gui.E2ETests.Smoke;
 /// Smoke tests: app launch and basic UI. SPEC-HELP-001: REQ-HELP-054
 /// </summary>
 [Collection("E2E")]
-public sealed class AppLaunchTests(AppFixture fixture) : E2ETestBase(fixture)
+public sealed class AppLaunchTests(AppFixture fixture, ITestOutputHelper output) : E2ETestBase(fixture, output)
 {
     [RequiresDesktopFact]
     public void App_Launches_AndMainWindowIsVisible()
