@@ -8,7 +8,10 @@ namespace XrayDetector.Gui.E2ETests.Tests.Unit;
 /// <summary>
 /// Unit tests for E2ELogger AsyncLocal ITestOutputHelper bridge.
 /// TAG-002: Tests must pass without desktop/GUI.
+/// Collection("UnitTests"): prevents parallel execution with AppFixtureAttachTests
+/// to avoid E2ELogger file-lock conflicts.
 /// </summary>
+[Collection("UnitTests")]
 public sealed class E2ELoggerBridgeTests
 {
     [Fact]

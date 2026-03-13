@@ -10,12 +10,14 @@ namespace XrayDetector.Gui.E2ETests.Infrastructure;
 /// Manages GUI.Application process lifecycle for E2E tests.
 /// SPEC-HELP-001: REQ-HELP-051
 /// SPEC-E2E-002: REQ-E2E2-001 (E2ELogger), REQ-E2E2-003 (timing instrumentation)
+/// SPEC-E2E-004: TAG-001 (attach mode), TAG-005 (no-kill on dispose), TAG-006 (fast PID validation)
 /// </summary>
 public sealed class AppFixture : IAsyncLifetime, IDisposable
 {
     private Process? _appProcess;
     private UIA3Automation? _automation;
     private Application? _flaUiApp;
+    private bool _isAttachMode;
 
     public AutomationElement? MainWindow { get; private set; }
     public bool IsDesktopAvailable { get; private set; } = true;
@@ -53,6 +55,13 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
 
     public async Task InitializeAsync()
     {
+        // SPEC-E2E-004: TAG-001 — Attach mode takes priority; skips desktop check and process launch.
+        if (EnvironmentDetector.IsAttachMode())
+        {
+            await InitializeAttachModeAsync();
+            return;
+        }
+
         IsDesktopAvailable = EnvironmentDetector.IsInteractiveDesktop();
         if (!IsDesktopAvailable)
         {
@@ -122,6 +131,73 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
     }
 
     /// <summary>
+    /// Attaches FlaUI to an existing process specified by XRAY_E2E_ATTACH_PID.
+    /// SPEC-E2E-004: TAG-001, TAG-006
+    /// REQ-2: Attach instead of launch.
+    /// REQ-3: Skip IsInteractiveDesktop() check (app is already visibly running).
+    /// REQ-6: Fail fast on invalid PID (no 30-second hang).
+    /// </summary>
+    private async Task InitializeAttachModeAsync()
+    {
+        _isAttachMode = true;
+        IsDesktopAvailable = true;
+
+        var pidEnv = Environment.GetEnvironmentVariable("XRAY_E2E_ATTACH_PID")!;
+        if (!int.TryParse(pidEnv, out var pid))
+            throw new InvalidOperationException(
+                $"XRAY_E2E_ATTACH_PID='{pidEnv}' is not a valid integer. " +
+                "Set it to the PID of a running GUI.Application process.");
+
+        Process process;
+        try
+        {
+            process = Process.GetProcessById(pid);
+        }
+        catch (ArgumentException)
+        {
+            throw new InvalidOperationException(
+                $"XRAY_E2E_ATTACH_PID={pid}: No running process found with that PID. " +
+                "Start GUI.Application.exe first, then re-run the tests.");
+        }
+
+        Logger.Step($"Attach mode: connecting to PID={pid} ({process.ProcessName})");
+
+        _automation = new UIA3Automation();
+        _flaUiApp = FlaUI.Core.Application.Attach(process);
+
+        // Wait for main window (timeout 30 seconds)
+        var timeout = TimeSpan.FromSeconds(30);
+        var sw = Stopwatch.StartNew();
+        while (sw.Elapsed < timeout)
+        {
+            try
+            {
+                MainWindow = _flaUiApp.GetMainWindow(_automation);
+                if (MainWindow != null)
+                {
+                    Logger.Step($"MainWindow found after {sw.Elapsed.TotalSeconds:F1}s");
+                    await Task.Delay(2000);
+                    await WarmupSingleMenuAsync("File", "MenuFileExit");
+                    await WarmupSingleMenuAsync("Help", "MenuHelpTopics");
+                    Logger.Step("Attach mode init complete.");
+                    await Task.Delay(500);
+                    break;
+                }
+            }
+            catch { }
+            await Task.Delay(500);
+        }
+
+        if (MainWindow == null)
+        {
+            Logger.Fail($"MainWindow not found for PID={pid} within 30s.");
+            throw new TimeoutException(
+                $"GUI.Application (PID={pid}) main window not found within 30 seconds. " +
+                "Ensure the application is fully started and its main window is visible.");
+        }
+    }
+
+    /// <summary>
     /// Expands the named top-level menu and keeps it open until the specified
     /// AutomationId sub-item appears in the UIAutomation tree, then collapses.
     /// This ensures the peer is registered before any test needs it.
@@ -185,18 +261,23 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
         _flaUiApp?.Dispose();
         _automation?.Dispose();
 
-        try
+        // SPEC-E2E-004: TAG-005 — In attach mode, the process is externally owned.
+        // Do NOT kill or dispose it; only release automation resources.
+        if (!_isAttachMode)
         {
-            if (_appProcess != null && !_appProcess.HasExited)
+            try
             {
-                _appProcess.Kill(entireProcessTree: true);
-                _appProcess.WaitForExit(5000);
+                if (_appProcess != null && !_appProcess.HasExited)
+                {
+                    _appProcess.Kill(entireProcessTree: true);
+                    _appProcess.WaitForExit(5000);
+                }
             }
-        }
-        catch (InvalidOperationException) { /* process already exited */ }
-        finally
-        {
-            _appProcess?.Dispose();
+            catch (InvalidOperationException) { /* process already exited */ }
+            finally
+            {
+                _appProcess?.Dispose();
+            }
         }
 
         Logger.Dispose();

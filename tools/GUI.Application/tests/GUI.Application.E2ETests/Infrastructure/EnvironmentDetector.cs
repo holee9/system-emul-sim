@@ -5,11 +5,12 @@ namespace XrayDetector.Gui.E2ETests.Infrastructure;
 /// TAG-001: Centralizes all environment detection logic for E2E infrastructure.
 ///
 /// Environment Variables:
-///   CI             - Set to "true" in CI/CD systems (GitHub Actions, Jenkins, etc.)
-///   GITHUB_ACTIONS - Set to "true" by GitHub Actions runner
-///   XRAY_E2E_FORCE - Set to "1" to force interactive mode even in non-interactive sessions
-///   SESSIONNAME    - Windows session name: "Console" (local), "RDP-Tcp#N" (remote desktop)
-///   MSYSTEM        - Set by MSYS2/Git Bash; indicates non-real-desktop terminal emulator
+///   CI                   - Set to "true" in CI/CD systems (GitHub Actions, Jenkins, etc.)
+///   GITHUB_ACTIONS       - Set to "true" by GitHub Actions runner
+///   XRAY_E2E_FORCE       - Set to "1" to force interactive mode even in non-interactive sessions
+///   XRAY_E2E_ATTACH_PID  - Set to a process PID to enable FlaUI attach mode (SPEC-E2E-004)
+///   SESSIONNAME          - Windows session name: "Console" (local), "RDP-Tcp#N" (remote desktop)
+///   MSYSTEM              - Set by MSYS2/Git Bash; indicates non-real-desktop terminal emulator
 /// </summary>
 public static class EnvironmentDetector
 {
@@ -25,6 +26,14 @@ public static class EnvironmentDetector
     /// </summary>
     public static bool IsForced() =>
         Environment.GetEnvironmentVariable("XRAY_E2E_FORCE") == "1";
+
+    /// <summary>
+    /// Returns true if XRAY_E2E_ATTACH_PID is set and non-empty.
+    /// When true, AppFixture attaches to an existing process instead of launching a new one.
+    /// SPEC-E2E-004: TAG-002 — controls attach vs. launch mode selection.
+    /// </summary>
+    public static bool IsAttachMode() =>
+        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XRAY_E2E_ATTACH_PID"));
 
     /// <summary>
     /// Returns true if the current session supports FlaUI UIAutomation (real desktop).
@@ -82,5 +91,6 @@ public static class EnvironmentDetector
         $"CI={Environment.GetEnvironmentVariable("CI") ?? "null"}, " +
         $"SESSIONNAME={Environment.GetEnvironmentVariable("SESSIONNAME") ?? "null"}, " +
         $"UserInteractive={Environment.UserInteractive}, " +
-        $"MSYSTEM={Environment.GetEnvironmentVariable("MSYSTEM") ?? "null"}";
+        $"MSYSTEM={Environment.GetEnvironmentVariable("MSYSTEM") ?? "null"}, " +
+        $"XRAY_E2E_ATTACH_PID={Environment.GetEnvironmentVariable("XRAY_E2E_ATTACH_PID") ?? "null"}";
 }

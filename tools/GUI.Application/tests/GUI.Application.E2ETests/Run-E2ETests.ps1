@@ -3,10 +3,11 @@
 .SYNOPSIS
     Run E2E tests in interactive desktop session with log capture.
     SPEC-E2E-002: REQ-E2E2-005
+    SPEC-E2E-004: TAG-003 (-AttachPid parameter for AI-driven E2E loop)
 
 .DESCRIPTION
     1. Ensures CI env vars are unset (interactive mode)
-    2. Builds GUI.Application (Debug)
+    2. Builds GUI.Application (Debug) — skipped in attach mode
     3. Runs dotnet test with detailed logging
     4. Reports results and output locations
 
@@ -16,19 +17,31 @@
 .PARAMETER NoBuild
     Skip the build step (use when already built)
 
+.PARAMETER Force
+    Force interactive mode via XRAY_E2E_FORCE=1
+
+.PARAMETER AttachPid
+    PID of an already-running GUI.Application process to attach to.
+    When set, skips the build step and sets XRAY_E2E_ATTACH_PID environment variable.
+    Use this for AI-driven E2E test loops where GUI.Application is started manually.
+
 .EXAMPLE
-    # Run all E2E tests
+    # Run all E2E tests (launch mode)
     .\Run-E2ETests.ps1
 
     # Run only AppLaunchTests, skip build
     .\Run-E2ETests.ps1 -Filter "FullyQualifiedName~AppLaunchTests" -NoBuild
+
+    # Attach to existing GUI.Application (AI-driven loop, SPEC-E2E-004)
+    .\Run-E2ETests.ps1 -AttachPid 12345
 #>
 
 [CmdletBinding()]
 param(
     [string]$Filter = "",
     [switch]$NoBuild,
-    [switch]$Force
+    [switch]$Force,
+    [int]$AttachPid = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -43,6 +56,21 @@ Write-Host "=== E2E Test Runner ===" -ForegroundColor Cyan
 Write-Host "Repo:    $repoRoot"
 Write-Host "Project: $testProject"
 Write-Host ""
+
+# SPEC-E2E-004: TAG-003 — Attach mode: validate PID, set env var, skip build
+if ($AttachPid -ne 0) {
+    Write-Host "[Attach Mode] Validating PID=$AttachPid ..." -ForegroundColor Cyan
+    $attachProcess = Get-Process -Id $AttachPid -ErrorAction SilentlyContinue
+    if (-not $attachProcess) {
+        Write-Host "[FAIL] No process found with PID=$AttachPid. Start GUI.Application.exe first." -ForegroundColor Red
+        exit 1
+    }
+    $env:XRAY_E2E_ATTACH_PID = $AttachPid.ToString()
+    Write-Host "[OK] Attaching to existing GUI.Application (PID=$AttachPid, Name=$($attachProcess.ProcessName))" -ForegroundColor Green
+    $NoBuild = $true  # Skip build — app is already running
+    Write-Host "[OK] Build step skipped (attach mode)" -ForegroundColor Green
+    Write-Host ""
+}
 
 # 0. TAG-006: Detect non-interactive environment early and warn
 $sessionName = $Env:SESSIONNAME

@@ -112,4 +112,55 @@ public sealed class EnvironmentDetectorTests
         summary.Should().Contain("SESSIONNAME=");
         summary.Should().Contain("UserInteractive=");
     }
+
+    // ── IsAttachMode ─────────────────────────────────────────────────────────
+    // TAG-002: EnvironmentDetector.IsAttachMode() tests
+
+    [Fact]
+    public void IsAttachMode_WhenEnvVarSet_ReturnsTrue()
+    {
+        var original = Environment.GetEnvironmentVariable("XRAY_E2E_ATTACH_PID");
+        try
+        {
+            Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", "12345");
+            EnvironmentDetector.IsAttachMode().Should().BeTrue(
+                "XRAY_E2E_ATTACH_PID is set to a non-empty value");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", original);
+        }
+    }
+
+    [Fact]
+    public void IsAttachMode_WhenEnvVarNotSet_ReturnsFalse()
+    {
+        var original = Environment.GetEnvironmentVariable("XRAY_E2E_ATTACH_PID");
+        try
+        {
+            Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", null);
+            EnvironmentDetector.IsAttachMode().Should().BeFalse(
+                "XRAY_E2E_ATTACH_PID is not set");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", original);
+        }
+    }
+
+    [Fact]
+    public void IsAttachMode_WhenEnvVarEmpty_ReturnsFalse()
+    {
+        var original = Environment.GetEnvironmentVariable("XRAY_E2E_ATTACH_PID");
+        try
+        {
+            Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", "");
+            EnvironmentDetector.IsAttachMode().Should().BeFalse(
+                "XRAY_E2E_ATTACH_PID is set but empty");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", original);
+        }
+    }
 }
