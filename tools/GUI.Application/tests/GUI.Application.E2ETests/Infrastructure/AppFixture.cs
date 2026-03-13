@@ -53,7 +53,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
 
     public async Task InitializeAsync()
     {
-        IsDesktopAvailable = RequiresDesktopFactAttribute.IsInteractiveDesktop();
+        IsDesktopAvailable = EnvironmentDetector.IsInteractiveDesktop();
         if (!IsDesktopAvailable)
         {
             Trace.WriteLine(

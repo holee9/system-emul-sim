@@ -15,6 +15,8 @@ namespace XrayDetector.Gui.E2ETests.Infrastructure;
 ///
 /// SPEC-HELP-001: REQ-HELP-051
 /// SPEC-E2E-002: REQ-E2E2-001 (logging), REQ-E2E2-002 (screenshot-on-failure)
+/// TAG-002: AsyncLocal bridge connected in constructor / cleared in DisposeAsync
+/// TAG-004: Auto-screenshot on failure in DisposeAsync (XRAY_E2E_SCREENSHOT_DIR)
 /// </summary>
 [Collection("E2E")]
 public abstract class E2ETestBase : IAsyncLifetime
@@ -39,6 +41,8 @@ public abstract class E2ETestBase : IAsyncLifetime
     {
         Fixture = fixture;
         OutputHelper = output;
+        // TAG-002: Connect real-time AsyncLocal bridge so log entries appear in xUnit output immediately
+        E2ELogger.SetTestOutput(output);
     }
 
     /// <summary>
@@ -53,10 +57,32 @@ public abstract class E2ETestBase : IAsyncLifetime
 
     /// <summary>
     /// Called by xUnit after each test. Flushes per-test log buffer to xUnit output.
+    /// TAG-004: Auto-captures screenshot + tree dump on failure when desktop is available.
     /// </summary>
     public Task DisposeAsync()
     {
+        // TAG-004: Auto-screenshot on failure
+        if (!_testPassed && Fixture.IsDesktopAvailable)
+        {
+            try
+            {
+                var screenshotDir = Environment.GetEnvironmentVariable("XRAY_E2E_SCREENSHOT_DIR")
+                    ?? Path.Combine("TestResults", "Screenshots");
+                var testClass = GetType().Name;
+                var fileName = $"{testClass}_{DateTime.Now:yyyyMMdd_HHmmss}";
+                ScreenshotHelper.CaptureOnFailure(fileName, Fixture.MainWindow, screenshotDir);
+                Logger.Warn($"[TAG-004] Screenshot captured: {screenshotDir}/{fileName}.png");
+                Logger.Warn($"[TAG-004] Tree dump:\n{TreeDumper.Dump(Fixture.MainWindow)}");
+            }
+            catch
+            {
+                // Screenshot/tree-dump failures must not fail tests
+            }
+        }
+
         Logger.EndTest(OutputHelper, _testPassed);
+        // TAG-002: Disconnect AsyncLocal bridge after test completes
+        E2ELogger.ClearTestOutput();
         return Task.CompletedTask;
     }
 

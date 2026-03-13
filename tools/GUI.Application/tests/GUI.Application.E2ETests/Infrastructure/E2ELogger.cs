@@ -8,16 +8,39 @@ namespace XrayDetector.Gui.E2ETests.Infrastructure;
 /// Structured logger for E2E test sessions.
 /// - Session sink: writes all entries to TestResults/Logs/e2e_{timestamp}.log (AutoFlush, survives crashes)
 /// - Per-test buffer: accumulates entries since BeginTest(), flushed to ITestOutputHelper in EndTest()
+/// - AsyncLocal bridge: forwards log entries to xUnit ITestOutputHelper in real-time
 /// - Format: [HH:mm:ss.fff] [LEVEL] [TestName] message
 /// SPEC-E2E-002: REQ-E2E2-001
+/// TAG-002: AsyncLocal ITestOutputHelper bridge for real-time xUnit output
 /// </summary>
 public sealed class E2ELogger : IDisposable
 {
+    // AsyncLocal ensures per-async-context output (safe for parallel async tests)
+    private static readonly AsyncLocal<ITestOutputHelper?> _testOutput = new();
+
+    // TAG-005: XRAY_E2E_DEBUG=1 enables verbose logging (every WaitHelper attempt, not every 10)
+    private static bool IsDebugMode =>
+        Environment.GetEnvironmentVariable("XRAY_E2E_DEBUG") == "1";
+
     private readonly StreamWriter _writer;
     private readonly Stopwatch _sessionTimer = Stopwatch.StartNew();
     private readonly StringBuilder _testBuffer = new();
     private bool _disposed;
     private string _currentTest = "(fixture)";
+
+    // ── Static AsyncLocal bridge ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Sets the xUnit ITestOutputHelper for the current async context.
+    /// Call from E2ETestBase constructor. TAG-002.
+    /// </summary>
+    public static void SetTestOutput(ITestOutputHelper output) => _testOutput.Value = output;
+
+    /// <summary>
+    /// Clears the xUnit ITestOutputHelper for the current async context.
+    /// Call from E2ETestBase.DisposeAsync(). TAG-002.
+    /// </summary>
+    public static void ClearTestOutput() => _testOutput.Value = null;
 
     public E2ELogger()
     {
@@ -48,6 +71,18 @@ public sealed class E2ELogger : IDisposable
 
     /// <summary>Logs a failure with context (e.g. timeout tree dump).</summary>
     public void Fail(string message) => Write("FAIL", message);
+
+    // ── Static helpers ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Forwards a retry attempt log entry via the AsyncLocal xUnit output bridge.
+    /// Called by RetryHelper (TAG-006). Does not require an E2ELogger instance.
+    /// </summary>
+    internal static void WriteRetryAttempt(int attempt, int maxRetries, string exceptionMessage)
+    {
+        var msg = $"[RetryHelper] retry attempt {attempt}/{maxRetries}: {exceptionMessage}";
+        _testOutput.Value?.WriteLine($"[E2E] [{DateTime.Now:HH:mm:ss.fff}] [RTRY] {msg}");
+    }
 
     // ── Per-test lifecycle ──────────────────────────────────────────
 
@@ -82,6 +117,8 @@ public sealed class E2ELogger : IDisposable
         _testBuffer.AppendLine(entry);
         _writer.WriteLine(entry);
         Trace.WriteLine(entry);
+        // TAG-002: Real-time forward to xUnit output via AsyncLocal bridge
+        _testOutput.Value?.WriteLine($"[E2E] {entry}");
     }
 
     public void Dispose()

@@ -27,7 +27,8 @@
 [CmdletBinding()]
 param(
     [string]$Filter = "",
-    [switch]$NoBuild
+    [switch]$NoBuild,
+    [switch]$Force
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,6 +43,35 @@ Write-Host "=== E2E Test Runner ===" -ForegroundColor Cyan
 Write-Host "Repo:    $repoRoot"
 Write-Host "Project: $testProject"
 Write-Host ""
+
+# 0. TAG-006: Detect non-interactive environment early and warn
+$sessionName = $Env:SESSIONNAME
+$msystem     = $Env:MSYSTEM
+$isNonInteractive = $false
+
+if ($msystem) {
+    $isNonInteractive = $true
+    Write-Warning "Non-interactive environment detected: MSYSTEM=$msystem (Git Bash / MSYS2)."
+    Write-Warning "FlaUI UIAutomation requires a real Windows desktop session."
+} elseif (-not $sessionName) {
+    if (-not [Environment]::UserInteractive) {
+        $isNonInteractive = $true
+        Write-Warning "Non-interactive environment detected: SESSIONNAME not set, UserInteractive=False."
+    }
+} elseif ($sessionName -notmatch '^(Console|RDP-Tcp)') {
+    $isNonInteractive = $true
+    Write-Warning "Potentially non-interactive environment: SESSIONNAME=$sessionName."
+}
+
+if ($isNonInteractive -and -not $Force) {
+    Write-Warning "Use -Force to run E2E tests anyway (tests will likely skip via [RequiresDesktopFact])."
+    Write-Host ""
+}
+
+if ($Force) {
+    $Env:XRAY_E2E_FORCE = "1"
+    Write-Host "[OK] -Force flag set: XRAY_E2E_FORCE=1" -ForegroundColor Yellow
+}
 
 # 1. Remove CI env vars to enable interactive mode
 $removed = @()
