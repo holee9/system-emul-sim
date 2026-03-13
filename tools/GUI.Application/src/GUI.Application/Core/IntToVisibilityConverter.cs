@@ -8,7 +8,7 @@ namespace XrayDetector.Gui.Core;
 
 /// <summary>
 /// Converts integer values to Visibility.
-/// Returns Visible when value > 0 (or < 0 for inverse), Collapsed otherwise.
+/// Returns Visible when value > 0 (or &lt; 0 for inverse), Collapsed otherwise.
 /// </summary>
 public sealed class IntToVisibilityConverter : IValueConverter
 {

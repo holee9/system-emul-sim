@@ -54,7 +54,8 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
         {
             UseShellExecute = false,
         };
-        startInfo.EnvironmentVariables["XRAY_E2E_MODE"] = "true";
+        // .NET 8 uses Environment dictionary, not EnvironmentVariables
+        startInfo.Environment["XRAY_E2E_MODE"] = "true";
 
         _appProcess = Process.Start(startInfo)
             ?? throw new InvalidOperationException("Failed to start GUI.Application");

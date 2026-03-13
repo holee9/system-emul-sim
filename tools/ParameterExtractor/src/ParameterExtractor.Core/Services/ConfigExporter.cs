@@ -107,7 +107,7 @@ public class ConfigExporter : IConfigExporter
             {
                 result.Errors.Add(new SchemaValidationError
                 {
-                    Path = error.Path,
+                    Path = error.Path ?? string.Empty,
                     Kind = error.Kind.ToString(),
                     Message = error.LineNumber > 0
                         ? $"Line {error.LineNumber}: {error.Kind}"

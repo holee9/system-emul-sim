@@ -101,27 +101,27 @@ public sealed class ParameterExtractorService
         // Panel parameters
         if (TryGetParam(paramDict, "panel", "Rows", out var rowsParam))
             config.Panel ??= new PanelConfig();
-        if (TryGetParam(paramDict, "panel", "Rows", out var rowsVal) && int.TryParse(rowsVal.Value, out var rows))
+        if (TryGetParam(paramDict, "panel", "Rows", out var rowsVal) && rowsVal is not null && int.TryParse(rowsVal.Value, out var rows))
             (config.Panel ??= new PanelConfig()).Rows = rows;
 
-        if (TryGetParam(paramDict, "panel", "Cols", out var colsVal) && int.TryParse(colsVal.Value, out var cols))
+        if (TryGetParam(paramDict, "panel", "Cols", out var colsVal) && colsVal is not null && int.TryParse(colsVal.Value, out var cols))
             (config.Panel ??= new PanelConfig()).Cols = cols;
 
-        if (TryGetParam(paramDict, "panel", "BitDepth", out var bitDepthVal) && int.TryParse(bitDepthVal.Value, out var bitDepth))
+        if (TryGetParam(paramDict, "panel", "BitDepth", out var bitDepthVal) && bitDepthVal is not null && int.TryParse(bitDepthVal.Value, out var bitDepth))
             (config.Panel ??= new PanelConfig()).BitDepth = bitDepth;
 
         // FPGA parameters
-        if (TryGetParam(paramDict, "fpga", "Csi2Lanes", out var lanesVal) && int.TryParse(lanesVal.Value, out var lanes))
+        if (TryGetParam(paramDict, "fpga", "Csi2Lanes", out var lanesVal) && lanesVal is not null && int.TryParse(lanesVal.Value, out var lanes))
             (config.Fpga ??= new FpgaConfig()).Csi2Lanes = lanes;
 
-        if (TryGetParam(paramDict, "fpga", "Csi2DataRateMbps", out var rateVal) && int.TryParse(rateVal.Value, out var rate))
+        if (TryGetParam(paramDict, "fpga", "Csi2DataRateMbps", out var rateVal) && rateVal is not null && int.TryParse(rateVal.Value, out var rate))
             (config.Fpga ??= new FpgaConfig()).Csi2DataRateMbps = rate;
 
         // SoC parameters
-        if (TryGetParam(paramDict, "controller", "FrameBufferCount", out var fbVal) && int.TryParse(fbVal.Value, out var fb))
+        if (TryGetParam(paramDict, "controller", "FrameBufferCount", out var fbVal) && fbVal is not null && int.TryParse(fbVal.Value, out var fb))
             (config.Soc ??= new SocConfig()).FrameBufferCount = fb;
 
-        if (TryGetParam(paramDict, "controller", "UdpPort", out var portVal) && int.TryParse(portVal.Value, out var port))
+        if (TryGetParam(paramDict, "controller", "UdpPort", out var portVal) && portVal is not null && int.TryParse(portVal.Value, out var port))
             (config.Soc ??= new SocConfig()).UdpPort = port;
 
         return config;
