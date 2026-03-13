@@ -84,9 +84,35 @@ GUI 내 도움말 시스템이 통합되어 있습니다.
 ### 테스트 상태
 
 - 83/83 tests passing (GUI.Application)
-- 15/15 E2E tests passing (SPEC-HELP-001 Wave 3)
+- 22/22 unit tests passing (E2E Infrastructure, SPEC-E2E-003)
+- E2E tests: 22개 — 대화형 데스크톱에서 실행, CI에서 자동 skip
 - 85%+ code coverage
 - MVVM 패턴, WPF 표준 준수
+
+### E2E 테스트 실행 방법
+
+```powershell
+# 대화형 Windows 세션에서 (권장)
+.\tools\GUI.Application\tests\GUI.Application.E2ETests\Run-E2ETests.ps1
+
+# 강제 실행 (bash 환경에서 우회)
+$env:XRAY_E2E_FORCE="1"
+dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/
+
+# 디버그 모드 (상세 로그 + 자동 스크린샷)
+$env:XRAY_E2E_DEBUG="1"
+.\tools\GUI.Application\tests\GUI.Application.E2ETests\Run-E2ETests.ps1
+
+# 단위 테스트만 (CI/bash 환경)
+dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/ --filter "FullyQualifiedName~Unit"
+```
+
+| 환경 변수 | 기본값 | 설명 |
+|-----------|--------|------|
+| `XRAY_E2E_FORCE=1` | - | 비대화형 환경에서도 강제 실행 |
+| `XRAY_E2E_DEBUG=1` | - | 상세 로그 + 실패 시 스크린샷 자동 저장 |
+| `XRAY_E2E_TIMEOUT_MS` | 30000 | WaitHelper 타임아웃 (ms) |
+| `XRAY_E2E_SCREENSHOT_DIR` | TestResults/Screenshots | 스크린샷 저장 경로 |
 
 See [SPEC-UI-001](.moai/specs/SPEC-UI-001/spec.md) for detailed requirements and implementation notes.
 
@@ -117,10 +143,20 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 | Test Coverage | 1,419/1,419 tests passing (4 skipped) |
 | Code Coverage | 85%+ per module (Panel: 86.9%, FPGA: 98.7%, MCU: 92.3%, Host: 86.4%) |
 | Documentation | 50+ pages |
-| SPEC Documents | 12 |
+| SPEC Documents | 16 |
 
 ### Current Status
 
+> **SPEC-E2E-003 FlaUI E2E 인프라 강화 완료 ✅** (2026-03-13)
+>
+> - `EnvironmentDetector`: bash/CI/대화형 세션 5단계 정확 판별 (SESSIONNAME, MSYSTEM 감지)
+> - `WaitHelper`: 요소 검색 시도 횟수/경과시간 로깅, 타임아웃 시 tree dump 자동 첨부
+> - `E2ELogger`: `AsyncLocal<ITestOutputHelper>` 브리지 — xUnit 출력에 per-test 구조화 로그
+> - `ScreenshotHelper`: 테스트 실패 시 `DisposeAsync`에서 스크린샷 + tree dump 자동 저장
+> - `RetryFactAttribute`: 재시도마다 E2ELogger 기록
+> - `Run-E2ETests.ps1`: `-Force` 파라미터 + 비대화형 환경 사전 경고
+> - 단위 테스트 22개 추가 (Infrastructure 순수 로직 검증)
+>
 > **SPEC-HELP-001 GUI Help System 완료 ✅** (2026-03-12)
 >
 > - About 다이얼로그, 내장 Markdown 도움말 (9개 토픽), E2E 로깅 시스템
