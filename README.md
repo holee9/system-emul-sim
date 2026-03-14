@@ -113,6 +113,84 @@ dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/ --filter "Full
 | `XRAY_E2E_DEBUG=1` | - | 상세 로그 + 실패 시 스크린샷 자동 저장 |
 | `XRAY_E2E_TIMEOUT_MS` | 30000 | WaitHelper 타임아웃 (ms) |
 | `XRAY_E2E_SCREENSHOT_DIR` | TestResults/Screenshots | 스크린샷 저장 경로 |
+| `XRAY_E2E_ATTACH_PID=<pid>` | - | Attach 모드 활성화 — 실행 중인 프로세스에 FlaUI 연결 (SPEC-E2E-004) |
+
+### AI 자율 E2E 루프 (SPEC-E2E-004 Attach 모드)
+
+> **SPEC-E2E-004 AppFixture Attach Mode 구현 완료 ✅** (2026-03-13)
+>
+> - **문제**: Claude Code에서 `dotnet test` 실행 시, WPF Dispatcher가 Window Station 접근 불가 → MainWindowHandle이 0으로 유지
+> - **해결**: 사용자가 GUI.Application.exe 수동 실행 → AI가 Attach 모드로 기존 프로세스에 FlaUI 연결
+> - **이점**: 테스트마다 GUI 재시작 불필요, AI 자율 루프 가능
+
+#### Attach 모드 워크플로우
+
+1. 사용자가 GUI.Application.exe 수동 실행 (또는 Visual Studio에서)
+   ```powershell
+   # Option 1: 커맨드라인
+   .\tools\GUI.Application\bin\Release\net8.0-windows\GUI.Application.exe
+
+   # Option 2: Visual Studio에서 실행
+   dotnet run --project tools/GUI.Application/GUI.Application.csproj
+   ```
+
+2. AI가 프로세스 PID 확인
+   ```powershell
+   $pid = (Get-Process GUI.Application).Id
+   Write-Host "GUI.Application PID: $pid"
+   ```
+
+3. AI가 Attach 모드로 E2E 테스트 실행
+   ```powershell
+   # 방법 1: Run-E2ETests.ps1 사용 (권장)
+   .\tools\GUI.Application\tests\GUI.Application.E2ETests\Run-E2ETests.ps1 -AttachPid $pid
+
+   # 방법 2: 환경 변수 직접 설정
+   $env:XRAY_E2E_ATTACH_PID=$pid
+   dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/
+
+   # 방법 3: 특정 테스트만 실행
+   $env:XRAY_E2E_ATTACH_PID=$pid
+   dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/ --filter "FullyQualifiedName~CoreFlow"
+   ```
+
+4. FlaUI가 기존 프로세스에 attach, 테스트 실행
+   - 창이 이미 표시되어 있음 (MainWindowHandle > 0)
+   - 테스트 상호작용 가능 (클릭, 입력 등)
+
+5. AI가 테스트 결과 분석
+   - TestResults/Logs/ 폴더에서 로그 확인
+   - 실패 원인 파악 및 코드 수정
+   - 필요 시 GUI 재시작 후 반복
+
+#### Run-E2ETests.ps1 Attach 파라미터
+
+```powershell
+# Attach 모드로 실행
+.\Run-E2ETests.ps1 -AttachPid 12345
+
+# Attach 모드 + 필터
+.\Run-E2ETests.ps1 -AttachPid 12345 -Filter "FullyQualifiedName~CoreFlow"
+
+# Attach 모드 + 디버그 로그
+$env:XRAY_E2E_DEBUG="1"
+.\Run-E2ETests.ps1 -AttachPid 12345
+```
+
+#### Attach 모드 동작 원리
+
+- **활성화**: `XRAY_E2E_ATTACH_PID` 환경 변수가 설정되면 Attach 모드 활성화
+- **프로세스 연결**: FlaUI가 지정된 PID의 프로세스에 직접 연결 (새로운 프로세스 생성 안 함)
+- **윈도우 접근**: 이미 표시된 윈도우를 직접 사용하므로 MainWindowHandle > 0
+- **테스트 실행**: 기존 앱 상태를 유지하면서 상호작용 가능
+- **조건부 해제**: 환경 변수 제거 또는 도메인에서 `IsAttachMode()` 호출로 상태 확인
+
+#### 주의사항
+
+- GUI.Application.exe는 **반드시 미리 실행**되어야 함 (테스트 시작 전)
+- Attach 모드에서는 **테스트가 앱을 종료하지 않음** (DisposeAsync에서 detach만 수행)
+- **PID 정확성** 확인: `Get-Process GUI.Application | Select-Object Id` 로 확인
+- 테스트 중 **앱이 시스템 오류로 종료**되면 다시 실행하고 PID 재입력
 
 See [SPEC-UI-001](.moai/specs/SPEC-UI-001/spec.md) for detailed requirements and implementation notes.
 
@@ -147,6 +225,14 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 
 ### Current Status
 
+> **SPEC-E2E-004 AppFixture Attach 모드 구현 완료 ✅** (2026-03-14)
+>
+> - `EnvironmentDetector.IsAttachMode()`: XRAY_E2E_ATTACH_PID 감지 로직
+> - `AppFixture` Attach 모드 브랜치: 기존 프로세스 연결 또는 신규 프로세스 생성
+> - `Run-E2ETests.ps1`: `-AttachPid <PID>` 파라미터 추가
+> - AI 자율 E2E 루프 워크플로우: GUI 수동 실행 → AI Attach → 테스트 → 결과 분석
+> - 단위 테스트 추가: AppFixtureAttachTests (3개), EnvironmentDetectorTests 확장
+>
 > **SPEC-E2E-003 FlaUI E2E 인프라 강화 완료 ✅** (2026-03-13)
 >
 > - `EnvironmentDetector`: bash/CI/대화형 세션 5단계 정확 판별 (SESSIONNAME, MSYSTEM 감지)

@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M5-UI Phase - SPEC-E2E-004 Attach 모드 - 2026-03-14)
+- AppFixture Attach Mode: 기존 프로세스에 FlaUI 연결하여 AI 자율 E2E 루프 지원
+- `XRAY_E2E_ATTACH_PID` 환경 변수: 실행 중인 GUI.Application.exe 프로세스에 attach
+- `Run-E2ETests.ps1` `-AttachPid <PID>` 파라미터: Attach 모드로 테스트 실행
+- `EnvironmentDetector.IsAttachMode()`: Attach 모드 활성화 여부 판별
+- `AppFixture` Attach 모드 브랜치: 기존 프로세스 연결 또는 신규 프로세스 생성 선택
+- AI 자율 E2E 루프 워크플로우: 사용자 GUI 실행 → AI Attach → 자동 테스트 → 결과 분석
+- 단위 테스트: AppFixtureAttachTests (3개), EnvironmentDetectorTests IsAttachMode 확장
+
+### Quality (M5-UI Phase - SPEC-E2E-004 - 2026-03-14)
+- AppFixture Attach 모드 단위 테스트 추가 (3/3 passing)
+- EnvironmentDetector Attach 모드 테스트 추가 (EnvironmentDetectorTests 확장)
+- MainWindowHandle 검증: Attach 모드에서 > 0 확인
+- Process 재사용 검증: 기존 프로세스에 FlaUI 정상 연결
+
 ### Added (M3-Integ Phase - 2026-03-01)
 - Integration test suite (IT-01~IT-10) with 155 passing tests
 - Test utilities: TestFrameFactory, PacketFactory, SimulatorPipelineBuilder
