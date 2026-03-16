@@ -11,7 +11,7 @@
 | Resolution | 2048×2048 pixels, 16-bit depth |
 | Frame Rate | 30 fps (target), 15 fps (minimum) |
 | Data Rate | 2.01 Gbps (target), 0.21 Gbps (minimum) |
-| Implementation | 100% complete (SW), 391+ tests passing |
+| Implementation | 100% complete (SW), 1,423+ tests passing |
 
 **ABYZ Lab** | 의료 영상 장비용 엑스레이 검출기 패널의 데이터 수집, 전송, 처리를 위한 계층형 시스템입니다. FPGA 기반 하드웨어 제어와 소프트웨어 시뮬레이션 환경을 제공합니다.
 
@@ -84,7 +84,7 @@ GUI 내 도움말 시스템이 통합되어 있습니다.
 ### 테스트 상태
 
 - 83/83 tests passing (GUI.Application)
-- 22/22 unit tests passing (E2E Infrastructure, SPEC-E2E-003)
+- 26/26 unit tests passing (E2E Infrastructure, SPEC-E2E-003 + SPEC-E2E-004)
 - E2E tests: 22개 — 대화형 데스크톱에서 실행, CI에서 자동 skip
 - 85%+ code coverage
 - MVVM 패턴, WPF 표준 준수
@@ -218,10 +218,10 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 | C# Projects | 20 |
 | Source Files | 500+ |
 | Test Files | 12 test projects |
-| Test Coverage | 1,419/1,419 tests passing (4 skipped) |
+| Test Coverage | 1,423/1,423 tests passing (4 skipped) |
 | Code Coverage | 85%+ per module (Panel: 86.9%, FPGA: 98.7%, MCU: 92.3%, Host: 86.4%) |
 | Documentation | 50+ pages |
-| SPEC Documents | 16 |
+| SPEC Documents | 18 |
 
 ### Current Status
 
