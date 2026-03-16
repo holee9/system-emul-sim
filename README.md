@@ -4,14 +4,15 @@
 
 [![CI](https://github.com/holee9/system-emul-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/holee9/system-emul-sim/actions/workflows/ci.yml)
 
-| Status | M4-Emul (Golden Reference) |
-|--------|----------------------------|
-| Version | 0.4.0 |
+| Status | SPEC-GUI-001 Active (GUI 파이프라인 연동) |
+|--------|------------------------------------------|
+| Version | 0.5.0 |
 | Architecture | 4-layer (Panel → FPGA → MCU → Network → Host) |
-| Resolution | 2048×2048 pixels, 16-bit depth |
-| Frame Rate | 30 fps (target), 15 fps (minimum) |
-| Data Rate | 2.01 Gbps (target), 0.21 Gbps (minimum) |
+| Resolution | 1024×1024 ~ 3072×3072 pixels, 16-bit depth |
+| Frame Rate | 19.1 fps (1024×1024) / 9.5 fps (2048×2048) / 6.4 fps (3072×3072, ROIC 병목 기준) |
+| Data Rate | 0.32 Gbps (1024×1024) / 0.64 Gbps (2048×2048) / 0.96 Gbps (3072×3072) |
 | Implementation | 100% complete (SW), 1,423+ tests passing |
+| Plan Version | v2.1 (실측 사양서 9종 교차분석 반영) |
 
 **ABYZ Lab** | 의료 영상 장비용 엑스레이 검출기 패널의 데이터 수집, 전송, 처리를 위한 계층형 시스템입니다. FPGA 기반 하드웨어 제어와 소프트웨어 시뮬레이션 환경을 제공합니다.
 
@@ -207,9 +208,10 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 | **M3-Integ** | ✅ Complete | 100% | IT-01~IT-19 integration scenarios + 4-layer bit-exact verification (Simulated) |
 | **M4-Emul** | ✅ Complete | 100% | Emulator Module Revision — Golden Reference upgrade (SPEC-EMUL-001 to 004) |
 | **M5-UI** | ✅ Complete | 100% | Integrated GUI Application — SPEC-UI-001 (4-layer emulator GUI) |
-| **M6-Perf** | ⬜ Pending | Real HW | Performance optimization |
-| **M7-Val** | ⬜ Pending | Real HW | System validation |
-| **M8-Pilot** | ⬜ Pending | Real HW | Pilot production deployment |
+| **SPEC-GUI-001** | 🔄 Active | MVP-1~4 | GUI 파이프라인 연동 — PipelineDetectorClient 실 연결, 실 통계, 시나리오 실행, PDF 추출 |
+| **M7 (W30)** | ⬜ Pending | P8 | 파라미터 추출기 파인튜닝 — 5종 사양서, 자동 추출률 ≥80% |
+| **M8 (W32)** | ⬜ Pending | P9 | 실측 캘리브레이션 — Dark/Bright 피팅, RMSE ≤ 2 LSB |
+| **M9 (W34)** | ⬜ Pending | P10 | 최종 검증 + Release Candidate |
 
 ### Project Statistics
 
@@ -225,6 +227,15 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 
 ### Current Status
 
+> **SPEC-GUI-001 GUI 파이프라인 연동 🔄 Active** (2026-03-16~)
+>
+> - **목표**: GUI ↔ 실제 4-layer SimulatorPipeline 연결 (App.xaml.cs SimulatedDetectorClient → PipelineDetectorClient 교체)
+> - **MVP-1**: Real Pipeline Connection (US-001, US-002) — 실 패널 물리 기반 프레임 표시
+> - **MVP-2**: Live Pipeline Statistics + Noise/Defect Control (US-003, US-004)
+> - **MVP-3**: Real Scenario Execution — IT-01, IT-08, IT-09 실제 실행 (US-005, US-006)
+> - **MVP-4**: PDF Parameter Extraction (3종 파서) + Frame Export TIFF (US-007, US-008)
+> - 기반: `X-ray_Detector_Optimal_Project_Plan_v2.1.md` (실측 사양서 9종 교차분석)
+>
 > **SPEC-E2E-004 AppFixture Attach 모드 구현 완료 ✅** (2026-03-14)
 >
 > - `EnvironmentDetector.IsAttachMode()`: XRAY_E2E_ATTACH_PID 감지 로직
@@ -288,11 +299,15 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 
 | 특징 | 설명 |
 |------|------|
-| 최종 목표 해상도 | 3072 x 3072 픽셀 (16-bit) @ 15fps |
-| 개발 기준선 | 2048 x 2048 픽셀 (16-bit) @ 15fps (400M 안정 검증) |
+| 최종 목표 해상도 | 3072 x 3072 픽셀 (16-bit) — ROIC 병목 기준 **최대 6.4 fps** (AFE2256GR) / 5.4 fps (AD71143) |
+| 개발 기준선 | 2048 x 2048 픽셀 (16-bit) @ **9.5 fps** (AFE2256GR 기준) |
+| 소형 모드 | 1024 x 1024 픽셀 (16-bit) @ **19.1 fps** (개발/테스트용) |
 | 데이터 인터페이스 | CSI-2 MIPI 4-lane D-PHY (FPGA → SoC) |
-| 네트워크 전송 | 10 GbE (SoC → Host PC, 권장) |
+| 네트워크 전송 | 1GbE (대부분 커버) / 2.5GbE (3072×3072+AFE2256GR, 0.96Gbps) |
 | 제어 채널 | SPI (최대 50 MHz) |
+| 지원 ROIC | AD71143 (ADI, 580 e⁻) / AFE2256GR (TI, 240 e⁻) / DDC3256 (TI, CT급) |
+| 지원 Gate IC | NT39522DH (Novatek, 512ch × 6 COF = 3072 lines) |
+| 지원 Panel | AUO a-Si/IGZO, Innolux a-Si (140μm pitch, 65% FF) |
 
 ## System Architecture
 
@@ -892,6 +907,54 @@ integration-runner --config detector_config.yaml --frames 100 \
 > See [SPEC-EMUL-001 Full Plan](.moai/specs/SPEC-EMUL-001/spec.md) for detailed implementation specification.
 > See [SPEC-EMUL-001 Scenarios](.moai/specs/SPEC-EMUL-001/scenarios.md) for all 168 verification scenarios.
 
+## v2.1 계획서 주요 내용 (실측 사양서 반영)
+
+### 실측 사양서 교차분석 결과
+
+v2.1 계획서는 AUO/Innolux Panel 5종, Novatek Gate IC, ADI/TI ROIC 3종 등 **9종 실측 사양서**를 교차분석한 결과입니다.
+
+#### FPS 재계산 (ROIC Line Time 병목)
+
+```
+Frame_Time = ROIC_Line_Time × N_rows
+FPS = 1 / Frame_Time
+```
+
+실제 Gate-On Time(5μs)은 ROIC Line Time(51.2~60μs) 내에 포함 → **ROIC가 병목**
+
+| 해상도 | ROIC | Line Time | FPS | 데이터 속도 | 이더넷 |
+|--------|------|-----------|-----|------------|--------|
+| 1024×1024 | AFE2256GR | 51.2μs | **19.1 fps** | 0.32 Gbps | 1GbE ✅ |
+| 2048×2048 | AFE2256GR | 51.2μs | **9.5 fps** | 0.64 Gbps | 1GbE ✅ |
+| 3072×3072 | AFE2256GR | 51.2μs | **6.4 fps** | 0.96 Gbps | 2.5GbE 권장 |
+| 3072×3072 | AD71143 | 60μs | **5.4 fps** | 0.82 Gbps | 1GbE ✅ |
+| 3072×2500 | AFE2256GR | 51.2μs | **6.4 fps** | 0.78 Gbps | 1GbE ✅ |
+
+> ❌ **영구 제외**: 3072×3072@30fps는 ROIC 물리 한계로 binning/ROI 없이 불가능
+
+#### 실제 하드웨어 컴포넌트
+
+| 구분 | 모델 | 핵심 사양 |
+|------|------|---------|
+| Panel | AUO R1717AS01.3 | 3072×3072, a-Si, 140μm, 65% FF, Cpixel=1.48pF |
+| Panel | AUO R1717GH01 | 3072×3072, IGZO, 저 leakage(≤10fA) |
+| Panel | Innolux X239AW1-102 | 3072×3072, a-Si, 140μm |
+| Gate IC | NT39522DH | 512ch×6=3072 lines, 200kHz, COF |
+| ROIC | AFE2256GR (TI) | 256ch, 51.2μs/line, 240 e⁻ rms |
+| ROIC | AD71143 (ADI) | 256ch, 60μs/line, 580 e⁻ rms |
+| ROIC | DDC3256 (TI) | 256ch, 24-bit, CT급, 320pC |
+
+#### 신규 기능 (v2.1)
+
+| 기능 | 설명 | 목표 마일스톤 |
+|------|------|-------------|
+| 파라미터 추출기 v2 | 3종 독립 파서 (Panel/GateIC/ROIC) → Merge → detector_config.yaml | M7 (W30) |
+| a-Si / IGZO 이중 모델 | TFT 모델 선택 (leakage 특성 차이) | SPEC-GUI-001 |
+| 실측 캘리브레이션 | Dark/Bright 영상 → 파라미터 피팅, RMSE ≤ 2 LSB | M8 (W32) |
+| 이중 결함 기준 | AUO IIS + Innolux CAS 모두 구현, 선택 가능 | SPEC-GUI-001 |
+
+---
+
 ## 핵심 기술 결정사항
 
 ### FPGA 디바이스 제약
@@ -908,14 +971,16 @@ integration-runner --config detector_config.yaml --frames 100 \
 
 ### 성능 계층
 
-| 계층 | 해상도 | 비트 깊이 | FPS | 원시 데이터 속도 | D-PHY 요건 | 상태 |
-|------|--------|-----------|-----|-----------------|-----------|------|
-| 최소 (Minimum) | 1024 x 1024 | 14-bit | 15 fps | ~0.21 Gbps | 400M/lane | ✅ 검증 완료 |
-| 중간-A (Mid-A) | 2048 x 2048 | 16-bit | 15 fps | ~1.01 Gbps | 400M/lane | ✅ 개발 기준선 |
-| 중간-B (Mid-B) | 2048 x 2048 | 16-bit | 30 fps | ~2.01 Gbps | 800M/lane | ⚠️ 800M 디버깅 필요 |
-| **목표 (Target Final Goal)** | **3072 x 3072** | **16-bit** | **15 fps** | **~2.26 Gbps** | **800M/lane** | ⚠️ 800M 디버깅 필요 |
+| 계층 | 해상도 | 비트 깊이 | FPS (ROIC 병목) | 데이터 속도 | 이더넷 요건 | 상태 |
+|------|--------|-----------|----------------|------------|------------|------|
+| 최소 (Minimum) | 1024 x 1024 | 16-bit | **19.1 fps** (AFE2256GR) | 0.32 Gbps | 1GbE ✅ | ✅ 에뮬레이터 검증 완료 |
+| 표준 (Standard) | 2048 x 2048 | 16-bit | **9.5 fps** (AFE2256GR) | 0.64 Gbps | 1GbE ✅ | ✅ 개발 기준선 |
+| 고해상도-A (High-A) | 3072 x 3072 | 16-bit | **5.4 fps** (AD71143) | 0.82 Gbps | 1GbE ✅ | 🔜 실 HW 검증 필요 |
+| **고해상도-B (High-B)** | **3072 x 3072** | **16-bit** | **6.4 fps** (AFE2256GR) | **0.96 Gbps** | **2.5GbE 권장** | 🔜 실 HW 검증 필요 |
+| 와이드 | 3072 x 2500 | 16-bit | **6.4 fps** (AFE2256GR) | 0.78 Gbps | 1GbE ✅ | 🔜 실 HW 검증 필요 |
 
-> ❌ **제외**: 3072 x 3072 @ 30fps (~4.53 Gbps) — 4-lane 3.2 Gbps 한계 초과, 영구 제외
+> ❌ **영구 제외**: 모든 3072×3072 @ 30fps — ROIC Line Time 물리 한계 (AFE2256GR 51.2μs × 3072 rows = 157ms/frame → 6.4fps 최대). 30fps는 binning/ROI 없이 불가능.
+> ✅ **v2.1 수정**: 기존 30fps/15fps 목표는 ROIC 실측 사양서 교차분석으로 재확정. radiography(정지 영상) 용도에서 5~7fps는 정상 범위.
 
 ### 인터페이스 선택
 
@@ -1100,18 +1165,17 @@ tools/
 
 ## 개발 일정
 
-총 **28주** 계획:
+총 **34주** 계획 (v2.1 실측 사양서 반영, 2주 연장):
 
 ```
-W1-W8:   Phase 1 - 문서 우선 (SPEC, 아키텍처, API 문서) ← 현재 완료 ✅
-W9-W14:  Phase 2 - 시뮬레이터 개발 (TDD)
-W9-W18:  Phase 3 - FPGA RTL 개발
-W11-W20: Phase 4 - SoC Controller 펌웨어
-W12-W22: Phase 5 - Host SDK 개발
-W16-W22: Phase 6 - 통합 테스트 (IT-01~IT-10)
-W18-W22: Phase 7 - HIL 테스트
-W23-W26: M0.5 - CSI-2 PoC (HW 검증, 구현 완료 후)
-W22-W28: Phase 8 - 시스템 검증 및 확인
+W1-W8:   P0~P2 - 문서 우선 + PoC + Core Implementation ✅ 완료
+W9-W14:  P3    - 시뮬레이터/SDK 개발 (TDD) ✅ 완료
+W15-W22: P4~P5 - FPGA RTL + SoC 펌웨어 + 통합 테스트 (IT-01~IT-19) ✅ 완료
+W23-W27: P6    - GUI 통합 (M5-UI, SPEC-UI-001) ✅ 완료
+W28:     P7    - 전체 DataPath 통합 + SPEC-GUI-001 (실 파이프라인 연결) 🔄 진행 중
+W29-W30: P8    - 파라미터 추출기 파인튜닝 (5종 사양서, ≥80% 자동 추출) ⬜
+W31-W32: P9    - 실측 캘리브레이션 (Dark/Bright 피팅, RMSE ≤ 2 LSB) ⬜
+W33-W34: P10   - 최종 검증 + Release Candidate ⬜
 ```
 
 ### 주요 마일스톤
@@ -1119,11 +1183,15 @@ W22-W28: Phase 8 - 시스템 검증 및 확인
 | 마일스톤 | 주차 | 게이트 기준 | 상태 |
 |---------|------|------------|------|
 | **M0** | W1 | P0 결정 확정 (성능 목표, Host 링크, SoC 플랫폼) | ✅ 완료 |
-| **M1-Doc** | W8 | 모든 SPEC/아키텍처/API 문서 완료 및 승인 | ✅ Phase 1 교차검증 완전 승인 (2026-02-17) |
-| **M2-Impl** | W14 | 모든 시뮬레이터 단위 테스트 통과 | ✅ 완료 (2026-02-17) - 766 simulator tests, 85%+ coverage |
-| **M3-Integ** | W22 | IT-01~IT-19 통합 시나리오 모두 통과 | ✅ 완료 (2026-03-01) - 250 passing, 4 skipped |
-| **M0.5-PoC** | W26 | CSI-2 PoC: 목표 처리량의 ≥70% 측정 완료 (구현 완료 후 수행) | ⏳ 연기 |
-| M6-Final | W28 | 실제 패널 프레임 획득, 시뮬레이터 보정 완료 | ⏳ 대기 |
+| **M1-Doc** | W8 | 모든 SPEC/아키텍처/API 문서 완료 및 승인 | ✅ 완료 (2026-02-17) |
+| **M2-Impl** | W14 | 모든 시뮬레이터 단위 테스트 통과 | ✅ 완료 (2026-02-17) — 766 simulator tests, 85%+ coverage |
+| **M3-Integ** | W22 | IT-01~IT-19 통합 시나리오 모두 통과 | ✅ 완료 (2026-03-01) — 250 passing, 4 skipped |
+| **M4-Emul** | W24 | Golden Reference 에뮬레이터 업그레이드 (SPEC-EMUL-001~004) | ✅ 완료 (2026-03-10) |
+| **M5-UI** | W27 | 통합 GUI 애플리케이션 (SPEC-UI-001, 4-layer 에뮬레이터) | ✅ 완료 (2026-03-11) |
+| **SPEC-GUI-001** | W28 | GUI ↔ 실 파이프라인 연결 (MVP-1~4) | 🔄 진행 중 |
+| **M7** | W30 | 추출기 파인튜닝: 5종 사양서 핵심 파라미터 자동 추출률 ≥80% | ⬜ 예정 |
+| **M8** | W32 | 실측 캘리브레이션: Dark/Bright 피팅, RMSE ≤ 2 LSB | ⬜ 예정 |
+| **M9** | W34 | 최종 검증 + Release Candidate | ⬜ 예정 |
 
 ## 품질 전략
 
@@ -1289,7 +1357,8 @@ cd config
 
 | Document | Path | Description |
 |----------|------|-------------|
-| Project Plan | [X-ray_Detector_Optimal_Project_Plan.md](X-ray_Detector_Optimal_Project_Plan.md) | 28-week development plan |
+| Project Plan v2.1 | [X-ray_Detector_Optimal_Project_Plan_v2.1.md](X-ray_Detector_Optimal_Project_Plan_v2.1.md) | 34-week plan (실측 사양서 9종 교차분석) |
+| SPEC-GUI-001 | [.moai/specs/SPEC-GUI-001/spec.md](.moai/specs/SPEC-GUI-001/spec.md) | GUI 파이프라인 연동 MVP |
 | Quick Start | [QUICKSTART.md](QUICKSTART.md) | Getting started guide |
 | Cheatsheet | [CHEATSHEET.md](CHEATSHEET.md) | Quick reference |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) | Version history |
@@ -1352,11 +1421,12 @@ cd config
 | SPEC-EMUL-003 | [.moai/specs/SPEC-EMUL-003/](.moai/specs/SPEC-EMUL-003/) | Scenario verification and coverage matrix |
 | SPEC-EMUL-004 | [.moai/specs/SPEC-EMUL-004/](.moai/specs/SPEC-EMUL-004/) | Golden Reference hardening (CI/CD + docs) |
 | SPEC-UI-001 | [.moai/specs/SPEC-UI-001/](.moai/specs/SPEC-UI-001/) | Integrated GUI Application (4-layer emulator) |
+| SPEC-GUI-001 | [.moai/specs/SPEC-GUI-001/](.moai/specs/SPEC-GUI-001/) | GUI 파이프라인 연동 MVP (실 PipelineDetectorClient 연결) |
 
 ## 문서 (한국어)
 
 ### 📚 핵심 문서
-- **프로젝트 계획서**: [`X-ray_Detector_Optimal_Project_Plan.md`](X-ray_Detector_Optimal_Project_Plan.md) - 28주 전체 개발 계획
+- **프로젝트 계획서 v2.1**: [`X-ray_Detector_Optimal_Project_Plan_v2.1.md`](X-ray_Detector_Optimal_Project_Plan_v2.1.md) - 34주 계획 (실측 사양서 9종 교차분석 반영)
 - **빠른 시작**: [`QUICKSTART.md`](QUICKSTART.md) - 빠른 시작 가이드
 - **치트시트**: [`CHEATSHEET.md`](CHEATSHEET.md) - 초고속 참조
 
@@ -1382,7 +1452,7 @@ cd config
 
 ### 🎯 프로젝트 관리
 - **M3-Integ 완료보고서**: [`.moai/specs/SPEC-INTEG-001/completion-report.md`](.moai/specs/SPEC-INTEG-001/completion-report.md) - M3 통합 테스트 마일스톤 완료 보고
-- **WBS**: [`WBS.md`](WBS.md) - 작업 분류 체계 (8명 팀, W9-W28 Gantt, 리소스 매트릭스)
+- **SPEC-GUI-001**: [`.moai/specs/SPEC-GUI-001/spec.md`](.moai/specs/SPEC-GUI-001/spec.md) - GUI 파이프라인 연동 MVP (현재 Active)
 - **프로젝트 로드맵**: [`docs/project/roadmap.md`](docs/project/roadmap.md) - M0-M6 마일스톤, W1-W28 일정
 - **용어집**: [`docs/project/glossary.md`](docs/project/glossary.md) - 기술 용어 정의
 - **기여 가이드**: [`CONTRIBUTING.md`](CONTRIBUTING.md) - 개발 워크플로우 및 규칙
@@ -1413,6 +1483,10 @@ cd config
 *Phase 1 교차검증 완전 승인: 2026-02-17 (Critical 10건 + Major 10건 수정 완료)*
 *SW 구현 완료: 2026-02-18 (전체 구현률 95-98%, SW 100%)*
 *M3-Integ 완료: 2026-03-01 (IT-01~IT-12, 4-layer bit-exact verification, 85%+ coverage)*
+*M4-Emul 완료: 2026-03-10 (Golden Reference, SPEC-EMUL-001~004)*
+*M5-UI 완료: 2026-03-11 (통합 GUI, SPEC-UI-001)*
+*SPEC-GUI-001 Active: 2026-03-16~ (실 파이프라인 연동 MVP-1~4)*
+*Plan v2.1: 2026-03-16 (실측 사양서 9종 교차분석, 34주 계획으로 확정)*
 *M4-Emul 완료: 2026-03-10 (SPEC-EMUL-001~004, Golden Reference hardening)*
 *M5-UI 완료: 2026-03-11 (SPEC-UI-001, Integrated GUI Application, 4-layer emulator)*
 *업데이트: 2026-03-11 — SPEC-UI-001 통합 GUI 애플리케이션 완료*

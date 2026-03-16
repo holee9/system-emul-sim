@@ -2,7 +2,7 @@
 
 **Status**: ✅ 실제 구현된 구조 (M2-Impl 완료)
 **Generated**: 2026-02-17
-**Last Updated**: 2026-02-27
+**Last Updated**: 2026-03-16
 
 ---
 
@@ -33,7 +33,7 @@
 | **tools/** | C# .NET 8.0 | 시뮬레이터, GUI 도구, CLI 유틸리티 | ✅ SPEC-TOOLS-001 완료 |
 | **config/** | YAML/JSON/DTS/XDC | 단일 소스 설정 파일 | ✅ 생성 완료 |
 | **generated/** | C#/C/SV | CodeGenerator 자동 출력물 | ✅ 컴파일 검증 완료 |
-| **.moai/** | Markdown/YAML | 프로젝트 문서, SPEC, 설정 | ✅ 7개 SPEC 완료 |
+| **.moai/** | Markdown/YAML | 프로젝트 문서, SPEC, 설정 | ✅ 7개 SPEC 완료 + SPEC-GUI-001 Active |
 
 **총 .csproj 파일**: 18개 (no solution file)
 **총 테스트 파일**: 50+개
@@ -124,7 +124,13 @@ system-emul-sim/
 │   │       ├── ParameterExtractor.Wpf.csproj     # iTextSharp(AGPL), YamlDotNet, Serilog
 │   │       ├── App.xaml.cs
 │   │       ├── Views/MainWindow.xaml
-│   │       └── ViewModels/MainWindowViewModel.cs
+│   │       ├── ViewModels/MainWindowViewModel.cs
+│   │       ├── Parsers/
+│   │       │   ├── PanelPdfParser.cs             # [계획] Panel PDF 전용 파서
+│   │       │   ├── GateIcPdfParser.cs            # [계획] Gate IC PDF 전용 파서
+│   │       │   └── RoicPdfParser.cs              # [계획] ROIC PDF 전용 파서
+│   │       └── Services/
+│   │           └── ParameterMerger.cs            # [계획] 3종 파라미터 병합 → detector_config.yaml
 │   │
 │   ├── CodeGenerator/                            # CLI 코드 생성기
 │   │   └── src/CodeGenerator.Cli/
@@ -207,6 +213,9 @@ system-emul-sim/
     │   ├── product.md                            # 프로젝트 개요 (이 문서의 형제)
     │   ├── structure.md                          # 이 문서
     │   └── tech.md                               # 기술 스택
+    ├── archive/                                  # 아카이브 (SPEC-GUI-001에 의해 대체된 문서)
+    │   ├── X-ray_Detector_Optimal_Project_Plan_ARCHIVED_20260316.md
+    │   └── WBS_ARCHIVED_20260316.md
     ├── specs/
     │   ├── SPEC-ARCH-001/                        # plan.md + spec.md + acceptance.md
     │   ├── SPEC-FPGA-001/
@@ -214,7 +223,10 @@ system-emul-sim/
     │   ├── SPEC-POC-001/
     │   ├── SPEC-SDK-001/
     │   ├── SPEC-SIM-001/
-    │   └── SPEC-TOOLS-001/
+    │   ├── SPEC-TOOLS-001/
+    │   ├── SPEC-GUI-001/                         # GUI 파이프라인 연동 (MVP) — Active
+    │   │   ├── spec.md                           # APPROVED 2026-03-16
+    │   │   └── research.md
     └── config/sections/
         ├── quality.yaml                          # development_mode: hybrid
         ├── language.yaml                         # conversation_language: ko
@@ -291,6 +303,7 @@ Common.Dto (의존성 없음 — 허브)
 | CodeGenerator.Cli | System.CommandLine, YamlDotNet | YAML → RTL/C/C# 코드 생성 |
 | ConfigConverter.Cli | YamlDotNet | YAML → JSON/DTS/XDC 변환 |
 | IntegrationRunner.Cli | System.CommandLine | HIL 테스트 시나리오 조율 |
+| CalibrationFitter | [계획] PdfPig, YamlDotNet | Dark/Bright 실측 영상 → 파라미터 피팅 (M8/W32 예정) |
 
 ---
 
@@ -485,9 +498,10 @@ vivado -mode batch -source scripts/build.tcl
 | SPEC-SDK-001 | sdk/ | Host SDK API, IDetectorClient |
 | SPEC-SIM-001 | tools/*Simulator | 시뮬레이터 동작 명세 |
 | SPEC-TOOLS-001 | tools/GUI, tools/ParameterExtractor 등 | 개발자 도구 명세 |
+| SPEC-GUI-001 | tools/GUI.Application | GUI 파이프라인 연동 MVP — PipelineDetectorClient 연결 |
 
 ---
 
 **Document End**
 
-*Last updated: 2026-02-27. Reflects actual implemented structure at M2-Impl completion.*
+*Last updated: 2026-03-16. Updated to reflect SPEC-GUI-001 MVP planning and archived documents.*
