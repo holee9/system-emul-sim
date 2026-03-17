@@ -1,20 +1,20 @@
 using System.Windows;
 using Serilog;
 using XrayDetector.Gui.Logging;
+using XrayDetector.Gui.Services;
 using XrayDetector.Gui.Views;
 using XrayDetector.Gui.ViewModels;
-using XrayDetector.Gui.Simulation;
 
 namespace XrayDetector.Gui;
 
 /// <summary>
 /// Application entry point for GUI.Application.
 /// Unified WPF interface for X-ray Detector Panel System (REQ-TOOLS-040).
-/// Runs in simulation mode (SimulatedDetectorClient) when no hardware is present.
+/// Uses PipelineDetectorClient to stream real frames from SimulatorPipeline (SPEC-GUI-001 MVP-1).
 /// </summary>
 public partial class App : Application
 {
-    private SimulatedDetectorClient? _simulatedClient;
+    private PipelineDetectorClient? _pipelineClient;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -28,9 +28,9 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
-        // Use SimulatedDetectorClient for demo/development without hardware
-        _simulatedClient = new SimulatedDetectorClient();
-        var mainViewModel = new MainViewModel(_simulatedClient);
+        // Use PipelineDetectorClient — wraps SimulatorPipeline for real frame generation (SPEC-GUI-001 MVP-1)
+        _pipelineClient = new PipelineDetectorClient();
+        var mainViewModel = new MainViewModel(_pipelineClient);
         var mainWindow = new MainWindow
         {
             DataContext = mainViewModel
@@ -38,26 +38,31 @@ public partial class App : Application
         MainWindow = mainWindow;
         mainWindow.Show();
 
-        // Auto-connect and start acquisition in simulation mode.
-        // In E2E test mode, skip acquisition to avoid Dispatcher saturation from the 10fps
-        // simulation timer, which defers UIAutomation peer registration and causes test failures.
+        // Apply initial configuration from SimulatorControlViewModel defaults (1024x1024, 14-bit)
+        _pipelineClient.UpdateConfig(mainViewModel.SimulatorControlViewModel.ToDetectorConfig());
+
+        // Auto-connect (always) and start acquisition (non-E2E mode only).
+        // E2E mode: Connect so BtnStart is enabled, but skip auto-start so UIAutomation
+        // peer registration completes before frame events flood the Dispatcher.
+        // PipelineDetectorClient runs acquisition in Task.Run (background), safe with UIAutomation.
         var isE2EMode = Environment.GetEnvironmentVariable("XRAY_E2E_MODE") == "true";
-        if (!isE2EMode)
+        try
         {
-            try
+            await _pipelineClient.ConnectAsync("sim", 0);
+            if (!isE2EMode)
             {
-                await _simulatedClient.ConnectAsync("sim", 0);
-                await _simulatedClient.StartAcquisitionAsync();
-                Log.ForContext("SourceContext", LogCategories.App).Information("Simulation auto-start completed");
+                await _pipelineClient.StartAcquisitionAsync();
+                Log.ForContext("SourceContext", LogCategories.App).Information("Pipeline auto-start completed");
             }
-            catch (Exception ex)
+            else
             {
-                Log.ForContext("SourceContext", LogCategories.App).Warning(ex, "Auto-start failed");
+                Log.ForContext("SourceContext", LogCategories.App)
+                    .Information("E2E mode: connected, acquisition not auto-started — tests control Start/Stop via UI");
             }
         }
-        else
+        catch (Exception ex)
         {
-            Log.ForContext("SourceContext", LogCategories.App).Information("E2E mode: simulation auto-start skipped");
+            Log.ForContext("SourceContext", LogCategories.App).Warning(ex, "Auto-connect/start failed");
         }
     }
 

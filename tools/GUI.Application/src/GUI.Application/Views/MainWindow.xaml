@@ -176,7 +176,7 @@
 
                     <!-- Frame Info -->
                     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="8">
-                        <TextBlock Text="{Binding FramePreviewViewModel.FrameInfo}" FontWeight="Bold"/>
+                        <TextBlock AutomationProperties.AutomationId="TxtFrameInfo" Text="{Binding FramePreviewViewModel.FrameInfo}" FontWeight="Bold"/>
                         <TextBlock Text=" | " Margin="8,0"/>
                         <TextBlock Text="{Binding FramePreviewViewModel.MinValue, StringFormat={}Min: {0}}"/>
                         <TextBlock Text=" | " Margin="8,0"/>

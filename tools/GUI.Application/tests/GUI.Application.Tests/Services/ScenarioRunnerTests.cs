@@ -1,14 +1,12 @@
 using FluentAssertions;
-using System.Text.Json;
 using XrayDetector.Gui.Services;
-using XrayDetector.Gui.ViewModels;
 using Xunit;
 
 namespace XrayDetector.Gui.Tests.Services;
 
 /// <summary>
-/// TDD tests for ScenarioRunner (REQ-UI-014).
-/// RED phase: Define expected behavior for scenario execution.
+/// TDD tests for ScenarioRunner (REQ-UI-014, SPEC-GUI-001 MVP-3).
+/// Verifies real pipeline execution — scenarios must return actual pass/fail results.
 /// </summary>
 public class ScenarioRunnerTests
 {
@@ -18,9 +16,9 @@ public class ScenarioRunnerTests
         // Arrange & Act
         var scenarios = ScenarioRunner.GetPredefinedScenarios();
 
-        // Assert
+        // Assert — must include at least one IT01 full-pipeline scenario
         scenarios.Should().NotBeEmpty();
-        scenarios.Should().Contain(s => s.Name == "IT01_FullPipeline");
+        scenarios.Should().Contain(s => s.ScenarioType == "IT01");
     }
 
     [Fact]

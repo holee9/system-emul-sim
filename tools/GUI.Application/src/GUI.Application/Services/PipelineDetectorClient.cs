@@ -6,6 +6,7 @@ using IntegrationRunner.Core;
 using IntegrationRunner.Core.Models;
 using IntegrationRunner.Core.Network;
 using XrayDetector.Common.Dto;
+using XrayDetector.Core.Processing;
 using XrayDetector.Implementation;
 using XrayDetector.Models;
 
@@ -156,7 +157,10 @@ public sealed class PipelineDetectorClient : IDetectorClient
         _acquisitionCts?.Cancel();
 
         if (_acquisitionTask != null)
-            await _acquisitionTask.ConfigureAwait(false);
+        {
+            try { await _acquisitionTask.ConfigureAwait(false); }
+            catch (OperationCanceledException) { } // Expected on cancellation
+        }
 
         _acquisitionTask = null;
         _acquisitionCts?.Dispose();
@@ -197,12 +201,31 @@ public sealed class PipelineDetectorClient : IDetectorClient
         }
     }
 
-    public Task SaveFrameAsync(Frame frame, string path, ImageFormat format,
+    /// <summary>
+    /// Saves a frame as TIFF or RAW file using ImageEncoder (SPEC-GUI-001 MVP-4).
+    /// </summary>
+    public async Task SaveFrameAsync(Frame frame, string path, ImageFormat format,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        // TODO: Implement frame saving (not critical for initial TDD)
-        return Task.CompletedTask;
+
+        if (frame == null) throw new ArgumentNullException(nameof(frame));
+        if (string.IsNullOrEmpty(path)) throw new ArgumentException("Path cannot be empty", nameof(path));
+
+        var metadata = new FrameMetadata(frame.Width, frame.Height, frame.BitDepth, frame.Timestamp, frame.FrameNumber);
+        var encoder = new ImageEncoder();
+
+        switch (format)
+        {
+            case ImageFormat.Tiff:
+                await encoder.EncodeTiffAsync(frame.PixelData, metadata, path, cancellationToken);
+                break;
+            case ImageFormat.Raw:
+                await encoder.EncodeRawAsync(frame.PixelData, metadata, path, cancellationToken);
+                break;
+            default:
+                throw new NotSupportedException($"Image format {format} is not supported. Use Tiff or Raw.");
+        }
     }
 
     public Task<DetectorStatus> GetStatusAsync(CancellationToken cancellationToken = default)
@@ -217,6 +240,11 @@ public sealed class PipelineDetectorClient : IDetectorClient
 
         return Task.FromResult(status);
     }
+
+    /// <summary>
+    /// Returns a snapshot of the underlying pipeline statistics (SPEC-GUI-001 MVP-2).
+    /// </summary>
+    public PipelineStatistics GetStatistics() => _pipeline.GetStatistics();
 
     /// <summary>
     /// Runs the acquisition loop in a background task.

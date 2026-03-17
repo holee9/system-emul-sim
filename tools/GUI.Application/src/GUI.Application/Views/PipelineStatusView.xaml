@@ -28,16 +28,16 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Status Indicator:" VerticalAlignment="Center"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatusIndicator}" FontWeight="Bold" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" AutomationProperties.AutomationId="TxtStatusIndicator" Text="{Binding StatusIndicator}" FontWeight="Bold" Margin="0,0,0,5"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Frames Processed:" VerticalAlignment="Center"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding FramesProcessed}" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" AutomationProperties.AutomationId="TxtFramesProcessed" Text="{Binding FramesProcessed}" Margin="0,0,0,5"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Frames Failed:" VerticalAlignment="Center"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FramesFailed}" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" AutomationProperties.AutomationId="TxtFramesFailed" Text="{Binding FramesFailed}" Margin="0,0,0,5"/>
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Packets Lost:" VerticalAlignment="Center"/>
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PacketsLost}" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" AutomationProperties.AutomationId="TxtPacketsLost" Text="{Binding PacketsLost}" Margin="0,0,0,5"/>
 
                 <Button Grid.Row="4" Grid.Column="1" Content="Reset Statistics" Command="{Binding ResetCommand}" HorizontalAlignment="Left" Width="150"/>
             </Grid>

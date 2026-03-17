@@ -1,7 +1,11 @@
 <Application x:Class="XrayDetector.Gui.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:XrayDetector.Gui.Core">
     <Application.Resources>
-        <!-- Global styles and resources -->
+        <!-- Global converters — available to all Windows and UserControls -->
+        <core:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <core:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+        <core:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
     </Application.Resources>
 </Application>

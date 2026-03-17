@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using XrayDetector.Common.Dto;
 using XrayDetector.Gui.Core;
+using XrayDetector.Gui.Services;
 using XrayDetector.Gui.ViewModels;
 using XrayDetector.Gui.Views;
 using XrayDetector.Implementation;
@@ -70,6 +71,12 @@ public sealed partial class MainViewModel : ObservableObject
 
         // Initialize commands
         InitializeCommands();
+
+        // Wire SimulatorControl commands to actual pipeline control (SPEC-GUI-001 MVP-1)
+        SimulatorControlViewModel.SetCommands(
+            StartAcquisitionCommand,
+            StopAcquisitionCommand,
+            new RelayCommand(async () => await OnResetPipelineAsync()));
     }
 
     /// <summary>Status dashboard ViewModel (REQ-TOOLS-045).</summary>
@@ -278,11 +285,41 @@ public sealed partial class MainViewModel : ObservableObject
         try
         {
             StatusMessage = "Starting acquisition...";
+            // Apply current simulator parameters before starting (SPEC-GUI-001 MVP-1)
+            if (_detectorClient is PipelineDetectorClient pipelineClient)
+                pipelineClient.UpdateConfig(SimulatorControlViewModel.ToDetectorConfig());
             await _detectorClient.StartAcquisitionAsync();
+            IsAcquiring = true;
+            (StartAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (StopAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            StatusMessage = "Acquisition running";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Start acquisition failed: {ex.Message}";
+        }
+    }
+
+    private async Task OnResetPipelineAsync()
+    {
+        try
+        {
+            StatusMessage = "Resetting pipeline...";
+            IsAcquiring = false;
+            (StartAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (StopAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            await _detectorClient.StopAcquisitionAsync();
+            if (_detectorClient is PipelineDetectorClient pipelineClient)
+                pipelineClient.UpdateConfig(SimulatorControlViewModel.ToDetectorConfig());
+            await _detectorClient.StartAcquisitionAsync();
+            IsAcquiring = true;
+            (StartAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (StopAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            StatusMessage = "Pipeline reset complete";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Reset failed: {ex.Message}";
         }
     }
 
@@ -292,10 +329,18 @@ public sealed partial class MainViewModel : ObservableObject
         {
             StatusMessage = "Stopping acquisition...";
             await _detectorClient.StopAcquisitionAsync();
+            StatusMessage = "Acquisition stopped";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Stop acquisition failed: {ex.Message}";
+        }
+        finally
+        {
+            // Always update IsAcquiring — even if StopAcquisitionAsync throws (e.g. TaskCanceledException)
+            IsAcquiring = false;
+            (StartAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (StopAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
         }
     }
 
@@ -383,6 +428,10 @@ public sealed partial class MainViewModel : ObservableObject
         IsConnected = e.IsConnected;
         StatusMessage = e.IsConnected ? "Connected" : "Disconnected";
 
+        // Start/stop status timer — covers both UI button and App.xaml.cs direct connect
+        if (e.IsConnected)
+            _statusTimer.Start();
+
         // Refresh command states
         (ConnectCommand as RelayCommand)?.NotifyCanExecuteChanged();
         (DisconnectCommand as RelayCommand)?.NotifyCanExecuteChanged();
@@ -391,17 +440,21 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OnFrameReceived(object? sender, FrameReceivedEventArgs e)
     {
-        // Update frame count (REQ-TOOLS-041)
-        FramesReceived++;
+        // FrameReceived fires from Task.Run background thread — dispatch all UI updates to UI thread.
+        System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+        {
+            // Update frame count (REQ-TOOLS-041)
+            FramesReceived++;
 
-        // Update preview (REQ-TOOLS-041: up to 15 fps)
-        _currentFrame = e.Frame;
-        FramePreviewViewModel.SetFrame(e.Frame);
+            // Update preview (REQ-TOOLS-041: up to 15 fps)
+            _currentFrame = e.Frame;
+            FramePreviewViewModel.SetFrame(e.Frame);
 
-        // Update stats
-        OnPropertyChanged(nameof(FramesReceived));
-        (SaveFrameCommand as RelayCommand)?.NotifyCanExecuteChanged();
-        (AutoWindowLevelCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            // Update stats
+            OnPropertyChanged(nameof(FramesReceived));
+            (SaveFrameCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (AutoWindowLevelCommand as RelayCommand)?.NotifyCanExecuteChanged();
+        });
     }
 
     private void OnErrorOccurred(object? sender, ErrorOccurredEventArgs e)
@@ -423,6 +476,10 @@ public sealed partial class MainViewModel : ObservableObject
         {
             var status = await _detectorClient.GetStatusAsync();
             StatusViewModel.Update(status, FramesReceived, DroppedFrames, CalculateThroughput());
+
+            // Update pipeline statistics when using PipelineDetectorClient (SPEC-GUI-001 MVP-2)
+            if (_detectorClient is PipelineDetectorClient pipelineClient)
+                PipelineStatusViewModel.UpdateStatistics(pipelineClient.GetStatistics());
         }
         catch
         {

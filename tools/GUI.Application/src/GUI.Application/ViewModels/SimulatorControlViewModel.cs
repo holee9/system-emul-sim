@@ -186,12 +186,23 @@ public sealed class SimulatorControlViewModel : ObservableObject
     /// </summary>
     public SimulatorControlViewModel()
     {
-        // Initialize commands (for future use)
+        // Placeholder commands replaced by MainViewModel.WireCommands() (SPEC-GUI-001 MVP-1)
         StartCommand = new RelayCommand(() => { }, () => true);
         StopCommand = new RelayCommand(() => { }, () => false);
         ResetCommand = new RelayCommand(() => { }, () => true);
         LoadConfigCommand = new RelayCommand(async () => await OnLoadConfigAsync(), () => true);
         SaveConfigCommand = new RelayCommand(async () => await OnSaveConfigAsync(), () => true);
+    }
+
+    /// <summary>
+    /// Wires Start/Stop/Reset commands to actual pipeline control.
+    /// Called by MainViewModel after initialization (SPEC-GUI-001 MVP-1).
+    /// </summary>
+    public void SetCommands(ICommand start, ICommand stop, ICommand reset)
+    {
+        StartCommand = start;
+        StopCommand = stop;
+        ResetCommand = reset;
     }
 
     /// <summary>

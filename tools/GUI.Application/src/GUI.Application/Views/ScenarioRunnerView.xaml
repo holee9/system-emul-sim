@@ -15,12 +15,12 @@
 
         <TextBlock Grid.Row="0" Text="Scenario Runner" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
 
-        <ComboBox Grid.Row="1" ItemsSource="{Binding Scenarios}" SelectedItem="{Binding SelectedScenario}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
+        <ComboBox Grid.Row="1" AutomationProperties.AutomationId="CboScenarios" ItemsSource="{Binding Scenarios}" SelectedItem="{Binding SelectedScenario}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
 
-        <ProgressBar Grid.Row="2" Height="25" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,10"/>
+        <ProgressBar Grid.Row="2" AutomationProperties.AutomationId="PrgScenario" Height="25" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,10"/>
 
-        <Button Grid.Row="3" Content="Execute Scenario" Command="{Binding ExecuteCommand}" HorizontalAlignment="Left" Width="150" VerticalAlignment="Top"/>
+        <Button Grid.Row="3" AutomationProperties.AutomationId="BtnExecuteScenario" Content="Execute Scenario" Command="{Binding ExecuteCommand}" HorizontalAlignment="Left" Width="150" VerticalAlignment="Top"/>
 
-        <TextBlock Grid.Row="3" Text="{Binding Result.Message}" TextWrapping="Wrap" Margin="0,40,10,10" VerticalAlignment="Top"/>
+        <TextBlock Grid.Row="3" AutomationProperties.AutomationId="TxtScenarioResult" Text="{Binding Result.Message}" TextWrapping="Wrap" Margin="0,40,10,10" VerticalAlignment="Top"/>
     </Grid>
 </UserControl>
