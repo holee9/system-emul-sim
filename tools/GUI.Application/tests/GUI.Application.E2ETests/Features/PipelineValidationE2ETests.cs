@@ -41,13 +41,13 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
     }
 
     /// <summary>
-    /// Clicks BtnStart (in Simulator Control tab) and waits for it to become disabled
+    /// Clicks BtnStart (in Console tab) and waits for it to become disabled
     /// (IsAcquiring=true → CanExecute → IsEnabled=false within 2s).
     /// </summary>
     private async Task ClickStartAsync()
     {
         Logger.Step("Clicking BtnStart to start acquisition");
-        await SelectTabAsync("TabSimulator");
+        await SelectTabAsync("TabConsole");
 
         var btnStart = await WaitHelper.WaitForElementAsync(
             MainWindow,
@@ -77,7 +77,7 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
     private async Task ClickStopAsync()
     {
         Logger.Step("Clicking BtnStop to stop acquisition");
-        await SelectTabAsync("TabSimulator");
+        await SelectTabAsync("TabConsole");
 
         var btnStop = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("BtnStop"));
         if (btnStop?.AsButton().IsEnabled != true)
@@ -128,8 +128,8 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
         {
             await ClickStartAsync();
 
-            // Navigate to Pipeline Status and wait for frames
-            await SelectTabAsync("TabPipeline");
+            // Navigate to SoC tab where pipeline statistics are displayed (SPEC-GUI-002)
+            await SelectTabAsync("TabSoc");
 
             var framesAppeared = await WaitHelper.WaitUntilAsync(
                 () => ReadFramesProcessed() > 0,
@@ -165,8 +165,8 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
         {
             await ClickStartAsync();
 
-            // Navigate to Frame Preview tab
-            await SelectTabAsync("TabImage");
+            // Navigate to Console tab (frame preview is now in Console tab, SPEC-GUI-002)
+            await SelectTabAsync("TabConsole");
 
             var frameInfoPopulated = await WaitHelper.WaitUntilAsync(
                 () =>
@@ -211,7 +211,7 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
         try
         {
             await ClickStartAsync();
-            await SelectTabAsync("TabPipeline");
+            await SelectTabAsync("TabSoc"); // SoC tab has TxtFramesProcessed (SPEC-GUI-002)
 
             // Wait for first non-zero reading
             await WaitHelper.WaitUntilAsync(
@@ -258,7 +258,7 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
             description: "non-zero frames before stop");
 
         await ClickStopAsync();
-        await SelectTabAsync("TabPipeline");
+        await SelectTabAsync("TabSoc"); // SoC tab has TxtFramesProcessed (SPEC-GUI-002)
 
         // Allow one final timer tick to settle (status timer is 2Hz → 500ms)
         await WaitHelper.DelayAsync(700);
@@ -292,7 +292,7 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
     {
         Logger.BeginTest(nameof(MVP3_ScenarioIT01_ReturnsRealPipelineResult));
 
-        await SelectTabAsync("TabScenario");
+        await SelectTabAsync("TabConsole"); // Scenario Runner moved to Console tab (SPEC-GUI-002)
         await WaitHelper.DelayAsync(300);
 
         // Ensure IT-01 is selected (it should be first by default)
@@ -345,7 +345,7 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
     {
         Logger.BeginTest(nameof(MVP3_ScenarioExecution_ProgressBarAdvances));
 
-        await SelectTabAsync("TabScenario");
+        await SelectTabAsync("TabConsole"); // Scenario Runner moved to Console tab (SPEC-GUI-002)
         await WaitHelper.DelayAsync(300);
 
         var btnExecute = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("BtnExecuteScenario"));

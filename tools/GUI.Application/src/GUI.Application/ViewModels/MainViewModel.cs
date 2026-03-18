@@ -54,6 +54,14 @@ public sealed partial class MainViewModel : ObservableObject
         PipelineStatusViewModel = new PipelineStatusViewModel();
         ScenarioRunnerViewModel = new ScenarioRunnerViewModel();
 
+        // Initialize module ViewModels (SPEC-GUI-002)
+        PanelViewModel = new PanelEmulatorViewModel(SimulatorControlViewModel, ParameterExtractorViewModel);
+        FpgaViewModel = new FpgaEmulatorViewModel();
+        SocViewModel = new SocEmulatorViewModel(SimulatorControlViewModel, PipelineStatusViewModel);
+        EthernetViewModel = new EthernetViewModel(SimulatorControlViewModel, StatusViewModel, PipelineStatusViewModel);
+        SdkHostViewModel = new SdkHostViewModel(StatusViewModel);
+        ConsoleViewModel = new ConsoleViewModel(FramePreviewViewModel, ScenarioRunnerViewModel);
+
         // Wire up ParameterExtractor event
         ParameterExtractorViewModel.ParametersApplied += OnParametersApplied;
 
@@ -77,6 +85,13 @@ public sealed partial class MainViewModel : ObservableObject
             StartAcquisitionCommand,
             StopAcquisitionCommand,
             new RelayCommand(async () => await OnResetPipelineAsync()));
+
+        // Wire Console tab commands (SPEC-GUI-002)
+        ConsoleViewModel.SetCommands(
+            StartAcquisitionCommand,
+            StopAcquisitionCommand,
+            new RelayCommand(async () => await OnResetPipelineAsync()),
+            SaveFrameCommand);
     }
 
     /// <summary>Status dashboard ViewModel (REQ-TOOLS-045).</summary>
@@ -96,6 +111,25 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>Scenario runner ViewModel (REQ-UI-014).</summary>
     public ScenarioRunnerViewModel ScenarioRunnerViewModel { get; }
+
+    // SPEC-GUI-002: Module-Oriented Tab ViewModels
+    /// <summary>Panel emulator ViewModel (Sensor spec + X-ray source + PDF extraction).</summary>
+    public PanelEmulatorViewModel PanelViewModel { get; }
+
+    /// <summary>FPGA emulator ViewModel (CSI-2 + Gate timing + FSM).</summary>
+    public FpgaEmulatorViewModel FpgaViewModel { get; }
+
+    /// <summary>SoC emulator ViewModel (Frame buffer + UDP TX + pipeline stats).</summary>
+    public SocEmulatorViewModel SocViewModel { get; }
+
+    /// <summary>Ethernet emulator ViewModel (Network impairment + statistics).</summary>
+    public EthernetViewModel EthernetViewModel { get; }
+
+    /// <summary>Host PC SDK ViewModel (Client connection + storage config).</summary>
+    public SdkHostViewModel SdkHostViewModel { get; }
+
+    /// <summary>Console ViewModel (Frame viewer + acquisition control + scenario runner).</summary>
+    public ConsoleViewModel ConsoleViewModel { get; }
 
     /// <summary>Current connection state.</summary>
     public bool IsConnected
@@ -454,6 +488,8 @@ public sealed partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(FramesReceived));
             (SaveFrameCommand as RelayCommand)?.NotifyCanExecuteChanged();
             (AutoWindowLevelCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            // Notify Console tab's AutoWindowLevel state (SPEC-GUI-002)
+            ConsoleViewModel.NotifyAutoWindowLevelCanExecuteChanged();
         });
     }
 

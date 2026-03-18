@@ -1,0 +1,122 @@
+<UserControl x:Class="XrayDetector.Gui.Views.PanelEmulatorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:views="clr-namespace:XrayDetector.Gui.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+    <ScrollViewer>
+        <StackPanel Margin="16">
+            <TextBlock Text="Panel Emulator" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+
+            <!-- Sensor Spec -->
+            <GroupBox Header="Sensor Spec" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Rows:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding SimulatorControl.PanelRows, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputRows"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Cols:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Text="{Binding SimulatorControl.PanelCols, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputCols"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Bit Depth:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             Text="{Binding SimulatorControl.PanelBitDepth, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputBitDepth"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Pixel Pitch -->
+            <GroupBox Header="Physical Parameters" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Pixel Pitch (um):" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SimulatorControl.PanelPixelPitchUm, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputPixelPitch"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- X-ray Source -->
+            <GroupBox Header="X-ray Source" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="kVp (40-150):" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding SimulatorControl.PanelKvp, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputKvp">
+                        <TextBox.ToolTip>
+                            <ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" Text="kVp — Peak tube voltage"/>
+                                    <TextBlock Text="Range: 40–150 kV"/>
+                                    <TextBlock Text="Higher kVp = greater penetration power"/>
+                                </StackPanel>
+                            </ToolTip>
+                        </TextBox.ToolTip>
+                    </TextBox>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="mAs:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Text="{Binding SimulatorControl.PanelMas, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputMas">
+                        <TextBox.ToolTip>
+                            <ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" Text="mAs — Milliampere-seconds"/>
+                                    <TextBlock Text="Range: 1–1000 mAs"/>
+                                    <TextBlock Text="Higher mAs = stronger signal intensity"/>
+                                </StackPanel>
+                            </ToolTip>
+                        </TextBox.ToolTip>
+                    </TextBox>
+                </Grid>
+            </GroupBox>
+
+            <!-- Configuration -->
+            <GroupBox Header="Configuration" Margin="0,0,0,12">
+                <StackPanel Orientation="Horizontal" Margin="10">
+                    <Button Content="Load Config" Command="{Binding SimulatorControl.LoadConfigCommand}"
+                            Width="110" Margin="0,0,8,0"
+                            AutomationProperties.AutomationId="BtnLoadConfig"/>
+                    <Button Content="Save Config" Command="{Binding SimulatorControl.SaveConfigCommand}"
+                            Width="110"
+                            AutomationProperties.AutomationId="BtnSaveConfig"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- PDF Parameter Extraction -->
+            <GroupBox Header="PDF Parameter Extraction" Margin="0,0,0,12">
+                <views:ParameterExtractorView DataContext="{Binding ParameterExtractor}"/>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

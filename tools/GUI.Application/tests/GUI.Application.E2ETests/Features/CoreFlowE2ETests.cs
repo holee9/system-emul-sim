@@ -15,10 +15,10 @@ public sealed class CoreFlowE2ETests(AppFixture fixture, ITestOutputHelper outpu
     [RequiresDesktopFact]
     public void BtnStart_HasCorrectAutomationId()
     {
-        // BtnStart is in SimulatorControlView inside Simulator Control tab (index 3)
+        // BtnStart is in ConsoleView inside Console tab (index 5, SPEC-GUI-002)
         var tabControl = MainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Tab));
         var tabs = tabControl?.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.TabItem));
-        if (tabs != null && tabs.Length > 3) tabs[3].AsTabItem().Select();
+        if (tabs != null && tabs.Length > 5) tabs[5].AsTabItem().Select();
         Thread.Sleep(500);
 
         var btn = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("BtnStart"));

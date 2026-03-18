@@ -1,0 +1,110 @@
+<UserControl x:Class="XrayDetector.Gui.Views.FpgaEmulatorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="900">
+    <ScrollViewer>
+        <StackPanel Margin="16">
+            <TextBlock Text="FPGA Emulator" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+
+            <!-- CSI-2 Interface -->
+            <GroupBox Header="CSI-2 Interface" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Lanes (1/2/4):" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1"
+                              SelectedItem="{Binding Csi2Lanes, Mode=TwoWay}"
+                              Margin="0,0,0,5"
+                              AutomationProperties.AutomationId="CboCsi2Lanes">
+                        <ComboBox.Items>
+                            <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">1</sys:Int32>
+                            <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">2</sys:Int32>
+                            <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">4</sys:Int32>
+                        </ComboBox.Items>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Data Rate (Mbps):" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Text="{Binding Csi2DataRateMbps, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputCsi2DataRate"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Line Buffer Depth:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             Text="{Binding LineBufferDepth, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputLineBufferDepth"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Gate Timing -->
+            <GroupBox Header="Gate Timing" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Gate Lines:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding GateLines, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputGateLines"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Line Time (us):" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Text="{Binding LineTimeUs, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputLineTimeUs"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Frame Time (ms):" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             Text="{Binding FrameTimeMs, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputFrameTimeMs"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- FSM Status -->
+            <GroupBox Header="FSM Status" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="FSM State:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1"
+                               Text="{Binding FsmState}"
+                               FontWeight="Bold"
+                               Margin="0,0,0,5"
+                               AutomationProperties.AutomationId="TxtFsmState"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Error Flags:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1"
+                               Text="{Binding ErrorFlags}"
+                               Foreground="Red"
+                               AutomationProperties.AutomationId="TxtFpgaErrorFlags"/>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

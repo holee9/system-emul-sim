@@ -10,7 +10,7 @@ namespace XrayDetector.Gui.E2ETests.Features;
 
 /// <summary>
 /// E2E tests for Parameter Extraction feature (PDF datasheet parsing).
-/// Verifies integration of ParameterExtractor.Core into GUI.Application.
+/// Updated for SPEC-GUI-002: parameter extraction is now in Panel tab (index 0).
 /// </summary>
 [Collection("E2E")]
 public sealed class ParameterExtractionE2ETests : E2ETestBase
@@ -20,7 +20,7 @@ public sealed class ParameterExtractionE2ETests : E2ETestBase
     }
 
     [RequiresDesktopFact]
-    public async Task Tab3_ParameterExtraction_Should_Exist_And_Be_Clickable()
+    public async Task Tab1_Panel_Should_Exist_And_Have_PdfButtons()
     {
         // Find the TabControl
         var tabControl = MainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Tab))
@@ -28,20 +28,20 @@ public sealed class ParameterExtractionE2ETests : E2ETestBase
 
         // Get all tab items
         var tabItems = tabControl.FindAllChildren(cf => cf.ByControlType(ControlType.TabItem));
-        Assert.True(tabItems.Length >= 3, $"Expected at least 3 tabs, found {tabItems.Length}");
+        Assert.True(tabItems.Length >= 1, $"Expected at least 1 tab, found {tabItems.Length}");
 
-        // Tab 3 should be "Parameter Extraction"
-        var paramExtractTab = tabItems[2];
-        var tabName = paramExtractTab.Name;
-        Assert.Equal("Parameter Extraction", tabName);
+        // Tab 1 (index 0) should be "Panel" (SPEC-GUI-002 module-oriented layout)
+        var panelTab = tabItems[0];
+        var tabName = panelTab.Name;
+        Assert.Equal("Panel", tabName);
 
         // Click the tab to switch to it
-        paramExtractTab.Click();
+        panelTab.Click();
         await Task.Delay(500);
 
-        // Verify the Load PDF button exists in Parameter Extraction view
+        // Verify the Load PDF button exists in Panel view (PDF extraction is embedded in Panel tab)
         var loadPdfButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("BtnLoadPdf"))
-            ?? throw new Exception("Load PDF button (BtnLoadPdf) not found");
+            ?? throw new Exception("Load PDF button (BtnLoadPdf) not found in Panel tab");
 
         Assert.Equal("Load PDF Datasheet", loadPdfButton.Name);
 
@@ -59,32 +59,32 @@ public sealed class ParameterExtractionE2ETests : E2ETestBase
     }
 
     [RequiresDesktopFact]
-    public async Task Tab4_SimulatorControl_Should_Have_Config_Buttons()
+    public async Task Tab1_Panel_Should_Have_Config_Buttons()
     {
-        // Navigate to Tab 4 (Simulator Control)
+        // Navigate to Tab 1 (Panel) — SPEC-GUI-002: config buttons moved to Panel tab
         var tabControl = MainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Tab))
             ?? throw new Exception("TabControl not found");
 
         var tabItems = tabControl.FindAllChildren(cf => cf.ByControlType(ControlType.TabItem));
-        Assert.True(tabItems.Length >= 4, $"Expected at least 4 tabs, found {tabItems.Length}");
+        Assert.True(tabItems.Length >= 1, $"Expected at least 1 tab, found {tabItems.Length}");
 
-        // Tab 4 should be "Simulator Control"
-        var simulatorTab = tabItems[3];
-        Assert.Equal("Simulator Control", simulatorTab.Name);
+        // Tab 1 (index 0) should be "Panel"
+        var panelTab = tabItems[0];
+        Assert.Equal("Panel", panelTab.Name);
 
         // Click the tab
-        simulatorTab.Click();
+        panelTab.Click();
         await Task.Delay(500);
 
-        // Verify Load Config button exists
+        // Verify Load Config button exists in Panel tab
         var loadConfigButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("BtnLoadConfig"))
-            ?? throw new Exception("Load Config button (BtnLoadConfig) not found");
+            ?? throw new Exception("Load Config button (BtnLoadConfig) not found in Panel tab");
 
         Assert.Equal("Load Config", loadConfigButton.Name);
 
-        // Verify Save Config button exists
+        // Verify Save Config button exists in Panel tab
         var saveConfigButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("BtnSaveConfig"))
-            ?? throw new Exception("Save Config button (BtnSaveConfig) not found");
+            ?? throw new Exception("Save Config button (BtnSaveConfig) not found in Panel tab");
 
         Assert.Equal("Save Config", saveConfigButton.Name);
     }

@@ -1,0 +1,138 @@
+<UserControl x:Class="XrayDetector.Gui.Views.SdkHostView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="900">
+    <ScrollViewer>
+        <StackPanel Margin="16">
+            <TextBlock Text="Host PC (SDK)" FontSize="20" FontWeight="Bold" Margin="0,0,0,16"/>
+
+            <!-- SDK Connection -->
+            <GroupBox Header="SDK Connection" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Connection State:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1"
+                               Text="{Binding Status.ConnectionState}"
+                               FontWeight="Bold"
+                               Margin="0,0,0,5"
+                               AutomationProperties.AutomationId="TxtSdkConnectionState"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Acquisition State:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1"
+                               Text="{Binding Status.AcquisitionState}"
+                               Margin="0,0,0,5"
+                               AutomationProperties.AutomationId="TxtSdkAcquisitionState"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Client Mode:" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="2" Grid.Column="1"
+                              ItemsSource="{Binding ClientModes}"
+                              SelectedItem="{Binding ClientMode, Mode=TwoWay}"
+                              Margin="0,0,0,5"
+                              AutomationProperties.AutomationId="CboClientMode"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Throughput:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1"
+                               Text="{Binding Status.ThroughputGbps, StringFormat={}{0:F2} Gbps}"
+                               AutomationProperties.AutomationId="TxtSdkThroughput"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Frame Statistics -->
+            <GroupBox Header="Frame Statistics" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Frames Received:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1"
+                               Text="{Binding Status.FramesReceived}"
+                               Margin="0,0,0,5"
+                               AutomationProperties.AutomationId="TxtSdkFramesReceived"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Dropped Frames:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1"
+                               Text="{Binding Status.DroppedFrames}"
+                               Foreground="Red"
+                               Margin="0,0,0,5"
+                               AutomationProperties.AutomationId="TxtSdkDroppedFrames"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Drop Rate:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1"
+                               Text="{Binding Status.DropRatePercentage, StringFormat={}{0:F1}%}"
+                               AutomationProperties.AutomationId="TxtSdkDropRate"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Storage Configuration -->
+            <GroupBox Header="Storage Configuration" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Output Directory:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding OutputDirectory, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputOutputDirectory"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Format:" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="1" Grid.Column="1"
+                              SelectedItem="{Binding OutputFormat, Mode=TwoWay}"
+                              Margin="0,0,0,5"
+                              AutomationProperties.AutomationId="CboOutputFormat">
+                        <ComboBox.Items>
+                            <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib">TIFF</sys:String>
+                            <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib">RAW</sys:String>
+                        </ComboBox.Items>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Max Frames:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             Text="{Binding MaxFrames, Mode=TwoWay}"
+                             Margin="0,0,0,5"
+                             AutomationProperties.AutomationId="InputMaxFrames"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Auto Reconnect:" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="3" Grid.Column="1"
+                              IsChecked="{Binding AutoReconnect, Mode=TwoWay}"
+                              Margin="0,0,0,5"
+                              AutomationProperties.AutomationId="ChkAutoReconnect"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Max Retries:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="4" Grid.Column="1"
+                             Text="{Binding MaxRetries, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputMaxRetries"/>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

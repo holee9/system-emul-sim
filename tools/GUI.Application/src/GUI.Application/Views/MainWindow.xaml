@@ -27,14 +27,10 @@
         <KeyBinding Key="F1" Command="{Binding ShowHelpCommand}"/>
     </Window.InputBindings>
 
-    <Window.Resources>
-        <core:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-        <core:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
-        <core:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
-    </Window.Resources>
-
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -78,137 +74,100 @@
             </MenuItem>
         </Menu>
 
-        <!-- Main Content: Tabbed Interface per REQ-TOOLS-040 -->
-        <TabControl Grid.Row="1" Margin="8" SelectedIndex="{Binding SelectedTabIndex}">
+        <!-- Connection Bar -->
+        <Border Grid.Row="1" Background="#E8E8E8" BorderBrush="#CCC" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="8,4">
+                <TextBlock Text="Host:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBox Text="{Binding HostAddress, UpdateSourceTrigger=PropertyChanged}"
+                         Width="130" Margin="0,0,4,0"/>
+                <TextBlock Text=":" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"
+                         Width="55" Margin="0,0,8,0"/>
+                <Button Content="Connect" Command="{Binding ConnectCommand}" Padding="10,2" Margin="0,0,4,0"/>
+                <Button Content="Disconnect" Command="{Binding DisconnectCommand}" Padding="10,2"/>
+            </StackPanel>
+        </Border>
 
-            <!-- Tab 1: Status Dashboard (REQ-TOOLS-045) -->
-            <TabItem Header="Status Dashboard" AutomationProperties.AutomationId="TabStatus">
-                <ScrollViewer>
-                    <StackPanel Margin="16">
-                        <TextBlock Text="System Status" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
+        <!-- Pipeline Integration Toolbar (SPEC-GUI-002) -->
+        <Border Grid.Row="2" Background="#2D2D2D" Padding="8,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                        <!-- Connection Status -->
-                        <GroupBox Header="Connection" Margin="0,0,0,16">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                <!-- Module Status Indicators -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Panel" Foreground="#4CAF50" FontWeight="Bold"
+                               Margin="0,0,12,0" VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="ModuleStatusPanel"/>
+                    <TextBlock Text="FPGA" Foreground="#4CAF50" FontWeight="Bold"
+                               Margin="0,0,12,0" VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="ModuleStatusFpga"/>
+                    <TextBlock Text="SoC" Foreground="#4CAF50" FontWeight="Bold"
+                               Margin="0,0,12,0" VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="ModuleStatusSoc"/>
+                    <TextBlock Text="ETH" Foreground="#4CAF50" FontWeight="Bold"
+                               Margin="0,0,12,0" VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="ModuleStatusEth"/>
+                    <TextBlock Text="SDK" Foreground="#4CAF50" FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="ModuleStatusSdk"/>
+                </StackPanel>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="State:" Margin="8"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatusViewModel.ConnectionState}" Margin="8" FontWeight="Bold"/>
+                <!-- Integrate & Run -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Integrate and Run"
+                            Command="{Binding StartAcquisitionCommand}"
+                            Background="#4CAF50" Foreground="White"
+                            FontWeight="Bold" Padding="16,4" Margin="0,0,8,0"
+                            AutomationProperties.AutomationId="BtnIntegrateAndRun"/>
+                    <Button Content="Stop All"
+                            Command="{Binding StopAcquisitionCommand}"
+                            Background="#F44336" Foreground="White"
+                            FontWeight="Bold" Padding="16,4"
+                            AutomationProperties.AutomationId="BtnStopAll"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Host:" Margin="8"/>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="8">
-                                    <TextBox Text="{Binding HostAddress, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
-                                    <TextBlock Text=":" Margin="4,0"/>
-                                    <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
-                                </StackPanel>
+        <!-- Main Content: Module-Oriented Tabbed Interface (SPEC-GUI-002) -->
+        <TabControl Grid.Row="3" Margin="4" SelectedIndex="{Binding SelectedTabIndex}">
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Throughput:" Margin="8"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding StatusViewModel.ThroughputGbps, StringFormat={}{0:F2} Gbps}" Margin="8"/>
-                            </Grid>
-                        </GroupBox>
-
-                        <!-- Acquisition Status -->
-                        <GroupBox Header="Acquisition" Margin="0,0,0,16">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="State:" Margin="8"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatusViewModel.AcquisitionState}" Margin="8" FontWeight="Bold"/>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Frames Received:" Margin="8"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding FramesReceived}" Margin="8"/>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Dropped Frames:" Margin="8"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DroppedFrames}" Margin="8" Foreground="Red"/>
-                            </Grid>
-                        </GroupBox>
-                    </StackPanel>
-                </ScrollViewer>
+            <!-- Tab 1: Panel (Emulator/HW) -->
+            <TabItem Header="Panel" AutomationProperties.AutomationId="TabPanel">
+                <views:PanelEmulatorView DataContext="{Binding PanelViewModel}"/>
             </TabItem>
 
-            <!-- Tab 2: Frame Preview (REQ-TOOLS-041, REQ-TOOLS-042) -->
-            <TabItem Header="Frame Preview" AutomationProperties.AutomationId="TabImage">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Window/Level Controls -->
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8" Background="#F5F5F5">
-                        <TextBlock Text="Window Center:" VerticalAlignment="Center" Margin="8,0"/>
-                        <Slider Width="150" VerticalAlignment="Center" Minimum="0" Maximum="65535"
-                                Value="{Binding WindowCenter}" TickFrequency="1000" IsSnapToTickEnabled="True"/>
-                        <TextBox Text="{Binding WindowCenter, StringFormat={}{0:F0}}" Width="80" Margin="8,0"/>
-
-                        <TextBlock Text="Window Width:" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                        <Slider Width="150" VerticalAlignment="Center" Minimum="1" Maximum="65535"
-                                Value="{Binding WindowWidth}" TickFrequency="1000" IsSnapToTickEnabled="True"/>
-                        <TextBox Text="{Binding WindowWidth, StringFormat={}{0:F0}}" Width="80" Margin="8,0"/>
-
-                        <Button Content="Auto" Command="{Binding AutoWindowLevelCommand}" Margin="16,0,8,0" Padding="16,4"/>
-                    </StackPanel>
-
-                    <!-- Frame Display -->
-                    <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="1" Margin="8" Background="Black">
-                        <Image x:Name="FrameImage"
-                               Stretch="Uniform"
-                               RenderOptions.BitmapScalingMode="NearestNeighbor"
-                               RenderOptions.EdgeMode="Aliased"/>
-                    </Border>
-
-                    <!-- Frame Info -->
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="8">
-                        <TextBlock AutomationProperties.AutomationId="TxtFrameInfo" Text="{Binding FramePreviewViewModel.FrameInfo}" FontWeight="Bold"/>
-                        <TextBlock Text=" | " Margin="8,0"/>
-                        <TextBlock Text="{Binding FramePreviewViewModel.MinValue, StringFormat={}Min: {0}}"/>
-                        <TextBlock Text=" | " Margin="8,0"/>
-                        <TextBlock Text="{Binding FramePreviewViewModel.MaxValue, StringFormat={}Max: {0}}"/>
-                    </StackPanel>
-                </Grid>
+            <!-- Tab 2: FPGA (Emulator/HW) -->
+            <TabItem Header="FPGA" AutomationProperties.AutomationId="TabFpga">
+                <views:FpgaEmulatorView DataContext="{Binding FpgaViewModel}"/>
             </TabItem>
 
-            <!-- Tab 3: Parameter Extraction (PDF Datasheet) -->
-            <TabItem Header="Parameter Extraction" AutomationProperties.AutomationId="TabParamExtract">
-                <views:ParameterExtractorView DataContext="{Binding ParameterExtractorViewModel}"/>
+            <!-- Tab 3: SoC (Emulator/HW) -->
+            <TabItem Header="SoC" AutomationProperties.AutomationId="TabSoc">
+                <views:SocEmulatorView DataContext="{Binding SocViewModel}"/>
             </TabItem>
 
-            <!-- Tab 4: Simulator Control (REQ-UI-012) -->
-            <TabItem Header="Simulator Control" AutomationProperties.AutomationId="TabSimulator">
-                <views:SimulatorControlView DataContext="{Binding SimulatorControlViewModel}"/>
+            <!-- Tab 4: Ethernet (Emulator/HW) -->
+            <TabItem Header="Ethernet" AutomationProperties.AutomationId="TabEthernet">
+                <views:EthernetView DataContext="{Binding EthernetViewModel}"/>
             </TabItem>
 
-            <!-- Tab 5: Pipeline Status (REQ-UI-013) -->
-            <TabItem Header="Pipeline Status" AutomationProperties.AutomationId="TabPipeline">
-                <views:PipelineStatusView DataContext="{Binding PipelineStatusViewModel}"/>
+            <!-- Tab 5: Host PC SDK (Simulator/SW) -->
+            <TabItem Header="Host PC" AutomationProperties.AutomationId="TabSdkHost">
+                <views:SdkHostView DataContext="{Binding SdkHostViewModel}"/>
             </TabItem>
 
-            <!-- Tab 6: Scenario Runner (REQ-UI-014) -->
-            <TabItem Header="Scenario Runner" AutomationProperties.AutomationId="TabScenario">
-                <views:ScenarioRunnerView DataContext="{Binding ScenarioRunnerViewModel}"/>
+            <!-- Tab 6: Console (Simulator/SW) -->
+            <TabItem Header="Console" AutomationProperties.AutomationId="TabConsole">
+                <views:ConsoleView DataContext="{Binding ConsoleViewModel}"/>
             </TabItem>
 
         </TabControl>
 
         <!-- Keyboard Shortcut Overlay (Ctrl+/ toggles, click to dismiss) -->
-        <Border Grid.Row="0" Grid.RowSpan="3"
+        <Border Grid.Row="0" Grid.RowSpan="5"
                 Background="#CC000000"
                 Visibility="{Binding IsShortcutOverlayVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                 AutomationProperties.AutomationId="ShortcutOverlay">
@@ -247,7 +206,7 @@
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="F11" FontWeight="Bold" Margin="0,4"/>
                         <TextBlock Grid.Row="3" Grid.Column="1" Text="Toggle Full Screen" Margin="0,4"/>
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Alt+1 ~ Alt+6" FontWeight="Bold" Margin="0,4"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Text="Switch Tab" Margin="0,4"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="Switch Tab (Panel/FPGA/SoC/Ethernet/Host/Console)" Margin="0,4"/>
                         <TextBlock Grid.Row="5" Grid.Column="0" Text="Ctrl+/" FontWeight="Bold" Margin="0,4"/>
                         <TextBlock Grid.Row="5" Grid.Column="1" Text="Show / Hide This Panel" Margin="0,4"/>
                         <TextBlock Grid.Row="6" Grid.Column="0" Text="F1" FontWeight="Bold" Margin="0,4"/>
@@ -260,7 +219,7 @@
         </Border>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="2"
+        <StatusBar Grid.Row="4"
                    AutomationProperties.AutomationId="StatusBarMain"
                    Visibility="{Binding IsStatusBarVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <StatusBarItem>
