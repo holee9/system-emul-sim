@@ -10,6 +10,12 @@ namespace XrayDetector.Gui.Tests.Services;
 /// </summary>
 public class ScenarioRunnerTests
 {
+    // Synchronous IProgress<int> implementation to avoid Progress<T> async callback scheduling issues in tests.
+    private sealed class SyncProgress<T>(Action<T> handler) : IProgress<T>
+    {
+        public void Report(T value) => handler(value);
+    }
+
     [Fact]
     public void GetPredefinedScenarios_returns_non_empty_list()
     {
@@ -28,7 +34,7 @@ public class ScenarioRunnerTests
         var runner = new ScenarioRunner();
         var scenario = ScenarioRunner.GetPredefinedScenarios()[0];
         var progressValues = new List<int>();
-        var progress = new Progress<int>(p => progressValues.Add(p));
+        var progress = new SyncProgress<int>(p => progressValues.Add(p));
 
         // Act
         var task = runner.ExecuteScenarioAsync(scenario, progress, CancellationToken.None);

@@ -95,6 +95,9 @@ public sealed partial class MainViewModel : ObservableObject
 
         // Wire SDK tab connect/disconnect commands (SPEC-GUI-002)
         SdkHostViewModel.SetCommands(ConnectCommand, DisconnectCommand);
+
+        // Wire network impairment parameter changes to pipeline (SPEC-GUI-002 Ethernet tab)
+        SimulatorControlViewModel.PropertyChanged += OnNetworkParamChanged;
     }
 
     /// <summary>Status dashboard ViewModel (REQ-TOOLS-045).</summary>
@@ -345,6 +348,43 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Builds DetectorConfig merging all module VM parameters.
+    /// Overrides hardcoded FPGA/SoC values with live ViewModel state (SPEC-GUI-002).
+    /// </summary>
+    private IntegrationRunner.Core.Models.DetectorConfig BuildDetectorConfig()
+    {
+        var config = SimulatorControlViewModel.ToDetectorConfig();
+        // Override FPGA params from FpgaViewModel
+        if (config.Fpga != null)
+        {
+            config.Fpga.Csi2Lanes = FpgaViewModel.Csi2Lanes;
+            config.Fpga.Csi2DataRateMbps = FpgaViewModel.Csi2DataRateMbps;
+            config.Fpga.LineBufferDepth = FpgaViewModel.LineBufferDepth;
+        }
+        // Override SoC UDP port from SocViewModel
+        if (config.Soc != null)
+            config.Soc.UdpPort = SocViewModel.UdpTargetPort;
+        return config;
+    }
+
+    /// <summary>
+    /// Propagates network impairment parameter changes to the running pipeline.
+    /// </summary>
+    private void OnNetworkParamChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(SimulatorControlViewModel.PacketLossRate)
+            or nameof(SimulatorControlViewModel.ReorderRate)
+            or nameof(SimulatorControlViewModel.CorruptionRate)))
+            return;
+
+        if (_detectorClient is PipelineDetectorClient pc)
+            pc.UpdateNetworkConfig(
+                SimulatorControlViewModel.PacketLossRate,
+                SimulatorControlViewModel.ReorderRate,
+                SimulatorControlViewModel.CorruptionRate);
+    }
+
     private async Task OnStartAcquisitionAsync()
     {
         try
@@ -352,7 +392,7 @@ public sealed partial class MainViewModel : ObservableObject
             StatusMessage = "Starting acquisition...";
             // Apply current simulator parameters before starting (SPEC-GUI-001 MVP-1)
             if (_detectorClient is PipelineDetectorClient pipelineClient)
-                pipelineClient.UpdateConfig(SimulatorControlViewModel.ToDetectorConfig());
+                pipelineClient.UpdateConfig(BuildDetectorConfig());
             await _detectorClient.StartAcquisitionAsync();
             IsAcquiring = true;
             (StartAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
@@ -375,7 +415,7 @@ public sealed partial class MainViewModel : ObservableObject
             (StopAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
             await _detectorClient.StopAcquisitionAsync();
             if (_detectorClient is PipelineDetectorClient pipelineClient)
-                pipelineClient.UpdateConfig(SimulatorControlViewModel.ToDetectorConfig());
+                pipelineClient.UpdateConfig(BuildDetectorConfig());
             await _detectorClient.StartAcquisitionAsync();
             IsAcquiring = true;
             (StartAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();

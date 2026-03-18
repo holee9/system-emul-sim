@@ -247,6 +247,15 @@ public sealed class PipelineDetectorClient : IDetectorClient
     public PipelineStatistics GetStatistics() => _pipeline.GetStatistics();
 
     /// <summary>
+    /// Updates network impairment parameters on the running pipeline (SPEC-GUI-002 Ethernet tab).
+    /// </summary>
+    public void UpdateNetworkConfig(double lossRate, double reorderRate, double corruptionRate)
+    {
+        _pipeline.SetPacketLossRate(lossRate);
+        _pipeline.SetPacketReorderRate(reorderRate);
+    }
+
+    /// <summary>
     /// Runs the acquisition loop in a background task.
     /// Generates frames at the configured FPS and fires FrameReceived events.
     /// </summary>
