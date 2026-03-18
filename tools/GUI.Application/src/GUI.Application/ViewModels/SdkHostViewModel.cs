@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using XrayDetector.Gui.Core;
 
@@ -96,6 +97,22 @@ public sealed class SdkHostViewModel : ObservableObject
         DisconnectCommand = disconnect;
         OnPropertyChanged(nameof(ConnectCommand));
         OnPropertyChanged(nameof(DisconnectCommand));
+    }
+
+    /// <summary>Recently saved file paths (most recent first, max 10 entries).</summary>
+    public ObservableCollection<string> RecentSaves { get; } = [];
+
+    /// <summary>
+    /// Records a saved file path into the recent saves list.
+    /// Keeps at most 10 entries; duplicates are moved to the front.
+    /// </summary>
+    public void AddRecentSave(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return;
+        RecentSaves.Remove(path);
+        RecentSaves.Insert(0, path);
+        while (RecentSaves.Count > 10)
+            RecentSaves.RemoveAt(RecentSaves.Count - 1);
     }
 
     /// <summary>Indicates whether this module is ready for integration run.</summary>

@@ -249,10 +249,12 @@ public sealed class PipelineDetectorClient : IDetectorClient
     /// <summary>
     /// Updates network impairment parameters on the running pipeline (SPEC-GUI-002 Ethernet tab).
     /// </summary>
-    public void UpdateNetworkConfig(double lossRate, double reorderRate, double corruptionRate)
+    public void UpdateNetworkConfig(double lossRate, double reorderRate, double corruptionRate,
+        int minDelayMs = 0, int maxDelayMs = 0)
     {
         _pipeline.SetPacketLossRate(lossRate);
         _pipeline.SetPacketReorderRate(reorderRate);
+        _pipeline.SetDelayRange(minDelayMs, maxDelayMs);
     }
 
     /// <summary>

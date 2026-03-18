@@ -24,6 +24,7 @@ public sealed class SimulatorControlViewModel : ObservableObject
     private const double DefaultKvp = 80.0;
     private const double DefaultMas = 1.0;
     private const double DefaultPixelPitchUm = 100.0;
+    private const double DefaultExposureTimeMs = 100.0;
     private const int DefaultFrameBufferCount = 4;
     private const double DefaultPacketLossRate = 0.0;
     private const double DefaultReorderRate = 0.0;
@@ -38,6 +39,11 @@ public sealed class SimulatorControlViewModel : ObservableObject
     private double _panelKvp = DefaultKvp;
     private double _panelMas = DefaultMas;
     private double _panelPixelPitchUm = DefaultPixelPitchUm;
+    private double _exposureTimeMs = DefaultExposureTimeMs;
+
+    // Simulation parameters
+    private string _testPattern = "counter";
+    private int _seed = 42;
 
     // MCU parameters
     private int _frameBufferCount = DefaultFrameBufferCount;
@@ -102,6 +108,38 @@ public sealed class SimulatorControlViewModel : ObservableObject
     {
         get => _panelPixelPitchUm;
         set => SetField(ref _panelPixelPitchUm, value);
+    }
+
+    /// <summary>
+    /// X-ray exposure time in milliseconds (SourceConfig.ExposureTimeMs).
+    /// </summary>
+    public double ExposureTimeMs
+    {
+        get => _exposureTimeMs;
+        set => SetField(ref _exposureTimeMs, Math.Max(0.1, value));
+    }
+
+    /// <summary>
+    /// Test pattern for panel emulation: counter / checkerboard / physics_based / flat_field.
+    /// Maps to SimulationConfig.TestPattern.
+    /// </summary>
+    public string TestPattern
+    {
+        get => _testPattern;
+        set => SetField(ref _testPattern, value);
+    }
+
+    /// <summary>Available test patterns for ComboBox binding.</summary>
+    public string[] TestPatterns { get; } = ["counter", "checkerboard", "physics_based", "flat_field"];
+
+    /// <summary>
+    /// Random seed for reproducible simulation output.
+    /// Maps to SimulationConfig.Seed.
+    /// </summary>
+    public int Seed
+    {
+        get => _seed;
+        set => SetField(ref _seed, value);
     }
 
     /// <summary>
@@ -233,7 +271,8 @@ public sealed class SimulatorControlViewModel : ObservableObject
             Source = new SourceConfig
             {
                 KVp = _panelKvp,
-                MAs = _panelMas
+                MAs = _panelMas,
+                ExposureTimeMs = _exposureTimeMs
             },
             Fpga = new FpgaConfig
             {
@@ -249,7 +288,9 @@ public sealed class SimulatorControlViewModel : ObservableObject
             },
             Simulation = new SimulationConfig
             {
-                MaxFrames = 100 // Default
+                MaxFrames = 100,
+                TestPattern = _testPattern,
+                Seed = _seed
             }
         };
     }
@@ -271,6 +312,7 @@ public sealed class SimulatorControlViewModel : ObservableObject
         {
             if (config.Source.KVp > 0) PanelKvp = config.Source.KVp;
             if (config.Source.MAs > 0) PanelMas = config.Source.MAs;
+            if (config.Source.ExposureTimeMs > 0) ExposureTimeMs = config.Source.ExposureTimeMs;
         }
 
         if (config?.Soc != null)
@@ -280,7 +322,8 @@ public sealed class SimulatorControlViewModel : ObservableObject
 
         if (config?.Simulation != null)
         {
-            // Update other simulation parameters if needed
+            if (!string.IsNullOrEmpty(config.Simulation.TestPattern)) TestPattern = config.Simulation.TestPattern;
+            if (config.Simulation.Seed != 0) Seed = config.Simulation.Seed;
         }
     }
 

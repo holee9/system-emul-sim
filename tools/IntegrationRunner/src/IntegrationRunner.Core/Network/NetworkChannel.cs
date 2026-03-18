@@ -14,8 +14,8 @@ public sealed class NetworkChannel
     private double _packetLossRate;
     private double _reorderRate;
     private double _corruptionRate;
-    private readonly int _minDelayMs;
-    private readonly int _maxDelayMs;
+    private int _minDelayMs;
+    private int _maxDelayMs;
 
     /// <summary>Total packets submitted to the channel.</summary>
     public long PacketsSent { get; private set; }
@@ -163,6 +163,23 @@ public sealed class NetworkChannel
         lock (_lock)
         {
             _corruptionRate = rate;
+        }
+    }
+
+    /// <summary>
+    /// Updates the simulated packet delay range at runtime.
+    /// </summary>
+    /// <param name="minMs">Minimum delay in milliseconds (≥ 0).</param>
+    /// <param name="maxMs">Maximum delay in milliseconds (≥ minMs).</param>
+    public void SetDelayRange(int minMs, int maxMs)
+    {
+        if (minMs < 0) throw new ArgumentOutOfRangeException(nameof(minMs), "Minimum delay must be >= 0.");
+        if (maxMs < minMs) throw new ArgumentOutOfRangeException(nameof(maxMs), "Maximum delay must be >= minMs.");
+
+        lock (_lock)
+        {
+            _minDelayMs = minMs;
+            _maxDelayMs = maxMs;
         }
     }
 

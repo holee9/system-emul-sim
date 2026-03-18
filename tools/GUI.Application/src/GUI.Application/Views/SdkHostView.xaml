@@ -133,6 +133,27 @@
                              AutomationProperties.AutomationId="InputMaxRetries"/>
                 </Grid>
             </GroupBox>
+            <!-- Recent Saves -->
+            <GroupBox Header="Recent Saves" Margin="0,0,0,12">
+                <StackPanel Margin="10">
+                    <ListBox ItemsSource="{Binding RecentSaves}"
+                             MaxHeight="120"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             AutomationProperties.AutomationId="ListRecentSaves">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock Text="(no recent saves)" Foreground="Gray" FontStyle="Italic" Margin="4,4,0,0">
+                        <TextBlock.Visibility>
+                            <Binding Path="RecentSaves.Count"
+                                     Converter="{StaticResource IntToVisibilityConverter}"/>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

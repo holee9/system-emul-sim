@@ -60,6 +60,21 @@
                 </Grid>
             </GroupBox>
 
+            <!-- Sequence Engine -->
+            <GroupBox Header="Sequence Engine" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Command State:" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding SequenceEngineState}"
+                               FontWeight="Bold"
+                               AutomationProperties.AutomationId="TxtSequenceEngineState"/>
+                </Grid>
+            </GroupBox>
+
             <!-- Pipeline Statistics -->
             <GroupBox Header="Pipeline Statistics" Margin="0,0,0,12">
                 <Grid Margin="10">

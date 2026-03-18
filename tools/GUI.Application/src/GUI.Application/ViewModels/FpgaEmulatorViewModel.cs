@@ -2,6 +2,15 @@ using XrayDetector.Gui.Core;
 
 namespace XrayDetector.Gui.ViewModels;
 
+/// <summary>A single SPI register entry for display in the register map table.</summary>
+public sealed class SpiRegisterEntry
+{
+    public string Name { get; init; } = string.Empty;
+    public string Address { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public string Value { get; set; } = "0x00";
+}
+
 /// <summary>
 /// ViewModel for FPGA tab (SPEC-GUI-002).
 /// Manages CSI-2 interface, gate timing, and FSM status.
@@ -83,6 +92,28 @@ public sealed class FpgaEmulatorViewModel : ObservableObject
 
     /// <summary>Indicates whether this module is ready for integration run.</summary>
     public bool IsReady => FsmState == "IDLE" && ErrorFlags == "None";
+
+    /// <summary>
+    /// SPI register map (REQ-SIM-020): 14 key registers from fpga-design.md Section 6.3.
+    /// Read-only display — values mirror current ViewModel state.
+    /// </summary>
+    public IReadOnlyList<SpiRegisterEntry> SpiRegisters { get; } =
+    [
+        new() { Name = "STATUS",           Address = "0x20", Description = "FSM state + error summary" },
+        new() { Name = "CONTROL",          Address = "0x21", Description = "Acquisition enable / reset" },
+        new() { Name = "FRAME_COUNT_HI",   Address = "0x30", Description = "Frame counter [15:8]" },
+        new() { Name = "FRAME_COUNT_LO",   Address = "0x31", Description = "Frame counter [7:0]" },
+        new() { Name = "TIMING_ROW_PERIOD",Address = "0x40", Description = "Row period (clocks)" },
+        new() { Name = "TIMING_GATE_ON",   Address = "0x41", Description = "Gate ON duration (clocks)" },
+        new() { Name = "TIMING_GATE_OFF",  Address = "0x42", Description = "Gate OFF duration (clocks)" },
+        new() { Name = "ROIC_SETTLE_US",   Address = "0x43", Description = "ROIC settle time (us)" },
+        new() { Name = "ADC_CONV_US",      Address = "0x44", Description = "ADC conversion time (us)" },
+        new() { Name = "FRAME_BLANK_US",   Address = "0x45", Description = "Frame blanking (us)" },
+        new() { Name = "PANEL_ROWS",       Address = "0x50", Description = "Detector row count" },
+        new() { Name = "PANEL_COLS",       Address = "0x51", Description = "Detector column count" },
+        new() { Name = "CSI2_LANE_COUNT",  Address = "0x60", Description = "Active CSI-2 lane count" },
+        new() { Name = "ERROR_FLAGS",      Address = "0x80", Description = "Active error flags bitmask" },
+    ];
 
     /// <summary>
     /// Updates FSM state to reflect pipeline acquisition state.

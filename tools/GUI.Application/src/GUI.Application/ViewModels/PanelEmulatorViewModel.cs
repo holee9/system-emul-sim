@@ -15,6 +15,15 @@ public sealed class PanelEmulatorViewModel : ObservableObject
     {
         SimulatorControl = simulatorControl ?? throw new ArgumentNullException(nameof(simulatorControl));
         ParameterExtractor = parameterExtractor ?? throw new ArgumentNullException(nameof(parameterExtractor));
+
+        // Re-emit IsReady when panel parameters change
+        SimulatorControl.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(SimulatorControlViewModel.PanelRows)
+                or nameof(SimulatorControlViewModel.PanelCols)
+                or nameof(SimulatorControlViewModel.PanelBitDepth))
+                OnPropertyChanged(nameof(IsReady));
+        };
     }
 
     /// <summary>
@@ -28,6 +37,12 @@ public sealed class PanelEmulatorViewModel : ObservableObject
     /// </summary>
     public ParameterExtractorViewModel ParameterExtractor { get; }
 
-    /// <summary>Indicates whether this module is ready for integration run.</summary>
-    public bool IsReady => true;
+    /// <summary>
+    /// Indicates whether this module is ready for integration run.
+    /// Requires valid Rows/Cols (> 0) and BitDepth in [8, 16].
+    /// </summary>
+    public bool IsReady =>
+        SimulatorControl.PanelRows > 0 &&
+        SimulatorControl.PanelCols > 0 &&
+        SimulatorControl.PanelBitDepth is >= 8 and <= 16;
 }

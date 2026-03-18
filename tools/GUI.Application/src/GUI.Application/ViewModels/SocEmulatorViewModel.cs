@@ -10,6 +10,7 @@ public sealed class SocEmulatorViewModel : ObservableObject
 {
     private string _udpTargetIp = "127.0.0.1";
     private int _udpTargetPort = 8001;
+    private string _sequenceEngineState = "Idle";
 
     /// <summary>Creates a new SocEmulatorViewModel.</summary>
     public SocEmulatorViewModel(
@@ -44,6 +45,30 @@ public sealed class SocEmulatorViewModel : ObservableObject
     {
         get => _udpTargetPort;
         set => SetField(ref _udpTargetPort, Math.Clamp(value, 1024, 65535));
+    }
+
+    /// <summary>
+    /// Sequence Engine command state: Idle / Arming / Acquiring / Draining / Error.
+    /// Updated by MainViewModel when acquisition state changes.
+    /// </summary>
+    public string SequenceEngineState
+    {
+        get => _sequenceEngineState;
+        set => SetField(ref _sequenceEngineState, value);
+    }
+
+    /// <summary>
+    /// Updates the Sequence Engine state based on acquisition lifecycle.
+    /// Called by MainViewModel when IsAcquiring or IsConnected changes.
+    /// </summary>
+    public void UpdateSequenceState(bool isConnected, bool isAcquiring)
+    {
+        SequenceEngineState = (isConnected, isAcquiring) switch
+        {
+            (false, _) => "Idle",
+            (true, false) => "Arming",
+            (true, true) => "Acquiring",
+        };
     }
 
     /// <summary>Indicates whether this module is ready for integration run.</summary>

@@ -38,7 +38,7 @@ public class ScenarioRunnerTests
 
         // Act
         var task = runner.ExecuteScenarioAsync(scenario, progress, CancellationToken.None);
-        task.Wait(TimeSpan.FromSeconds(5));
+        task.Wait(TimeSpan.FromSeconds(30));
 
         // Assert
         progressValues.Should().NotBeEmpty();

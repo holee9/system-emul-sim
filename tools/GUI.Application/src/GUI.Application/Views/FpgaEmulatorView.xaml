@@ -79,6 +79,19 @@
                 </Grid>
             </GroupBox>
 
+            <!-- SPI Register Map (REQ-SIM-020) -->
+            <GroupBox Header="SPI Register Map (fpga-design.md §6.3 — read-only)" Margin="0,0,0,12">
+                <ListView ItemsSource="{Binding SpiRegisters}" MaxHeight="220" Margin="4">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Name"        Width="160" DisplayMemberBinding="{Binding Name}"/>
+                            <GridViewColumn Header="Address"     Width="70"  DisplayMemberBinding="{Binding Address}"/>
+                            <GridViewColumn Header="Description" Width="250" DisplayMemberBinding="{Binding Description}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </GroupBox>
+
             <!-- FSM Status -->
             <GroupBox Header="FSM Status" Margin="0,0,0,12">
                 <Grid Margin="10">

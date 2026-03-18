@@ -153,6 +153,7 @@ public sealed partial class MainViewModel : ObservableObject
             if (SetField(ref _isAcquiring, value))
             {
                 FpgaViewModel.UpdateFsmState(_isAcquiring);
+                SocViewModel.UpdateSequenceState(_isConnected, _isAcquiring);
                 OnPropertyChanged(nameof(AllModulesReady));
                 (IntegrateAndRunCommand as RelayCommand)?.NotifyCanExecuteChanged();
                 (StopAllCommand as RelayCommand)?.NotifyCanExecuteChanged();
@@ -375,14 +376,18 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (e.PropertyName is not (nameof(SimulatorControlViewModel.PacketLossRate)
             or nameof(SimulatorControlViewModel.ReorderRate)
-            or nameof(SimulatorControlViewModel.CorruptionRate)))
+            or nameof(SimulatorControlViewModel.CorruptionRate)
+            or nameof(SimulatorControlViewModel.MinDelayMs)
+            or nameof(SimulatorControlViewModel.MaxDelayMs)))
             return;
 
         if (_detectorClient is PipelineDetectorClient pc)
             pc.UpdateNetworkConfig(
                 SimulatorControlViewModel.PacketLossRate,
                 SimulatorControlViewModel.ReorderRate,
-                SimulatorControlViewModel.CorruptionRate);
+                SimulatorControlViewModel.CorruptionRate,
+                SimulatorControlViewModel.MinDelayMs,
+                SimulatorControlViewModel.MaxDelayMs);
     }
 
     private async Task OnStartAcquisitionAsync()
@@ -458,6 +463,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             StatusMessage = $"Saving frame to {path}...";
             await _detectorClient.SaveFrameAsync(_currentFrame, path, ImageFormat.Tiff);
+            SdkHostViewModel.AddRecentSave(path);
             StatusMessage = $"Frame saved to {path}";
         }
         catch (Exception ex)

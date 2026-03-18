@@ -415,6 +415,16 @@ public class SimulatorPipeline
     }
 
     /// <summary>
+    /// Sets the simulated packet delay range on the network channel.
+    /// </summary>
+    /// <param name="minMs">Minimum delay in milliseconds.</param>
+    /// <param name="maxMs">Maximum delay in milliseconds.</param>
+    public void SetDelayRange(int minMs, int maxMs)
+    {
+        _networkChannel?.SetDelayRange(minMs, maxMs);
+    }
+
+    /// <summary>
     /// Converts a 1D pixel array to 2D [rows, cols].
     /// </summary>
     private static ushort[,] ConvertTo2D(ushort[] pixels, int rows, int cols)

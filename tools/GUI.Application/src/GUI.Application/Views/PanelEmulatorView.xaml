@@ -62,6 +62,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="160"/>
@@ -87,6 +88,7 @@
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="mAs:" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="1" Grid.Column="1"
                              Text="{Binding SimulatorControl.PanelMas, Mode=TwoWay}"
+                             Margin="0,0,0,5"
                              AutomationProperties.AutomationId="InputMas">
                         <TextBox.ToolTip>
                             <ToolTip>
@@ -98,6 +100,37 @@
                             </ToolTip>
                         </TextBox.ToolTip>
                     </TextBox>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Exposure Time (ms):" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             Text="{Binding SimulatorControl.ExposureTimeMs, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputExposureTimeMs"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Physics Model -->
+            <GroupBox Header="Physics Model" Margin="0,0,0,12">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Test Pattern:" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1"
+                              ItemsSource="{Binding SimulatorControl.TestPatterns}"
+                              SelectedItem="{Binding SimulatorControl.TestPattern, Mode=TwoWay}"
+                              Margin="0,0,0,5"
+                              AutomationProperties.AutomationId="CboTestPattern"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Seed:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Text="{Binding SimulatorControl.Seed, Mode=TwoWay}"
+                             AutomationProperties.AutomationId="InputSeed"/>
                 </Grid>
             </GroupBox>
 
