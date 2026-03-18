@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/holee9/system-emul-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/holee9/system-emul-sim/actions/workflows/ci.yml)
 
-| Status | SPEC-GUI-001 Active (GUI 파이프라인 연동 + Physics Model 연결) |
+| Status | SPEC-GUI-002 완료 (모듈 지향 탭 아키텍처 6탭 전면 개편) |
 |--------|---------------------------------------------------------------|
-| Version | 0.5.1 |
+| Version | 0.5.2 |
 | Architecture | 4-layer (Panel → FPGA → SoC → Network → Host) |
 | Resolution | 1024×1024 ~ 3072×3072 pixels, 14/16-bit depth |
 | Frame Rate | 19.1 fps (1024×1024) / 9.5 fps (2048×2048) / 6.4 fps (3072×3072, ROIC 병목 기준) |
@@ -58,16 +58,22 @@ dotnet build tools/GUI.Application/src/GUI.Application/GUI.Application.csproj --
 tools/GUI.Application/src/GUI.Application/bin/Release/net8.0-windows/GUI.Application.exe
 ```
 
-### 주요 기능
+### 주요 기능 (SPEC-GUI-002: 모듈 지향 탭 구조)
 
-| 탭 | 기능 | 설명 |
-|----|------|------|
-| Tab 1: Frame Preview | 실시간 프레임 표시 | 16-bit 그레이스케일, 윈도우 레벨 조정 |
-| Tab 2: Connection Status | 연결 상태 모니터링 | DetectorClient 상태, 연결/분리 |
-| Tab 3: Simulator Control | 에뮬레이터 파라미터 제어 | Panel/FPGA/MCU/Network 구성 |
-| Tab 4: Pipeline Status | 파이프라인 모니터링 | 계층별 처리량, NetworkChannel 통계 |
-| Tab 5: Scenario Runner | 시나리오 실행 | IT01-IT19 통합 테스트 시나리오 |
-| Tab 6: Configuration | 구성 관리 | detector_config.yaml 로드/저장 |
+HW 신호 흐름 `[Panel] → [FPGA] → [SoC] → [Ethernet] → [Host PC] → [Console]` 을 탭 구조에 그대로 반영합니다.
+
+| 탭 | 구분 | 기능 | 주요 컨트롤 |
+|----|------|------|-------------|
+| **Tab 1: Panel** | Emulator (HW) | 센서 패널 + X-ray 소스 + PDF 추출 | Rows/Cols/BitDepth/PixelPitch, kVp/mAs, BtnLoadPdf/Apply |
+| **Tab 2: FPGA** | Emulator (HW) | CSI-2 인터페이스 + Gate Timing + FSM | Lanes/DataRate, GateLines/LineTime, FSM 상태 표시 |
+| **Tab 3: SoC** | Emulator (HW) | Frame Buffer + UDP TX + 파이프라인 통계 | BufferCount, TargetIP/Port, FramesProcessed/Failed |
+| **Tab 4: Ethernet** | Emulator (HW) | 네트워크 채널 에뮬레이션 | PacketLossRate/ReorderRate/CorruptionRate, 실시간 통계 |
+| **Tab 5: Host PC** | Simulator (SW) | SDK 연결 + 프레임 저장 설정 | ClientMode, OutputDirectory/Format, DropRate% |
+| **Tab 6: Console** | Simulator (SW) | 영상 뷰어 + 획득 제어 + 시나리오 | W/L 슬라이더, Start/Stop/Reset, IT-01~IT-18 실행 |
+
+**공통 파이프라인 도구바 (상단 항상 노출)**
+- 각 모듈 Ready/Error 상태 지표 (Panel / FPGA / SoC / ETH / SDK)
+- `Integrate & Run` 버튼 (모든 모듈 Ready 시 활성화) + `Stop All`
 
 ### 에뮬레이터 모드
 
@@ -208,7 +214,8 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 | **M3-Integ** | ✅ Complete | 100% | IT-01~IT-19 integration scenarios + 4-layer bit-exact verification (Simulated) |
 | **M4-Emul** | ✅ Complete | 100% | Emulator Module Revision — Golden Reference upgrade (SPEC-EMUL-001 to 004) |
 | **M5-UI** | ✅ Complete | 100% | Integrated GUI Application — SPEC-UI-001 (4-layer emulator GUI) |
-| **SPEC-GUI-001** | 🔄 Active | MVP-1~3 ✅ / MVP-4 진행중 | GUI 파이프라인 연동 — MVP-1~3 E2E 6/6 통과, MVP-4 PDF 추출 매핑 확장 중 |
+| **SPEC-GUI-001** | ✅ Complete | MVP 1~3 완료 | GUI 파이프라인 연동 — E2E 6/6 통과, Physics Model 연결 완료 |
+| **SPEC-GUI-002** | ✅ Complete | 100% | 모듈 지향 탭 아키텍처 — 6탭 HW/SW 구조 전면 개편, 파이프라인 도구바 |
 | **M7 (W30)** | ⬜ Pending | P8 | 파라미터 추출기 파인튜닝 — 5종 사양서, 자동 추출률 ≥80% |
 | **M8 (W32)** | ⬜ Pending | P9 | 실측 캘리브레이션 — Dark/Bright 피팅, RMSE ≤ 2 LSB |
 | **M9 (W34)** | ⬜ Pending | P10 | 최종 검증 + Release Candidate |
@@ -227,6 +234,15 @@ See [HW Verification Guide](docs/hw-verification-guide.md) for the complete veri
 
 ### Current Status
 
+> **SPEC-GUI-002 모듈 지향 탭 아키텍처 완료 ✅** (2026-03-18)
+>
+> - **탭 구조 전면 개편**: 기능 중심 6탭 → HW 신호 흐름 기반 6탭 (Panel/FPGA/SoC/Ethernet/Host PC/Console)
+> - **신규 ViewModel 6개**: PanelEmulatorVM, FpgaEmulatorVM, SocEmulatorVM, EthernetVM, SdkHostVM, ConsoleVM
+> - **파이프라인 도구바**: 상단 모듈 Ready/Error 상태 + Integrate & Run / Stop All 버튼
+> - **프레임 렌더링 재구조**: ConsoleView.xaml.cs → WriteableBitmap 독립 렌더링 (MainWindow에서 분리)
+> - **E2E 테스트 업데이트**: AutomationId 매핑 신규 탭 구조에 맞게 3개 파일 수정
+> - 빌드: 오류 0 / 경고 5 (기존 NU1701) | 단위 테스트: 214/217 통과 (3개 기존 실패)
+>
 > **Physics Model 연결 + SourceConfig 아키텍처 분리 완료 ✅** (2026-03-18)
 >
 > - **PhysicsBased TestPattern 추가**: `ScintillatorModel` → `GateResponseModel` → `ExposureModel` 3단계 물리 모델 체인 실제 연결
