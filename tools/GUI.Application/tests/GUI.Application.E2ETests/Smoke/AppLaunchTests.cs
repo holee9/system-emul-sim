@@ -52,9 +52,9 @@ public sealed class AppLaunchTests(AppFixture fixture, ITestOutputHelper output)
         fileMenu!.AsMenuItem().Click(); // expand
 
         // Retry: WPF lazily registers MenuItem sub-items with UIAutomation via Dispatcher.
-        // On first expansion, peer registration can take up to 40s on some machines; allow 200 attempts.
+        // On first expansion, peer registration can take up to 90s on some machines; allow 450 attempts.
         AutomationElement? menuFileExit = null;
-        for (int attempt = 0; attempt < 200; attempt++)
+        for (int attempt = 0; attempt < 450; attempt++)
         {
             Thread.Sleep(200);
             menuFileExit = fileMenu.FindFirstChild(cf => cf.ByAutomationId("MenuFileExit"));

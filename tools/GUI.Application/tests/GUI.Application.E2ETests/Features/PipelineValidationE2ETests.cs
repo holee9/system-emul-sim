@@ -249,7 +249,7 @@ public sealed class PipelineValidationE2ETests(AppFixture fixture, ITestOutputHe
         Logger.BeginTest(nameof(MVP2_StopFreezesPipelineCounter));
 
         await ClickStartAsync();
-        await SelectTabAsync("TabPipeline");
+        await SelectTabAsync("TabSoc");
 
         // Wait for non-zero before stopping
         await WaitHelper.WaitUntilAsync(

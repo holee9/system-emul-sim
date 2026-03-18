@@ -18,6 +18,7 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
     private UIA3Automation? _automation;
     private Application? _flaUiApp;
     private bool _isAttachMode;
+    private bool _skipWarmup;
 
     public AutomationElement? MainWindow { get; private set; }
     public bool IsDesktopAvailable { get; private set; } = true;
@@ -25,6 +26,15 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
 
     /// <summary>Structured logger for this E2E session. SPEC-E2E-002: REQ-E2E2-001</summary>
     public E2ELogger Logger { get; } = new E2ELogger();
+
+    /// <summary>
+    /// Set to true BEFORE calling InitializeAsync() to skip WPF MenuItem warmup.
+    /// Use for lifecycle-only tests that do not need menu accessibility, to prevent
+    /// parallel warmup interference with the main [Collection("E2E")] fixture.
+    /// xUnit collection fixtures require a parameterless constructor, so this is
+    /// exposed as a settable property rather than a constructor parameter.
+    /// </summary>
+    public bool SkipWarmup { set => _skipWarmup = value; }
 
     // Path to the built executable
     private static string GetAppExePath()
@@ -105,14 +115,17 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                     // Initial settle: allow WPF Dispatcher to process startup events.
                     await Task.Delay(2000);
 
-                    // Deep warmup: expand each menu and HOLD IT OPEN until its key sub-items
-                    // appear in the UIAutomation tree (up to 90s per menu).
-                    // WPF registers MenuItem AutomationPeers lazily at Background Dispatcher priority.
-                    // On this machine, registration takes ~26s from first expansion.
-                    // Critically, the menu MUST remain expanded during the entire wait period;
-                    // collapsing and re-expanding resets the registration timer.
-                    await WarmupSingleMenuAsync("File", "MenuFileExit");
-                    await WarmupSingleMenuAsync("Help", "MenuHelpTopics");
+                    // Deep warmup: expand each menu TWICE to pre-register WPF AutomationPeers.
+                    // WPF MenuItem peers register lazily at Background Dispatcher priority (~26s on
+                    // this machine on first expansion). After the popup closes, peers are destroyed.
+                    // Running two passes here ensures the 3rd expansion (tests) finds items instantly.
+                    // Skipped when _skipWarmup=true (lifecycle-only tests must pass skipWarmup=true
+                    // to avoid parallel warmup interference with the main E2E fixture).
+                    if (!_skipWarmup)
+                    {
+                        await WarmupSingleMenuAsync("File", "MenuFileExit");
+                        await WarmupSingleMenuAsync("Help", "MenuHelpAbout");
+                    }
 
                     Logger.Step($"Menu warmup complete. Total init: {totalSw.Elapsed.TotalSeconds:F1}s");
                     await Task.Delay(500);
@@ -177,8 +190,11 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
                 {
                     Logger.Step($"MainWindow found after {sw.Elapsed.TotalSeconds:F1}s");
                     await Task.Delay(2000);
-                    await WarmupSingleMenuAsync("File", "MenuFileExit");
-                    await WarmupSingleMenuAsync("Help", "MenuHelpTopics");
+                    if (!_skipWarmup)
+                    {
+                        await WarmupSingleMenuAsync("File", "MenuFileExit");
+                        await WarmupSingleMenuAsync("Help", "MenuHelpAbout");
+                    }
                     Logger.Step("Attach mode init complete.");
                     await Task.Delay(500);
                     break;
@@ -198,9 +214,18 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
     }
 
     /// <summary>
-    /// Expands the named top-level menu and keeps it open until the specified
-    /// AutomationId sub-item appears in the UIAutomation tree, then collapses.
-    /// This ensures the peer is registered before any test needs it.
+    /// Expands the named top-level menu (up to 3 passes) until the specified
+    /// AutomationId sub-item appears in the UIAutomation tree.
+    ///
+    /// WHY THREE PASSES:
+    /// WPF MenuItem AutomationPeers register via Dispatcher.BeginInvoke(Background=4).
+    /// On warm machines (app previously run): Background runs in &lt;1s — pass 1 succeeds.
+    /// On cold start: .NET JIT + WPF DataBind(8)/Render(7)/Loaded(6) work starves
+    /// Background(4) for 350-550s from app launch. Passes 1+2 each time out at 90s.
+    /// Pass 3 adds a 30s rest to allow Dispatcher to drain, then polls for 120s.
+    /// For the second menu (Help), this warmup window spans t=332-662s from app start,
+    /// which overlaps the typical cold-start peer registration window (~350-550s).
+    ///
     /// Best-effort: exceptions are swallowed; tests fall back to their own retry logic.
     /// </summary>
     private async Task WarmupSingleMenuAsync(string menuName, string targetAutomationId)
@@ -216,36 +241,55 @@ public sealed class AppFixture : IAsyncLifetime, IDisposable
             var menuItem = menu.FindFirstChild(cf => cf.ByName(menuName));
             if (menuItem == null) return;
 
-            // Ensure any open menu is closed first.
-            FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
-            await Task.Delay(200);
-
-            menuItem.AsMenuItem().Click(); // expand and HOLD open
-
-            // Poll until target sub-item appears. Menu stays expanded the whole time.
-            // WPF's Background-priority Dispatcher work creates AutomationPeers while menu is open.
-            var warmupTimeout = TimeSpan.FromSeconds(90);
-            var sw = Stopwatch.StartNew();
-            while (sw.Elapsed < warmupTimeout)
+            // Helper: open menu, poll for up to timeoutSec, return true if found.
+            // Always collapses the menu before returning.
+            async Task<bool> TryPassAsync(int passNumber, double timeoutSec)
             {
-                await Task.Delay(500);
-                var target = menuItem.FindFirstChild(cf => cf.ByAutomationId(targetAutomationId));
-                if (target != null)
+                FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
+                await Task.Delay(200);
+                menuItem.AsMenuItem().Click();
+
+                var passSw = Stopwatch.StartNew();
+                while (passSw.Elapsed < TimeSpan.FromSeconds(timeoutSec))
                 {
-                    // Trigger full peer initialization by accessing properties.
-                    _ = target.AutomationId;
-                    _ = target.Name;
-                    Logger.Step($"Warmup done: {menuName} ({warmupSw.Elapsed.TotalSeconds:F1}s)");
-                    break;
+                    await Task.Delay(500);
+                    var t = menuItem.FindFirstChild(cf => cf.ByAutomationId(targetAutomationId));
+                    if (t != null)
+                    {
+                        _ = t.AutomationId;
+                        _ = t.Name;
+                        Logger.Step($"Warmup pass {passNumber} done: {menuName} ({warmupSw.Elapsed.TotalSeconds:F1}s)");
+                        FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
+                        await Task.Delay(300);
+                        return true;
+                    }
                 }
+
+                Logger.Warn($"Warmup pass {passNumber} timeout: {menuName} ({targetAutomationId} not found in {timeoutSec}s)");
+                FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
+                await Task.Delay(300);
+                return false;
             }
 
-            if (warmupSw.Elapsed.TotalSeconds >= 90)
-                Logger.Warn($"Warmup timeout: {menuName} ({targetAutomationId} not found in 90s)");
+            // ── Pass 1 (90s): warm machines succeed here in < 1s ─────────────────────
+            if (await TryPassAsync(1, 90)) return;
 
-            // Collapse menu.
-            FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
-            await Task.Delay(300);
+            // ── Pass 2 (90s): re-register after first collapse ────────────────────────
+            await Task.Delay(500);
+            if (await TryPassAsync(2, 90)) return;
+
+            // ── Pass 3 (120s): cold-start extended retry ──────────────────────────────
+            // On cold start, WPF Background(4) is starved by JIT + DataBind(8)/Render(7)
+            // for 350-550s from app launch. Passes 1+2 cover t=2-182s from app start.
+            // A 30s rest here lets the Background queue partially drain, then pass 3
+            // polls for 120s (covering t=212-332s for File, t=332-662s for Help).
+            // The Help-menu window (t=332-662s) overlaps the typical registration time,
+            // so Help warmup succeeds on cold start before the test suite begins.
+            Logger.Step($"Warmup pass 3 start: {menuName} — resting 30s to allow Background Dispatcher drain");
+            await Task.Delay(30_000);
+            await TryPassAsync(3, 120);
+
+            Logger.Step($"Warmup complete: {menuName} total={warmupSw.Elapsed.TotalSeconds:F1}s");
         }
         catch { /* best-effort warmup */ }
     }

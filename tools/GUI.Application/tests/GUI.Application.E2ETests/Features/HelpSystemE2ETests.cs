@@ -74,13 +74,22 @@ public sealed class HelpSystemE2ETests(AppFixture fixture, ITestOutputHelper out
     [RequiresDesktopFact]
     public void InputKvp_HasCorrectAutomationId()
     {
-        // Switch to Simulator Control tab first (Tab index 3)
+        // InputKvp is in PanelEmulatorView inside Panel tab (index 0, SPEC-GUI-002)
+        // Close any open Help window first to avoid stale overlay.
+        var helpHwnd = FindWindow(null, "도움말");
+        if (helpHwnd != IntPtr.Zero)
+        {
+            var helpEl = Fixture.Automation.FromHandle(helpHwnd);
+            new HelpWindowPage(helpEl).Close();
+            Thread.Sleep(300);
+        }
+
         var tabControl = MainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Tab));
         tabControl.Should().NotBeNull("TabControl must exist");
 
         var tabs = tabControl!.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.TabItem));
-        tabs.Should().HaveCountGreaterThan(3, "Need at least 4 tabs to reach Simulator Control");
-        tabs[3].AsTabItem().Select();
+        tabs.Should().HaveCountGreaterThan(0, "Need at least 1 tab to reach Panel emulator");
+        tabs[0].AsTabItem().Select();
         Thread.Sleep(500); // Wait for tab content to render
 
         // Retry up to 5 times in case automation tree needs time to update

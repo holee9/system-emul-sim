@@ -33,9 +33,9 @@ public sealed class AboutDialogE2ETests(AppFixture fixture, ITestOutputHelper ou
         helpMenu!.AsMenuItem().Click(); // expand
 
         // Retry: WPF lazily registers MenuItem sub-items with UIAutomation via Dispatcher.
-        // On first expansion, peer registration can take up to 40s; allow 200 attempts.
+        // On first expansion, peer registration can take up to 90s; allow 450 attempts.
         AutomationElement? aboutMenuItem = null;
-        for (int attempt = 0; attempt < 200; attempt++)
+        for (int attempt = 0; attempt < 450; attempt++)
         {
             Thread.Sleep(200);
             aboutMenuItem = helpMenu.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout"));
@@ -85,7 +85,7 @@ public sealed class AboutDialogE2ETests(AppFixture fixture, ITestOutputHelper ou
         Thread.Sleep(100);
         helpMenu!.AsMenuItem().Click();
         AutomationElement? menuHelpAbout = null;
-        for (int attempt = 0; attempt < 200; attempt++) { Thread.Sleep(200); menuHelpAbout = helpMenu!.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuHelpAbout != null) break; }
+        for (int attempt = 0; attempt < 450; attempt++) { Thread.Sleep(200); menuHelpAbout = helpMenu!.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuHelpAbout != null) break; }
         FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
         Thread.Sleep(100);
         menuHelpAbout.Should().NotBeNull();
@@ -102,7 +102,7 @@ public sealed class AboutDialogE2ETests(AppFixture fixture, ITestOutputHelper ou
         Thread.Sleep(100);
         helpMenu!.AsMenuItem().Click();
         AutomationElement? menuItem = null;
-        for (int attempt = 0; attempt < 200; attempt++) { Thread.Sleep(200); menuItem = helpMenu!.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuItem != null) break; }
+        for (int attempt = 0; attempt < 450; attempt++) { Thread.Sleep(200); menuItem = helpMenu!.FindFirstChild(cf => cf.ByAutomationId("MenuHelpAbout")); if (menuItem != null) break; }
         FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
         Thread.Sleep(100);
         menuItem.Should().NotBeNull("MenuHelpAbout AutomationId must be set");

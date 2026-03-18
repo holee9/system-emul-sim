@@ -15,8 +15,15 @@ namespace XrayDetector.Gui.E2ETests.Tests.Unit;
 ///   - AttachMode_ValidPid_AttachesWithoutLaunching
 ///   - AttachMode_DoesNotKillProcessOnDispose
 ///
-/// Collection("UnitTests"): prevents parallel execution with E2ELoggerBridgeTests
-/// to avoid E2ELogger file-lock conflicts (both create AppFixture/E2ELogger in same second).
+/// Collection("UnitTests"): prevents parallel execution with E2ELoggerBridgeTests.
+/// E2ELogger file-lock conflicts are prevented by the timestamp+GUID filename suffix
+/// (see E2ELogger.cs lines 49-50), but keeping them in the same collection ensures
+/// deterministic ordering for any future shared-state concerns.
+///
+/// IMPORTANT: tests in this class use SkipWarmup=true when creating AppFixture instances
+/// to avoid parallel warmup interference with the main [Collection("E2E")] fixture.
+/// Without this, both fixtures expand the same menus simultaneously, preventing WPF
+/// AutomationPeer registration from completing in time for the E2E menu tests.
 /// </summary>
 [Collection("UnitTests")]
 public sealed class AppFixtureAttachTests
@@ -62,7 +69,8 @@ public sealed class AppFixtureAttachTests
         {
             Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", targetPid.ToString());
 
-            await using var fixture = new AppFixture();
+            // SkipWarmup: prevent parallel warmup interference with the main E2E fixture.
+            await using var fixture = new AppFixture { SkipWarmup = true };
             await fixture.InitializeAsync();
 
             fixture.IsDesktopAvailable.Should().BeTrue();
@@ -95,7 +103,9 @@ public sealed class AppFixtureAttachTests
         {
             Environment.SetEnvironmentVariable("XRAY_E2E_ATTACH_PID", targetPid.ToString());
 
-            await using (var fixture = new AppFixture())
+            // SkipWarmup: this test only checks lifecycle (process not killed on dispose).
+            // Warmup must be skipped to prevent parallel interference with [Collection("E2E")] fixture.
+            await using (var fixture = new AppFixture { SkipWarmup = true })
             {
                 await fixture.InitializeAsync();
                 // fixture disposed here — DisposeAsync must not kill the target process

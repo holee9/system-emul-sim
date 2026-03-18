@@ -46,7 +46,8 @@ public sealed class E2ELogger : IDisposable
     {
         var dir = Path.Combine("TestResults", "Logs");
         Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, $"e2e_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..8];
+        var path = Path.Combine(dir, $"e2e_{DateTime.Now:yyyyMMdd_HHmmss_fff}_{uniqueSuffix}.log");
         _writer = new StreamWriter(path, append: false) { AutoFlush = true };
         Info("=== E2E Session Started ===");
     }
