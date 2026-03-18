@@ -92,6 +92,9 @@ public sealed partial class MainViewModel : ObservableObject
             StopAcquisitionCommand,
             new RelayCommand(async () => await OnResetPipelineAsync()),
             SaveFrameCommand);
+
+        // Wire SDK tab connect/disconnect commands (SPEC-GUI-002)
+        SdkHostViewModel.SetCommands(ConnectCommand, DisconnectCommand);
     }
 
     /// <summary>Status dashboard ViewModel (REQ-TOOLS-045).</summary>
@@ -142,8 +145,28 @@ public sealed partial class MainViewModel : ObservableObject
     public bool IsAcquiring
     {
         get => _isAcquiring;
-        private set => SetField(ref _isAcquiring, value);
+        private set
+        {
+            if (SetField(ref _isAcquiring, value))
+            {
+                FpgaViewModel.UpdateFsmState(_isAcquiring);
+                OnPropertyChanged(nameof(AllModulesReady));
+                (IntegrateAndRunCommand as RelayCommand)?.NotifyCanExecuteChanged();
+                (StopAllCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            }
+        }
     }
+
+    /// <summary>
+    /// True when all module VMs report IsReady — enables Integrate and Run.
+    /// SPEC-GUI-002: Panel + FPGA + SoC + ETH + SDK all ready.
+    /// </summary>
+    public bool AllModulesReady =>
+        PanelViewModel.IsReady &&
+        FpgaViewModel.IsReady &&
+        SocViewModel.IsReady &&
+        EthernetViewModel.IsReady &&
+        SdkHostViewModel.IsReady;
 
     /// <summary>Host address for connection.</summary>
     public string HostAddress
@@ -260,6 +283,10 @@ public sealed partial class MainViewModel : ObservableObject
     public ICommand SwitchTabCommand { get; private set; } = null!;
     public ICommand ShowShortcutOverlayCommand { get; private set; } = null!;
 
+    // SPEC-GUI-002: Pipeline integration commands
+    public ICommand IntegrateAndRunCommand { get; private set; } = null!;
+    public ICommand StopAllCommand { get; private set; } = null!;
+
     private void InitializeCommands()
     {
         ConnectCommand = new RelayCommand(async () => await OnConnectAsync(), () => !IsConnected);
@@ -280,6 +307,10 @@ public sealed partial class MainViewModel : ObservableObject
         ShowHelpCommand = new RelayCommand(OnShowHelp);
         SwitchTabCommand = new RelayCommand<string>(OnSwitchTab);
         ShowShortcutOverlayCommand = new RelayCommand(OnShowShortcutOverlay);
+
+        // SPEC-GUI-002: Pipeline integration commands
+        IntegrateAndRunCommand = new RelayCommand(async () => await OnIntegrateAndRunAsync(), () => !IsAcquiring);
+        StopAllCommand = new RelayCommand(async () => await OnStopAllAsync(), () => IsAcquiring);
     }
 
     private async Task OnConnectAsync()
@@ -440,6 +471,43 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Raised when help window should be shown.</summary>
     public event Action? HelpRequested;
 
+    private async Task OnIntegrateAndRunAsync()
+    {
+        try
+        {
+            StatusMessage = "Integrating all modules...";
+
+            // Auto-connect if not connected
+            if (!IsConnected)
+            {
+                await OnConnectAsync();
+                // Allow connection state to propagate
+                await Task.Delay(300);
+            }
+
+            if (IsConnected && !IsAcquiring)
+                await OnStartAcquisitionAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Integrate & Run failed: {ex.Message}";
+        }
+    }
+
+    private async Task OnStopAllAsync()
+    {
+        try
+        {
+            if (IsAcquiring)
+                await OnStopAcquisitionAsync();
+            StatusMessage = "All modules stopped";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Stop All failed: {ex.Message}";
+        }
+    }
+
     private void OnOpenConfig()
     {
         var dialog = new OpenFileDialog
@@ -470,6 +538,8 @@ public sealed partial class MainViewModel : ObservableObject
         (ConnectCommand as RelayCommand)?.NotifyCanExecuteChanged();
         (DisconnectCommand as RelayCommand)?.NotifyCanExecuteChanged();
         (StartAcquisitionCommand as RelayCommand)?.NotifyCanExecuteChanged();
+        (IntegrateAndRunCommand as RelayCommand)?.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(AllModulesReady));
     }
 
     private void OnFrameReceived(object? sender, FrameReceivedEventArgs e)
@@ -490,6 +560,8 @@ public sealed partial class MainViewModel : ObservableObject
             (AutoWindowLevelCommand as RelayCommand)?.NotifyCanExecuteChanged();
             // Notify Console tab's AutoWindowLevel state (SPEC-GUI-002)
             ConsoleViewModel.NotifyAutoWindowLevelCanExecuteChanged();
+            // Advance FPGA FSM state (READOUT ↔ FRAME_DONE) to reflect live acquisition
+            FpgaViewModel.NotifyFrameProcessed();
         });
     }
 

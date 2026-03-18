@@ -63,16 +63,45 @@ public sealed class FpgaEmulatorViewModel : ObservableObject
     public string FsmState
     {
         get => _fsmState;
-        set => SetField(ref _fsmState, value);
+        set
+        {
+            if (SetField(ref _fsmState, value))
+                OnPropertyChanged(nameof(IsReady));
+        }
     }
 
     /// <summary>Active error flags (CSI2_SYNC, FRAME_DROP, CRC_FAIL, TIMEOUT, OVERRUN).</summary>
     public string ErrorFlags
     {
         get => _errorFlags;
-        set => SetField(ref _errorFlags, value);
+        set
+        {
+            if (SetField(ref _errorFlags, value))
+                OnPropertyChanged(nameof(IsReady));
+        }
     }
 
     /// <summary>Indicates whether this module is ready for integration run.</summary>
     public bool IsReady => FsmState == "IDLE" && ErrorFlags == "None";
+
+    /// <summary>
+    /// Updates FSM state to reflect pipeline acquisition state.
+    /// Called by MainViewModel when IsAcquiring changes.
+    /// </summary>
+    public void UpdateFsmState(bool isAcquiring)
+    {
+        FsmState = isAcquiring ? "READOUT" : "IDLE";
+    }
+
+    /// <summary>
+    /// Advances FSM to FRAME_DONE when a frame has been processed.
+    /// Called by MainViewModel on each frame received.
+    /// </summary>
+    public void NotifyFrameProcessed()
+    {
+        if (FsmState == "READOUT")
+            FsmState = "FRAME_DONE";
+        else if (FsmState == "FRAME_DONE")
+            FsmState = "READOUT";
+    }
 }

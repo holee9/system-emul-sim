@@ -7,5 +7,6 @@
         <core:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <core:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
         <core:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+        <core:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
     </Application.Resources>
 </Application>

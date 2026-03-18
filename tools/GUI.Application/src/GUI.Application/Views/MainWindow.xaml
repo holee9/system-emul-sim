@@ -96,34 +96,39 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Module Status Indicators -->
+                <!-- Module Status Indicators — Foreground bound to IsReady via BoolToBrushConverter -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Panel" Foreground="#4CAF50" FontWeight="Bold"
-                               Margin="0,0,12,0" VerticalAlignment="Center"
+                    <TextBlock Text="● Panel"
+                               Foreground="{Binding PanelViewModel.IsReady, Converter={StaticResource BoolToBrushConverter}}"
+                               FontWeight="Bold" Margin="0,0,12,0" VerticalAlignment="Center"
                                AutomationProperties.AutomationId="ModuleStatusPanel"/>
-                    <TextBlock Text="FPGA" Foreground="#4CAF50" FontWeight="Bold"
-                               Margin="0,0,12,0" VerticalAlignment="Center"
+                    <TextBlock Text="● FPGA"
+                               Foreground="{Binding FpgaViewModel.IsReady, Converter={StaticResource BoolToBrushConverter}}"
+                               FontWeight="Bold" Margin="0,0,12,0" VerticalAlignment="Center"
                                AutomationProperties.AutomationId="ModuleStatusFpga"/>
-                    <TextBlock Text="SoC" Foreground="#4CAF50" FontWeight="Bold"
-                               Margin="0,0,12,0" VerticalAlignment="Center"
+                    <TextBlock Text="● SoC"
+                               Foreground="{Binding SocViewModel.IsReady, Converter={StaticResource BoolToBrushConverter}}"
+                               FontWeight="Bold" Margin="0,0,12,0" VerticalAlignment="Center"
                                AutomationProperties.AutomationId="ModuleStatusSoc"/>
-                    <TextBlock Text="ETH" Foreground="#4CAF50" FontWeight="Bold"
-                               Margin="0,0,12,0" VerticalAlignment="Center"
+                    <TextBlock Text="● ETH"
+                               Foreground="{Binding EthernetViewModel.IsReady, Converter={StaticResource BoolToBrushConverter}}"
+                               FontWeight="Bold" Margin="0,0,12,0" VerticalAlignment="Center"
                                AutomationProperties.AutomationId="ModuleStatusEth"/>
-                    <TextBlock Text="SDK" Foreground="#4CAF50" FontWeight="Bold"
-                               VerticalAlignment="Center"
+                    <TextBlock Text="● SDK"
+                               Foreground="{Binding SdkHostViewModel.IsReady, Converter={StaticResource BoolToBrushConverter}}"
+                               FontWeight="Bold" VerticalAlignment="Center"
                                AutomationProperties.AutomationId="ModuleStatusSdk"/>
                 </StackPanel>
 
-                <!-- Integrate & Run -->
+                <!-- Integrate & Run — bound to IntegrateAndRunCommand / StopAllCommand -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="Integrate and Run"
-                            Command="{Binding StartAcquisitionCommand}"
+                            Command="{Binding IntegrateAndRunCommand}"
                             Background="#4CAF50" Foreground="White"
                             FontWeight="Bold" Padding="16,4" Margin="0,0,8,0"
                             AutomationProperties.AutomationId="BtnIntegrateAndRun"/>
                     <Button Content="Stop All"
-                            Command="{Binding StopAcquisitionCommand}"
+                            Command="{Binding StopAllCommand}"
                             Background="#F44336" Foreground="White"
                             FontWeight="Bold" Padding="16,4"
                             AutomationProperties.AutomationId="BtnStopAll"/>

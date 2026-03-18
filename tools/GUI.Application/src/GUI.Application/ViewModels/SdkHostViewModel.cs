@@ -1,3 +1,4 @@
+using System.Windows.Input;
 using XrayDetector.Gui.Core;
 
 namespace XrayDetector.Gui.ViewModels;
@@ -19,6 +20,13 @@ public sealed class SdkHostViewModel : ObservableObject
     public SdkHostViewModel(StatusViewModel status)
     {
         Status = status ?? throw new ArgumentNullException(nameof(status));
+
+        // Subscribe to StatusViewModel changes to re-emit IsReady
+        Status.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(StatusViewModel.IsConnected))
+                OnPropertyChanged(nameof(IsReady));
+        };
     }
 
     /// <summary>
@@ -75,6 +83,30 @@ public sealed class SdkHostViewModel : ObservableObject
     /// <summary>Available client modes for ComboBox binding.</summary>
     public string[] ClientModes { get; } = ["SimulatedDetectorClient", "PipelineDetectorClient"];
 
+    /// <summary>Connect command — wired from MainViewModel.</summary>
+    public ICommand ConnectCommand { get; private set; } = new NoOpCommand();
+
+    /// <summary>Disconnect command — wired from MainViewModel.</summary>
+    public ICommand DisconnectCommand { get; private set; } = new NoOpCommand();
+
+    /// <summary>Wires SDK connect/disconnect commands from MainViewModel.</summary>
+    public void SetCommands(ICommand connect, ICommand disconnect)
+    {
+        ConnectCommand = connect;
+        DisconnectCommand = disconnect;
+        OnPropertyChanged(nameof(ConnectCommand));
+        OnPropertyChanged(nameof(DisconnectCommand));
+    }
+
     /// <summary>Indicates whether this module is ready for integration run.</summary>
     public bool IsReady => Status.IsConnected;
+
+    private sealed class NoOpCommand : ICommand
+    {
+#pragma warning disable CS0067
+        public event EventHandler? CanExecuteChanged;
+#pragma warning restore CS0067
+        public bool CanExecute(object? parameter) => false;
+        public void Execute(object? parameter) { }
+    }
 }
