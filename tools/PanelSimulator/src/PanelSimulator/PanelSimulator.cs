@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Common.Dto.Interfaces;
 using Common.Dto.Dtos;
 using PanelSimulator.Models;
+using PanelSimulator.Models.Physics;
+using PanelSimulator.Models.Readout;
 using PanelSimulator.Generators;
 
 namespace PanelSimulator;
@@ -61,28 +63,66 @@ public class PanelSimulator : ISimulator
             throw new InvalidOperationException("PanelSimulator is not initialized. Call Initialize first.");
         }
 
-        // Generate base test pattern
-        ushort[] pixels = _patternGenerators[_config.TestPattern].Generate(
-            _config.Cols,
-            _config.Rows,
-            _config.BitDepth,
-            _frameNumber);
+        ushort[] pixels;
 
-        // REQ-SIM-013: Counter mode bypasses noise and defect injection
-        if (_config.TestPattern != TestPattern.Counter)
+        if (_config.TestPattern == TestPattern.PhysicsBased)
         {
-            // Apply noise model
+            // Physics-based X-ray simulation: kVp/mAs → scintillator → gate → exposure
+            var scintillator = new ScintillatorModel(new ScintillatorConfig(
+                KVp: _config.KVp,
+                MAs: _config.MAs));
+            ushort[,] frame2D = scintillator.GenerateSignalFrame(_config.Rows, _config.Cols, _config.BitDepth);
+
+            var gateModel = new GateResponseModel(new GateResponseConfig());
+            frame2D = gateModel.ApplyGateResponse(frame2D, gateOn: true, exposureTimeMs: _config.ExposureTimeMs);
+
+            var exposureModel = new ExposureModel(new ExposureConfig(ExposureTimeMs: _config.ExposureTimeMs));
+            frame2D = exposureModel.ApplyExposureScaling(frame2D);
+
+            // Flatten 2D to 1D array
+            pixels = new ushort[_config.Rows * _config.Cols];
+            for (int r = 0; r < _config.Rows; r++)
+                for (int c = 0; c < _config.Cols; c++)
+                    pixels[r * _config.Cols + c] = frame2D[r, c];
+
+            // Apply noise and defects to physics frame
             if (_config.NoiseModel == NoiseModelType.Gaussian && _config.NoiseStdDev > 0)
             {
                 var noiseGenerator = new GaussianNoiseGenerator(_config.NoiseStdDev, _config.Seed + _frameNumber);
                 pixels = noiseGenerator.ApplyNoise(pixels);
             }
 
-            // Apply defects
             if (_config.DefectRate > 0)
             {
                 var defectMap = new DefectMap(_config.DefectRate, _config.Seed + _frameNumber);
                 pixels = defectMap.ApplyDefects(pixels);
+            }
+        }
+        else
+        {
+            // Generate base test pattern (Counter / Checkerboard / FlatField)
+            pixels = _patternGenerators[_config.TestPattern].Generate(
+                _config.Cols,
+                _config.Rows,
+                _config.BitDepth,
+                _frameNumber);
+
+            // REQ-SIM-013: Counter mode bypasses noise and defect injection
+            if (_config.TestPattern != TestPattern.Counter)
+            {
+                // Apply noise model
+                if (_config.NoiseModel == NoiseModelType.Gaussian && _config.NoiseStdDev > 0)
+                {
+                    var noiseGenerator = new GaussianNoiseGenerator(_config.NoiseStdDev, _config.Seed + _frameNumber);
+                    pixels = noiseGenerator.ApplyNoise(pixels);
+                }
+
+                // Apply defects
+                if (_config.DefectRate > 0)
+                {
+                    var defectMap = new DefectMap(_config.DefectRate, _config.Seed + _frameNumber);
+                    pixels = defectMap.ApplyDefects(pixels);
+                }
             }
         }
 

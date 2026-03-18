@@ -218,6 +218,11 @@ public sealed class SimulatorControlViewModel : ObservableObject
                 Cols = _panelCols,
                 BitDepth = _panelBitDepth
             },
+            Source = new SourceConfig
+            {
+                KVp = _panelKvp,
+                MAs = _panelMas
+            },
             Fpga = new FpgaConfig
             {
                 Csi2Lanes = 4,
@@ -247,6 +252,12 @@ public sealed class SimulatorControlViewModel : ObservableObject
             PanelRows = config.Panel.Rows;
             PanelCols = config.Panel.Cols;
             PanelBitDepth = config.Panel.BitDepth;
+        }
+
+        if (config?.Source != null)
+        {
+            if (config.Source.KVp > 0) PanelKvp = config.Source.KVp;
+            if (config.Source.MAs > 0) PanelMas = config.Source.MAs;
         }
 
         if (config?.Soc != null)

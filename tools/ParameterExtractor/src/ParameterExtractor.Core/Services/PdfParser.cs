@@ -33,7 +33,14 @@ public class PdfParser : IPdfParser
         "settle", "roic settle",
         "spi clock", "spi clk",
         "ethernet port", "mtu",
-        "buffer depth", "bram"
+        "buffer depth", "bram",
+        // Detector physics parameters (panel spec)
+        "scintillator", "light yield",
+        "quantum efficiency", "full well", "well capacity",
+        "gain",
+        // Defect and noise parameters (panel spec)
+        "defect rate", "dead pixel",
+        "noise std", "read noise"
     ];
 
     // Words that indicate a parameter is an instruction / warning / ESD text, not a value.
@@ -209,7 +216,12 @@ public class PdfParser : IPdfParser
         if (nameLower.Contains("pixel") || nameLower.Contains("pitch") ||
             nameLower.Contains("row") || nameLower.Contains("col") ||
             nameLower.Contains("bit") || nameLower.Contains("depth") ||
-            nameLower.Contains("dark current") || nameLower.Contains("noise"))
+            nameLower.Contains("dark current") || nameLower.Contains("noise") ||
+            nameLower.Contains("scintillator") || nameLower.Contains("light yield") ||
+            nameLower.Contains("quantum efficiency") || nameLower.Contains("full well") ||
+            nameLower.Contains("well capacity") || nameLower.Contains("defect rate") ||
+            nameLower.Contains("dead pixel") || nameLower.Contains("gain") ||
+            nameLower.Contains("read noise"))
         {
             return "panel";
         }

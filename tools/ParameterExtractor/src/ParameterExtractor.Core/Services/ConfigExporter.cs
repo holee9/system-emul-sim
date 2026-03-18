@@ -216,5 +216,6 @@ public class ConfigExporter : IConfigExporter
 
         if (nameLower.Contains("mtu") && param.NumericValue.HasValue)
             config.Controller!.Ethernet!.Mtu = (int)param.NumericValue.Value;
+
     }
 }

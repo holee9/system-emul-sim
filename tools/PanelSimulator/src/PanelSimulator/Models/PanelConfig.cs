@@ -46,6 +46,21 @@ public class PanelConfig
     /// REQ-SIM-003: Deterministic output for same input and configuration.
     /// </summary>
     public int Seed { get; set; }
+
+    /// <summary>
+    /// X-ray tube peak voltage in kilovolts (kVp). Used by PhysicsBased pattern.
+    /// </summary>
+    public double KVp { get; set; } = 80.0;
+
+    /// <summary>
+    /// X-ray tube current-time product in milliampere-seconds (mAs). Used by PhysicsBased pattern.
+    /// </summary>
+    public double MAs { get; set; } = 10.0;
+
+    /// <summary>
+    /// Gate integration/exposure time in milliseconds. Used by PhysicsBased pattern.
+    /// </summary>
+    public double ExposureTimeMs { get; set; } = 100.0;
 }
 
 /// <summary>
@@ -60,7 +75,10 @@ public enum TestPattern
     Checkerboard,
 
     /// <summary>Flat field (uniform value).</summary>
-    FlatField
+    FlatField,
+
+    /// <summary>Physics-based X-ray simulation using kVp/mAs parameters.</summary>
+    PhysicsBased
 }
 
 /// <summary>

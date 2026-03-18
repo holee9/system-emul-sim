@@ -27,9 +27,13 @@ public class DetectorConfig
     /// <summary>Simulation configuration section</summary>
     [YamlMember(Alias = "simulation")]
     public SimulationConfig? Simulation { get; set; }
+
+    /// <summary>X-ray source (acquisition condition) configuration section</summary>
+    [YamlMember(Alias = "source")]
+    public SourceConfig? Source { get; set; }
 }
 
-/// <summary>Panel detector configuration.</summary>
+/// <summary>Panel detector configuration (sensor panel spec only).</summary>
 public class PanelConfig
 {
     [YamlMember(Alias = "rows")]
@@ -43,6 +47,19 @@ public class PanelConfig
 
     [YamlMember(Alias = "pixel_pitch_um")]
     public double PixelPitchUm { get; set; }
+}
+
+/// <summary>X-ray source parameters (acquisition conditions, separate from panel spec).</summary>
+public class SourceConfig
+{
+    [YamlMember(Alias = "kvp")]
+    public double KVp { get; set; } = 80.0;
+
+    [YamlMember(Alias = "mas")]
+    public double MAs { get; set; } = 10.0;
+
+    [YamlMember(Alias = "exposure_time_ms")]
+    public double ExposureTimeMs { get; set; } = 100.0;
 }
 
 /// <summary>FPGA configuration.</summary>

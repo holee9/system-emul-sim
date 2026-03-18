@@ -108,7 +108,10 @@ public class SimulatorPipeline
             NoiseModel = NoiseModelType.None,
             NoiseStdDev = config.Simulation?.NoiseStdDev ?? 0,
             DefectRate = 0,
-            Seed = config.Simulation?.Seed ?? 42
+            Seed = config.Simulation?.Seed ?? 42,
+            KVp = config.Source?.KVp ?? 80.0,
+            MAs = config.Source?.MAs ?? 10.0,
+            ExposureTimeMs = config.Source?.ExposureTimeMs ?? 100.0
         };
         _panelSimulator.Initialize(panelConfig);
 
@@ -434,6 +437,7 @@ public class SimulatorPipeline
             "counter" => TestPattern.Counter,
             "checkerboard" => TestPattern.Checkerboard,
             "flatfield" or "flat_field" => TestPattern.FlatField,
+            "physicsbased" or "physics_based" => TestPattern.PhysicsBased,
             _ => TestPattern.Counter
         };
     }
