@@ -213,9 +213,26 @@ public class PdfParser : IPdfParser
     {
         var nameLower = parameterName.ToLowerInvariant();
 
-        if (nameLower.Contains("pixel") || nameLower.Contains("pitch") ||
+        // "gate" alone or "gate line/count/number" = gate line count (TFT rows) — panel spec.
+        // "gate fpc/pad/block/..." = FPC hardware structure — not panel simulation param.
+        bool isBareGate = nameLower == "gate" ||
+                          nameLower.Contains("gate line") ||
+                          nameLower.Contains("gate count") ||
+                          nameLower.Contains("number of gate");
+
+        // "gate timing/time/on/off/pulse" = readout timing — fpga.timing.
+        bool isGateTiming = nameLower.Contains("gate") &&
+                            (nameLower.Contains("time") || nameLower.Contains("timing") ||
+                             nameLower.Contains(" on") || nameLower.Contains(" off") ||
+                             nameLower.Contains("pulse"));
+
+        if (nameLower.Contains("pixel") ||
+            (nameLower.Contains("pitch") && nameLower.Contains("pixel")) ||  // pixel pitch only; not pad pitch
             nameLower.Contains("row") || nameLower.Contains("col") ||
-            nameLower.Contains("bit") || nameLower.Contains("depth") ||
+            isBareGate ||
+            nameLower == "source" || nameLower.Contains("source line") || nameLower.Contains("source count") ||
+            nameLower == "data" || nameLower.Contains("data line") ||
+            nameLower.Contains("bit depth") || nameLower.Contains("bit") || nameLower.Contains("depth") ||
             nameLower.Contains("dark current") || nameLower.Contains("noise") ||
             nameLower.Contains("scintillator") || nameLower.Contains("light yield") ||
             nameLower.Contains("quantum efficiency") || nameLower.Contains("full well") ||
@@ -226,7 +243,7 @@ public class PdfParser : IPdfParser
             return "panel";
         }
 
-        if (nameLower.Contains("timing") || nameLower.Contains("gate") ||
+        if (nameLower.Contains("timing") || isGateTiming ||
             nameLower.Contains("adc") || nameLower.Contains("settle") ||
             nameLower.Contains("line buffer") || nameLower.Contains("bram"))
         {

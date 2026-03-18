@@ -136,9 +136,19 @@ public class RuleValidator : IRuleValidator
             return (ValidationStatus.Valid, string.Empty);
         });
 
-        // Timing rules
+        // Timing rules — only apply to gate timing params, not gate line count (rows).
+        // Gate line count: category == "panel", bare name "gate" or "gate line".
+        // Gate timing: category == "fpga.timing" or name contains "time/timing/on/off/pulse".
         AddRule("gate", p =>
         {
+            var nameLower = p.Name.ToLowerInvariant();
+            bool isGateTiming = p.Category == "fpga.timing" ||
+                                 nameLower.Contains("time") || nameLower.Contains("timing") ||
+                                 nameLower.Contains(" on") || nameLower.Contains(" off") ||
+                                 nameLower.Contains("pulse");
+            if (!isGateTiming)
+                return (ValidationStatus.Valid, string.Empty);  // gate line count — not timing
+
             if (p.NumericValue.HasValue && p.NumericValue.Value <= 0)
             {
                 return (ValidationStatus.Error, "Gate timing must be greater than 0.");

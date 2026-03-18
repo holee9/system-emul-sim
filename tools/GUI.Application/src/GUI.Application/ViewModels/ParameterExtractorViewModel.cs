@@ -4,6 +4,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Text.Json;
 using System.Windows.Input;
 using IntegrationRunner.Core.Models;
 using Microsoft.Win32;
@@ -173,6 +174,9 @@ public sealed class ParameterExtractorViewModel : ObservableObject
 
                 var counts = ValidationCounts;
                 StatusMessage = $"Extracted {result.ExtractedCount} parameters: {counts.Valid} valid, {counts.Warning} warnings, {counts.Error} errors.";
+
+                // Write diagnostic file for autonomous verification
+                WriteDiagnosticFile(dialog.FileName, result.Parameters);
             }
             else
             {
@@ -213,6 +217,44 @@ public sealed class ParameterExtractorViewModel : ObservableObject
         ValidationSummary.Clear();
         SourceFilePath = string.Empty;
         StatusMessage = "Cleared. Load a PDF datasheet to extract parameters.";
+    }
+
+    /// <summary>
+    /// Diagnostic output path for autonomous verification.
+    /// </summary>
+    public static readonly string DiagnosticFilePath =
+        Path.Combine(Path.GetTempPath(), "xray_param_diagnostic.json");
+
+    private static void WriteDiagnosticFile(string sourceFile, IEnumerable<ParamExtractorModels.ParameterInfo> parameters)
+    {
+        try
+        {
+            var entries = parameters.Select(p => new
+            {
+                p.Name,
+                p.Category,
+                p.Value,
+                p.Unit,
+                NumericValue = p.NumericValue,
+                Status = p.ValidationStatus.ToString(),
+                p.ValidationMessage
+            }).ToList();
+
+            var doc = new
+            {
+                GeneratedAt = DateTime.Now.ToString("o"),
+                SourceFile = Path.GetFileName(sourceFile),
+                Count = entries.Count,
+                Parameters = entries
+            };
+
+            var json = JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(DiagnosticFilePath, json);
+        }
+        catch
+        {
+            // Non-critical — diagnostic output failure must not break the main flow
+        }
     }
 
     private void UpdateValidationSummary()

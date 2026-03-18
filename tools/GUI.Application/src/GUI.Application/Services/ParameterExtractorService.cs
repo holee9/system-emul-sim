@@ -90,39 +90,90 @@ public sealed class ParameterExtractorService
     /// <param name="parameters">Extracted parameter list.</param>
     /// <returns>DetectorConfig with populated values.</returns>
     // @MX:ANCHOR: 추출된 파라미터를 DetectorConfig로 변환 - ParameterExtractorViewModel에서 호출
+    // Uses keyword-based semantic matching because extracted parameter names come from raw
+    // PDF text (e.g. "gate", "Pixel pitch") and never match exact dictionary keys.
     public DetectorConfig ToDetectorConfig(IEnumerable<ParamExtractorModels.ParameterInfo> parameters)
     {
-        var paramDict = parameters
-            .Where(p => p.ValidationStatus == ParamExtractorModels.ValidationStatus.Valid || p.ValidationStatus == ParamExtractorModels.ValidationStatus.Warning)
-            .ToDictionary(p => p.Category + ":" + p.Name, p => p, StringComparer.OrdinalIgnoreCase);
+        var validParams = parameters
+            .Where(p => p.ValidationStatus == ParamExtractorModels.ValidationStatus.Valid ||
+                        p.ValidationStatus == ParamExtractorModels.ValidationStatus.Warning)
+            .ToList();
 
-        var config = new DetectorConfig();
+        var config = new DetectorConfig
+        {
+            Panel = new PanelConfig()
+        };
 
-        // Panel parameters
-        if (TryGetParam(paramDict, "panel", "Rows", out var rowsParam))
-            config.Panel ??= new PanelConfig();
-        if (TryGetParam(paramDict, "panel", "Rows", out var rowsVal) && rowsVal is not null && int.TryParse(rowsVal.Value, out var rows))
-            (config.Panel ??= new PanelConfig()).Rows = rows;
+        foreach (var param in validParams)
+        {
+            if (!param.NumericValue.HasValue) continue;
 
-        if (TryGetParam(paramDict, "panel", "Cols", out var colsVal) && colsVal is not null && int.TryParse(colsVal.Value, out var cols))
-            (config.Panel ??= new PanelConfig()).Cols = cols;
+            var nameLower = param.Name.ToLowerInvariant();
+            var val = param.NumericValue.Value;
 
-        if (TryGetParam(paramDict, "panel", "BitDepth", out var bitDepthVal) && bitDepthVal is not null && int.TryParse(bitDepthVal.Value, out var bitDepth))
-            (config.Panel ??= new PanelConfig()).BitDepth = bitDepth;
+            // Rows: bare "gate" = gate line count; or explicit row keywords.
+            // Exclude gate timing params (on/off/time/pulse) to avoid false mapping.
+            bool isGateTiming = nameLower.Contains("time") || nameLower.Contains("timing") ||
+                                  nameLower.Contains(" on") || nameLower.Contains(" off") ||
+                                  nameLower.Contains("pulse");
+            bool isGateLineCount = (nameLower == "gate" || nameLower.Contains("gate line") ||
+                                    nameLower.Contains("gate count") || nameLower.Contains("number of gate"))
+                                   && !isGateTiming;
+            if ((isGateLineCount || nameLower.Contains("row") || nameLower.Contains("num row")) &&
+                (int)val > 0)
+            {
+                config.Panel!.Rows = (int)val;
+                continue;
+            }
 
-        // FPGA parameters
-        if (TryGetParam(paramDict, "fpga", "Csi2Lanes", out var lanesVal) && lanesVal is not null && int.TryParse(lanesVal.Value, out var lanes))
-            (config.Fpga ??= new FpgaConfig()).Csi2Lanes = lanes;
+            // Cols: source line count or explicit column keywords.
+            if ((nameLower == "source" || nameLower.Contains("source line") ||
+                 nameLower.Contains("source count") || nameLower.Contains("number of source") ||
+                 nameLower == "data" || nameLower.Contains("data line") ||
+                 nameLower.Contains("num col") || nameLower.Contains("col")) &&
+                (int)val > 0)
+            {
+                config.Panel!.Cols = (int)val;
+                continue;
+            }
 
-        if (TryGetParam(paramDict, "fpga", "Csi2DataRateMbps", out var rateVal) && rateVal is not null && int.TryParse(rateVal.Value, out var rate))
-            (config.Fpga ??= new FpgaConfig()).Csi2DataRateMbps = rate;
+            // Pixel pitch — convert mm → um when needed.
+            if (nameLower.Contains("pixel") && nameLower.Contains("pitch"))
+            {
+                var pitchUm = string.Equals(param.Unit, "mm", StringComparison.OrdinalIgnoreCase)
+                    ? val * 1000.0
+                    : val;
+                config.Panel!.PixelPitchUm = pitchUm;
+                continue;
+            }
 
-        // SoC parameters
-        if (TryGetParam(paramDict, "controller", "FrameBufferCount", out var fbVal) && fbVal is not null && int.TryParse(fbVal.Value, out var fb))
-            (config.Soc ??= new SocConfig()).FrameBufferCount = fb;
+            // Bit depth
+            if ((nameLower.Contains("bit") && nameLower.Contains("depth")) ||
+                (nameLower.Contains("adc") && nameLower.Contains("bit")) ||
+                nameLower.Contains("bit depth"))
+            {
+                if ((int)val > 0) config.Panel!.BitDepth = (int)val;
+                continue;
+            }
 
-        if (TryGetParam(paramDict, "controller", "UdpPort", out var portVal) && portVal is not null && int.TryParse(portVal.Value, out var port))
-            (config.Soc ??= new SocConfig()).UdpPort = port;
+            // FPGA: CSI-2 lanes
+            if (nameLower.Contains("lane") && !nameLower.Contains("blank") &&
+                nameLower.Contains("csi") && (int)val > 0)
+            {
+                config.Fpga ??= new FpgaConfig();
+                config.Fpga.Csi2Lanes = (int)val;
+                continue;
+            }
+
+            // FPGA: CSI-2 data rate (Mbps)
+            if ((nameLower.Contains("data rate") || nameLower.Contains("mbps")) &&
+                (nameLower.Contains("csi") || nameLower.Contains("lane")))
+            {
+                config.Fpga ??= new FpgaConfig();
+                config.Fpga.Csi2DataRateMbps = (int)val;
+                continue;
+            }
+        }
 
         return config;
     }
@@ -211,9 +262,4 @@ public sealed class ParameterExtractorService
         return _pdfParser.CanParse(filePath);
     }
 
-    private static bool TryGetParam(Dictionary<string, ParamExtractorModels.ParameterInfo> dict, string category, string name, out ParamExtractorModels.ParameterInfo? param)
-    {
-        var key = category + ":" + name;
-        return dict.TryGetValue(key, out param);
-    }
 }
