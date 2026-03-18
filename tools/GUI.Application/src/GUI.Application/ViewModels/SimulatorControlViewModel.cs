@@ -23,6 +23,7 @@ public sealed class SimulatorControlViewModel : ObservableObject
     private const int DefaultBitDepth = 14;
     private const double DefaultKvp = 80.0;
     private const double DefaultMas = 1.0;
+    private const double DefaultPixelPitchUm = 100.0;
     private const int DefaultFrameBufferCount = 4;
     private const double DefaultPacketLossRate = 0.0;
     private const double DefaultReorderRate = 0.0;
@@ -36,6 +37,7 @@ public sealed class SimulatorControlViewModel : ObservableObject
     private int _panelBitDepth = DefaultBitDepth;
     private double _panelKvp = DefaultKvp;
     private double _panelMas = DefaultMas;
+    private double _panelPixelPitchUm = DefaultPixelPitchUm;
 
     // MCU parameters
     private int _frameBufferCount = DefaultFrameBufferCount;
@@ -91,6 +93,15 @@ public sealed class SimulatorControlViewModel : ObservableObject
     {
         get => _panelMas;
         set => SetField(ref _panelMas, value);
+    }
+
+    /// <summary>
+    /// Panel pixel pitch in micrometers (um). Extracted from PDF datasheet.
+    /// </summary>
+    public double PanelPixelPitchUm
+    {
+        get => _panelPixelPitchUm;
+        set => SetField(ref _panelPixelPitchUm, value);
     }
 
     /// <summary>
@@ -216,7 +227,8 @@ public sealed class SimulatorControlViewModel : ObservableObject
             {
                 Rows = _panelRows,
                 Cols = _panelCols,
-                BitDepth = _panelBitDepth
+                BitDepth = _panelBitDepth,
+                PixelPitchUm = _panelPixelPitchUm
             },
             Source = new SourceConfig
             {
@@ -252,6 +264,7 @@ public sealed class SimulatorControlViewModel : ObservableObject
             PanelRows = config.Panel.Rows;
             PanelCols = config.Panel.Cols;
             PanelBitDepth = config.Panel.BitDepth;
+            if (config.Panel.PixelPitchUm > 0) PanelPixelPitchUm = config.Panel.PixelPitchUm;
         }
 
         if (config?.Source != null)

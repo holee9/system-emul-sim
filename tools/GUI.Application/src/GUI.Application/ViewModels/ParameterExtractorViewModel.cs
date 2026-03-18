@@ -169,6 +169,9 @@ public sealed class ParameterExtractorViewModel : ObservableObject
                     Parameters.Add(param);
                 }
 
+                // REQ-GUI-016: Show "Not found — using default" for missing required params
+                EnsureRequiredParametersDisplayed(result.Parameters);
+
                 SourceFilePath = dialog.FileName;
                 UpdateValidationSummary();
 
@@ -254,6 +257,76 @@ public sealed class ParameterExtractorViewModel : ObservableObject
         catch
         {
             // Non-critical — diagnostic output failure must not break the main flow
+        }
+    }
+
+    // REQ-GUI-016: Required parameters with defaults (UAT: at least 6 params shown in Tab 3)
+    private static readonly (string Name, string Unit, string Default, Func<ParamExtractorModels.ParameterInfo, bool> Matcher)[] RequiredParameters =
+    [
+        ("Rows (Gate Lines)",   "lines", "1024", IsRowsParam),
+        ("Cols (Source Lines)", "lines", "1024", IsColsParam),
+        ("Bit Depth",           "bits",  "14",   IsBitDepthParam),
+        ("Pixel Pitch",         "um",    "100",  IsPixelPitchParam),
+        ("Max FPS",             "fps",   "15",   _ => false),
+        ("Noise Floor",         "e-",    "0",    _ => false),
+    ];
+
+    private static bool IsRowsParam(ParamExtractorModels.ParameterInfo p)
+    {
+        var n = p.Name.ToLowerInvariant();
+        bool isTiming = n.Contains("time") || n.Contains("timing") ||
+                        n.Contains(" on") || n.Contains(" off") || n.Contains("pulse");
+        return !isTiming && (n == "gate" || n.Contains("gate line") || n.Contains("gate count") ||
+                             n.Contains("number of gate") || n.Contains("row") || n.Contains("num row"));
+    }
+
+    private static bool IsColsParam(ParamExtractorModels.ParameterInfo p)
+    {
+        var n = p.Name.ToLowerInvariant();
+        return n == "source" || n.Contains("source line") || n.Contains("source count") ||
+               n.Contains("number of source") || n == "data" || n.Contains("data line") ||
+               n.Contains("num col") || n.Contains("col");
+    }
+
+    private static bool IsBitDepthParam(ParamExtractorModels.ParameterInfo p)
+    {
+        var n = p.Name.ToLowerInvariant();
+        return (n.Contains("bit") && n.Contains("depth")) ||
+               (n.Contains("adc") && n.Contains("bit")) ||
+               n.Contains("bit depth");
+    }
+
+    private static bool IsPixelPitchParam(ParamExtractorModels.ParameterInfo p)
+    {
+        var n = p.Name.ToLowerInvariant();
+        return n.Contains("pixel") && n.Contains("pitch");
+    }
+
+    /// <summary>
+    /// Adds "Not found — using default" entries for required parameters missing from extraction.
+    /// Implements REQ-GUI-016: unextracted parameters must show default value with "Not found" message.
+    /// </summary>
+    private void EnsureRequiredParametersDisplayed(IEnumerable<ParamExtractorModels.ParameterInfo> extractedParams)
+    {
+        var valid = extractedParams
+            .Where(p => p.ValidationStatus == ParamExtractorModels.ValidationStatus.Valid ||
+                        p.ValidationStatus == ParamExtractorModels.ValidationStatus.Warning)
+            .ToList();
+
+        foreach (var (name, unit, defaultVal, matcher) in RequiredParameters)
+        {
+            if (!valid.Any(matcher))
+            {
+                Parameters.Add(new ParamExtractorModels.ParameterInfo
+                {
+                    Name = name,
+                    Category = "panel/required",
+                    Value = defaultVal,
+                    Unit = unit,
+                    ValidationStatus = ParamExtractorModels.ValidationStatus.Pending,
+                    ValidationMessage = $"Not found — using default: {defaultVal} {unit}"
+                });
+            }
         }
     }
 
