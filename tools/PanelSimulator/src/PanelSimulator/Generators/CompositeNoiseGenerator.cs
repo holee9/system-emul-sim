@@ -37,6 +37,7 @@ public sealed class CompositeNoiseGenerator
     private readonly CompositeNoiseConfig _config;
     private readonly int _seed;
     private readonly double _electronsPerDN;
+    private readonly int _maxDN;
 
     /// <summary>
     /// Initializes a new instance of the CompositeNoiseGenerator.
@@ -68,8 +69,8 @@ public sealed class CompositeNoiseGenerator
             throw new ArgumentException("Noise floor must be non-negative.", nameof(config));
         }
 
-        double adcMax = (1 << _config.AdcBits) - 1;
-        _electronsPerDN = _config.FullWellCapacity / adcMax;
+        _maxDN = (1 << _config.AdcBits) - 1;
+        _electronsPerDN = _config.FullWellCapacity / _maxDN;
     }
 
     /// <summary>
@@ -123,7 +124,7 @@ public sealed class CompositeNoiseGenerator
         if (_config.EnableFlickerNoise && _config.FlickerNoiseAmplitude > 0)
         {
             var flickerRng = new Random(_seed + frameNumber * 3 + 2);
-            ApplyFlickerNoiseInPlace(working, flickerRng, rows, cols);
+            ApplyFlickerNoiseInPlace(working, flickerRng, rows, cols, _config.FlickerNoiseAmplitude);
         }
 
         // 5. Apply noise floor
@@ -132,7 +133,7 @@ public sealed class CompositeNoiseGenerator
             ApplyNoiseFloor(working, _config.NoiseFloorDN);
         }
 
-        return ConvertToUShort(working);
+        return ConvertToUShort(working, _maxDN);
     }
 
     /// <summary>
@@ -154,9 +155,9 @@ public sealed class CompositeNoiseGenerator
     }
 
     /// <summary>
-    /// Converts a double frame back to ushort with clamping.
+    /// Converts a double frame back to ushort with clamping to the ADC range [0, maxDN].
     /// </summary>
-    private static ushort[,] ConvertToUShort(double[,] frame)
+    private static ushort[,] ConvertToUShort(double[,] frame, int maxDN)
     {
         int rows = frame.GetLength(0);
         int cols = frame.GetLength(1);
@@ -165,7 +166,7 @@ public sealed class CompositeNoiseGenerator
         {
             for (int c = 0; c < cols; c++)
             {
-                result[r, c] = ClampToUShort(frame[r, c]);
+                result[r, c] = ClampToUShort(frame[r, c], maxDN);
             }
         }
         return result;
@@ -242,7 +243,8 @@ public sealed class CompositeNoiseGenerator
         double[,] frame,
         Random rng,
         int rows,
-        int cols)
+        int cols,
+        double flickerAmplitude)
     {
         // Generate row-correlated noise (same noise for entire row)
         double[] rowNoise = new double[rows];
@@ -266,7 +268,7 @@ public sealed class CompositeNoiseGenerator
                 double flickerNoise = (rowNoise[r] + colNoise[c]) * 0.5;
                 // Scale by signal level (multiplicative noise component)
                 double signalLevel = Math.Max(frame[r, c], 1.0);
-                frame[r, c] += flickerNoise * signalLevel * 0.005; // amplitude factor
+                frame[r, c] += flickerNoise * signalLevel * flickerAmplitude;
             }
         }
     }
@@ -301,12 +303,12 @@ public sealed class CompositeNoiseGenerator
     }
 
     /// <summary>
-    /// Clamps a double value to the ushort range [0, 65535].
+    /// Clamps a double value to [0, maxDN] where maxDN is determined by AdcBits.
     /// </summary>
-    private static ushort ClampToUShort(double value)
+    private static ushort ClampToUShort(double value, int maxDN = 65535)
     {
         if (value < 0) return 0;
-        if (value > 65535) return 65535;
+        if (value > maxDN) return (ushort)maxDN;
         return (ushort)Math.Round(value);
     }
 }
