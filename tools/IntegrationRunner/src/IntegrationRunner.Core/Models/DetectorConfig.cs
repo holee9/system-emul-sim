@@ -31,6 +31,10 @@ public class DetectorConfig
     /// <summary>X-ray source (acquisition condition) configuration section</summary>
     [YamlMember(Alias = "source")]
     public SourceConfig? Source { get; set; }
+
+    /// <summary>ROIC (Readout IC) voltage and noise configuration. REQ-PHY-004.</summary>
+    [YamlMember(Alias = "roic")]
+    public RoicConfig? Roic { get; set; }
 }
 
 /// <summary>Panel detector configuration (sensor panel spec only).</summary>
@@ -125,4 +129,64 @@ public class SimulationConfig
     /// </summary>
     [YamlMember(Alias = "max_frames")]
     public int MaxFrames { get; set; }
+
+    /// <summary>
+    /// Noise model: "none" | "gaussian" | "composite".
+    /// REQ-PHY-001: "composite" activates Poisson + Gaussian + FPN + 1/f noise.
+    /// </summary>
+    [YamlMember(Alias = "noise_model")]
+    public string NoiseModel { get; set; } = "none";
+
+    /// <summary>
+    /// Fixed Pattern Noise amplitude as percentage of signal (0 = disabled). REQ-PHY-003.
+    /// </summary>
+    [YamlMember(Alias = "fpn_amplitude_pct")]
+    public double FpnAmplitudePct { get; set; } = 1.5;
+
+    /// <summary>
+    /// Enable image lag (ghosting) simulation. REQ-PHY-006.
+    /// </summary>
+    [YamlMember(Alias = "enable_image_lag")]
+    public bool EnableImageLag { get; set; } = false;
+
+    /// <summary>
+    /// Image lag fraction (fraction of previous frame signal retained). REQ-PHY-006.
+    /// </summary>
+    [YamlMember(Alias = "image_lag_fraction")]
+    public double ImageLagFraction { get; set; } = 0.02;
+}
+
+/// <summary>
+/// ROIC (Readout IC) voltage and noise configuration.
+/// REQ-PHY-004: VGL/VGH/Vback voltage parameters for dark current and artifact simulation.
+/// </summary>
+public class RoicConfig
+{
+    /// <summary>Gate High voltage in volts (nominal 30V). Controls TFT ON state.</summary>
+    [YamlMember(Alias = "vgh_volts")]
+    public double VghVolts { get; set; } = 30.0;
+
+    /// <summary>Gate Low voltage in volts (nominal -10V). Controls TFT OFF state.</summary>
+    [YamlMember(Alias = "vgl_volts")]
+    public double VglVolts { get; set; } = -10.0;
+
+    /// <summary>Back-bias voltage in volts (nominal -15V). Affects dark current exponentially.</summary>
+    [YamlMember(Alias = "vback_volts")]
+    public double VbackVolts { get; set; } = -15.0;
+
+    /// <summary>Common voltage in volts (ADC virtual ground, nominal 2.5V).</summary>
+    [YamlMember(Alias = "vcom_volts")]
+    public double VcomVolts { get; set; } = 2.5;
+
+    /// <summary>Pixel reset voltage in volts (nominal 0V).</summary>
+    [YamlMember(Alias = "vreset_volts")]
+    public double VresetVolts { get; set; } = 0.0;
+
+    /// <summary>Electronic readout noise in electrons RMS. Reference: PaxScan 4030CB low-gain = 5948 e⁻.</summary>
+    [YamlMember(Alias = "readout_noise_electrons")]
+    public double ReadoutNoiseElectrons { get; set; } = 5948.0;
+
+    /// <summary>ROIC gain mode: "low" (default) or "high".</summary>
+    [YamlMember(Alias = "gain_mode")]
+    public string GainMode { get; set; } = "low";
 }

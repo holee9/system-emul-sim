@@ -6,12 +6,16 @@ namespace PanelSimulator.Models.Readout;
 /// Configuration for the gate response model.
 /// </summary>
 /// <param name="MaxExposureTimeMs">Maximum allowed exposure time in milliseconds.</param>
-/// <param name="DarkCurrentPerMs">Dark current contribution in DN per millisecond of exposure.</param>
+/// <param name="DarkCurrentPerMs">Dark current contribution in DN per millisecond (at nominal Vback=-15V, 25°C).</param>
 /// <param name="SaturationLevel">ADC saturation level (max DN value).</param>
+/// <param name="VbackVolts">Back-bias voltage in volts (negative, nominal -15V). REQ-PHY-004.</param>
+/// <param name="TemperatureCelsius">Detector temperature in Celsius. REQ-PHY-005.</param>
 public sealed record GateResponseConfig(
     double MaxExposureTimeMs = 200.0,
     double DarkCurrentPerMs = 0.5,
-    ushort SaturationLevel = 65535);
+    ushort SaturationLevel = 65535,
+    double VbackVolts = -15.0,
+    double TemperatureCelsius = 25.0);
 
 /// <summary>
 /// Models the gate (TFT switch) response of a flat-panel detector.
@@ -60,6 +64,22 @@ public sealed class GateResponseModel
     public GateResponseConfig Config => _config;
 
     /// <summary>
+    /// Calculates the dark current multiplier based on Vback voltage and temperature.
+    /// REQ-PHY-004: Vback model — Idark ∝ |Vback|² (power-law, REQ-PHY-004 requires ≥4× at -30V vs -15V).
+    /// REQ-PHY-005: Temperature model — Idark(T) = Idark(25°C) × 2^((T-25)/8).
+    /// At -30V vs -15V: (30/15)² = 4.0 (satisfies ≥4× requirement).
+    /// </summary>
+    /// <returns>Multiplier to apply to nominal dark current (1.0 at Vback=-15V, T=25°C).</returns>
+    public double CalculateDarkCurrentMultiplier()
+    {
+        double vbackAbs = Math.Abs(_config.VbackVolts);
+        double vbackNominal = 15.0;
+        double vbackMultiplier = Math.Pow(vbackAbs / vbackNominal, 2.0);
+        double tempMultiplier = Math.Pow(2.0, (_config.TemperatureCelsius - 25.0) / 8.0);
+        return vbackMultiplier * tempMultiplier;
+    }
+
+    /// <summary>
     /// Calculates the signal level in DN for given X-ray and gate parameters.
     /// When gateOn is false, returns dark current contribution only.
     /// When gateOn is true, signal is proportional to exposureTime * kVp^2 * mAs,
@@ -78,8 +98,8 @@ public sealed class GateResponseModel
                 "Exposure time must be non-negative.", nameof(exposureTimeMs));
         }
 
-        // Dark current is always present, proportional to exposure time
-        double darkCurrent = _config.DarkCurrentPerMs * exposureTimeMs;
+        // Dark current is always present; scaled by Vback and temperature (REQ-PHY-004, REQ-PHY-005)
+        double darkCurrent = _config.DarkCurrentPerMs * exposureTimeMs * CalculateDarkCurrentMultiplier();
 
         if (!gateOn)
         {
@@ -121,7 +141,7 @@ public sealed class GateResponseModel
         int cols = frame.GetLength(1);
         var result = new ushort[rows, cols];
 
-        double darkCurrent = _config.DarkCurrentPerMs * exposureTimeMs;
+        double darkCurrent = _config.DarkCurrentPerMs * exposureTimeMs * CalculateDarkCurrentMultiplier();
 
         if (!gateOn)
         {

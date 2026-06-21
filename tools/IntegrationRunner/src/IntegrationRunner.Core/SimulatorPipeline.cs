@@ -105,13 +105,25 @@ public class SimulatorPipeline
             Cols = cols,
             BitDepth = bitDepth,
             TestPattern = ParseTestPattern(config.Simulation?.TestPattern ?? "counter"),
-            NoiseModel = NoiseModelType.None,
+            NoiseModel = ParseNoiseModel(config.Simulation?.NoiseModel ?? "none"),
             NoiseStdDev = config.Simulation?.NoiseStdDev ?? 0,
             DefectRate = 0,
             Seed = config.Simulation?.Seed ?? 42,
             KVp = config.Source?.KVp ?? 80.0,
             MAs = config.Source?.MAs ?? 10.0,
-            ExposureTimeMs = config.Source?.ExposureTimeMs ?? 100.0
+            ExposureTimeMs = config.Source?.ExposureTimeMs ?? 100.0,
+            // ROIC voltage parameters (REQ-PHY-004)
+            VbackVolts = config.Roic?.VbackVolts ?? -15.0,
+            VglVolts = config.Roic?.VglVolts ?? -10.0,
+            VghVolts = config.Roic?.VghVolts ?? 30.0,
+            ReadoutNoiseElectrons = config.Roic?.ReadoutNoiseElectrons ?? 5948.0,
+            // Panel temperature (REQ-PHY-005)
+            TemperatureCelsius = 25.0,
+            // Noise quality parameters (REQ-PHY-003)
+            FpnAmplitudePct = config.Simulation?.FpnAmplitudePct ?? 1.5,
+            // Image lag (REQ-PHY-006)
+            EnableImageLag = config.Simulation?.EnableImageLag ?? false,
+            ImageLagFraction = config.Simulation?.ImageLagFraction ?? 0.02
         };
         _panelSimulator.Initialize(panelConfig);
 
@@ -439,6 +451,14 @@ public class SimulatorPipeline
         }
         return result;
     }
+
+    private static NoiseModelType ParseNoiseModel(string model) =>
+        model.ToLowerInvariant() switch
+        {
+            "gaussian" => NoiseModelType.Gaussian,
+            "composite" => NoiseModelType.Composite,
+            _ => NoiseModelType.None
+        };
 
     private static TestPattern ParseTestPattern(string pattern)
     {

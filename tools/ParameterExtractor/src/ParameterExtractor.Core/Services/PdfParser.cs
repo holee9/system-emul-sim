@@ -40,7 +40,16 @@ public class PdfParser : IPdfParser
         "gain",
         // Defect and noise parameters (panel spec)
         "defect rate", "dead pixel",
-        "noise std", "read noise"
+        "noise std", "read noise",
+        // ROIC voltage parameters (REQ-PHY-010) — may appear in ROIC datasheet sections
+        "vgh", "gate high voltage", "gate high",
+        "vgl", "gate low voltage", "gate low",
+        "vback", "back bias", "back-bias", "substrate bias", "reverse bias",
+        "vcom", "common voltage",
+        "vreset", "reset voltage",
+        // Thermal and dark current parameters
+        "leakage current", "dark current", "temperature",
+        "image lag", "lag fraction"
     ];
 
     // Words that indicate a parameter is an instruction / warning / ESD text, not a value.

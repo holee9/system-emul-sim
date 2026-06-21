@@ -136,6 +136,32 @@ W1  W2  W3  W4  W5  W6  W7  W8  W9  W10 W11 W12 W13 W14 W15 W16 W17 W18 W19 W20 
 
 ---
 
+### M2.5: Realistic Physics Simulation (SPEC-PHY-001) — Added 2026-03-18
+
+**Status**: Planned (Research Complete)
+
+**Background**: UltraThink 딥 리서치(2026-03-18)를 통해 ROIC 벤더별 dark/bright 영상 특성과 TFT 전압 파라미터(VGL/VGH/Vback) 영향이 규명됨. 현재 PanelSimulator의 mock 영상은 고정 패턴으로 비현실적이므로 물리 기반 노이즈 모델이 필요함.
+
+**Deliverables**:
+- REQ-PHY-001: CompositeNoiseGenerator 파이프라인 통합 (dark + shot + readout + FPN + 1/f)
+- REQ-PHY-002: Poisson 광자 샷 노이즈 (신호 의존, σ = √signal)
+- REQ-PHY-003: Fixed Pattern Noise Map (열/행/픽셀 3단계, seed 기반 재현 가능)
+- REQ-PHY-004: ROIC 전압 파라미터 (VGL/VGH/Vback) → 암전류 지수 모델, 스트라이프 아티팩트
+- REQ-PHY-005: 온도 의존 암전류 (Idark(T) = Idark(25°C) × 2^((T-25)/8))
+- REQ-PHY-006: LagModel 파이프라인 통합 (5% 첫 프레임 랙, tau=50ms)
+- REQ-PHY-009: detector_config.yaml `roic:` 섹션 신설
+- REQ-PHY-010: ParameterExtractor — VGL/VGH/Vback 추출 시도
+
+**Gate Criteria**:
+- 연속 PhysicsBased 프레임에서 픽셀값 분산 > 0 (랜덤 노이즈 확인)
+- Dark frame 히스토그램: Gaussian 분포 확인
+- Vback -30V: 암전류가 -15V 대비 ≥ 4배 증가
+- Unit test coverage ≥ 85% (PHY-T01~T07)
+
+**Reference**: docs/specs/SPEC-PHY-001-realistic-sensor-noise.md
+
+---
+
 ### M5: Code Generator v1 (W23)
 
 **Status**: Planned
@@ -146,6 +172,7 @@ W1  W2  W3  W4  W5  W6  W7  W8  W9  W10 W11 W12 W13 W14 W15 W16 W17 W18 W19 W20 
 - CodeGenerator produces SDK classes that compile with dotnet
 - ConfigConverter generates .xdc, .dts, .json from detector_config.yaml
 - ParameterExtractor GUI functional for PDF parsing
+- ParameterExtractor: VGL/VGH/Vback 전압 파라미터 추출 (REQ-PHY-010)
 
 **Gate Criteria**:
 - All generated code compiles without errors
@@ -309,5 +336,6 @@ W1  W2  W3  W4  W5  W6  W7  W8  W9  W10 W11 W12 W13 W14 W15 W16 W17 W18 W19 W20 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-17 | ABYZ-Lab Agent (architect) | Initial project roadmap |
+| 1.1.0 | 2026-03-18 | ABYZ-Lab (UltraThink research) | M2.5 추가: SPEC-PHY-001 현실적 노이즈 모델 (ROIC dark/bright + TFT 전압 파라미터) |
 
 ---

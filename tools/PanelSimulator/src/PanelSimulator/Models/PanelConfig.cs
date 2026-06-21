@@ -61,6 +61,55 @@ public class PanelConfig
     /// Gate integration/exposure time in milliseconds. Used by PhysicsBased pattern.
     /// </summary>
     public double ExposureTimeMs { get; set; } = 100.0;
+
+    // ── ROIC Voltage Parameters (REQ-PHY-004) ──────────────────────────────
+
+    /// <summary>
+    /// Gate High voltage in volts. Nominal: 30V. Controls TFT ON state.
+    /// Out-of-range → horizontal stripe artifact.
+    /// </summary>
+    public double VghVolts { get; set; } = 30.0;
+
+    /// <summary>
+    /// Gate Low voltage in volts. Nominal: -10V. Controls TFT OFF state.
+    /// Insufficient negative voltage → vertical stripe leakage artifact.
+    /// </summary>
+    public double VglVolts { get; set; } = -10.0;
+
+    /// <summary>
+    /// Back-bias (reverse bias) voltage in volts. Nominal: -15V.
+    /// Affects dark current exponentially: Idark ∝ |Vback|^2.
+    /// </summary>
+    public double VbackVolts { get; set; } = -15.0;
+
+    /// <summary>
+    /// Detector temperature in Celsius. Affects dark current: Idark(T) = Idark(25°C) × 2^((T-25)/8).
+    /// </summary>
+    public double TemperatureCelsius { get; set; } = 25.0;
+
+    // ── Composite Noise Parameters (REQ-PHY-001 ~ REQ-PHY-003) ─────────────
+
+    /// <summary>
+    /// Electronic readout noise in electrons RMS. Reference: PaxScan 4030CB low-gain = 5948 e⁻.
+    /// </summary>
+    public double ReadoutNoiseElectrons { get; set; } = 5948.0;
+
+    /// <summary>
+    /// Fixed Pattern Noise amplitude as percentage of signal (1-3% typical). REQ-PHY-003.
+    /// </summary>
+    public double FpnAmplitudePct { get; set; } = 1.5;
+
+    // ── Image Lag Parameters (REQ-PHY-006) ─────────────────────────────────
+
+    /// <summary>
+    /// Enable image lag (ghosting) simulation. Default: false.
+    /// </summary>
+    public bool EnableImageLag { get; set; } = false;
+
+    /// <summary>
+    /// Fraction of previous frame signal retained (image lag). Typical: 0.02-0.10.
+    /// </summary>
+    public double ImageLagFraction { get; set; } = 0.02;
 }
 
 /// <summary>
@@ -96,5 +145,11 @@ public enum NoiseModelType
     Poisson,
 
     /// <summary>Uniform distribution noise (optional per REQ-SIM-070).</summary>
-    Uniform
+    Uniform,
+
+    /// <summary>
+    /// Composite noise model: Poisson (shot) + Gaussian (readout) + 1/f (flicker).
+    /// REQ-PHY-001: Realistic X-ray detector noise for PhysicsBased pattern.
+    /// </summary>
+    Composite
 }

@@ -114,6 +114,33 @@ $env:XRAY_E2E_DEBUG="1"
 dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/ --filter "FullyQualifiedName~Unit"
 ```
 
+### E2E Proof-of-Operation Verification
+
+Launches the real GUI.Application and auto-clicks through all 6 tabs to verify features are implemented without XAML crashes. No hardware required (mock services used automatically via `XRAY_E2E_MODE=true`). Requires interactive Windows desktop session.
+
+```powershell
+# ★ One-step: build + full E2E verification
+.\tools\GUI.Application\scripts\e2e-verify.ps1 -Build
+
+# Quick re-run (already built)
+.\tools\GUI.Application\scripts\e2e-verify.ps1
+
+# Tab crash detection only
+.\tools\GUI.Application\scripts\e2e-verify.ps1 -Filter "TabRender"
+
+# Direct run (detailed output)
+dotnet test tools/GUI.Application/tests/GUI.Application.E2ETests/ -c Debug
+```
+
+**What gets verified:**
+
+| Target | Verification |
+|--------|-------------|
+| All 6 tabs (Panel/FPGA/SoC/Ethernet/HostPC/Console) | Navigate and confirm no XAML crash |
+| Key controls per tab | AutomationId element existence check |
+| Button actions | `InvokePattern.Invoke()` focus-independent click |
+| Failure diagnosis | Auto screenshot + UIA tree dump (`TestResults/Screenshots/`) |
+
 | 환경 변수 | 기본값 | 설명 |
 |-----------|--------|------|
 | `XRAY_E2E_FORCE=1` | - | 비대화형 환경에서도 강제 실행 |
